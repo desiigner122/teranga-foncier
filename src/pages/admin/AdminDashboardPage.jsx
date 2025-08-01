@@ -2,47 +2,41 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-// --- CORRECTION : Ajout de LayoutDashboard et PieChartIcon ---
 import {
-  Users, MapPin, FileCheck, DollarSign, Activity, BarChart as BarChartIcon, LayoutDashboard, PieChart as PieChartIcon, LandPlot
-} from 'lucide-react';
+  Users, LandPlot, FileCheck, DollarSign, LayoutDashboard, PieChart as PieChartIcon
+} from 'lucide-react'; // <-- CORRECTION: Ajout de LayoutDashboard et PieChartIcon
 import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
 import { useToast } from "@/components/ui/use-toast";
 import { ResponsiveContainer, BarChart, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 
-// Les composants SimpleBarChart et SimplePieChart restent les mêmes...
-const SimpleBarChart = ({ data, dataKey, labelKey, barColor, title }) => (
-    <div className="h-[250px] w-full">
-        <h3 className="text-sm font-semibold text-center mb-2">{title}</h3>
-        <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                <XAxis dataKey={labelKey} tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value) => `${new Intl.NumberFormat('fr-FR').format(value)} ${dataKey === 'amount' ? 'XOF' : ''}`} />
-                <Bar dataKey={dataKey} fill={barColor} radius={[4, 4, 0, 0]} />
-            </RechartsBarChart>
-        </ResponsiveContainer>
-    </div>
-);
+// Composant de graphique en secteurs simple (réutilisable)
 const SimplePieChart = ({ data, title }) => {
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-    return (
-        <div className="h-[250px] w-full flex flex-col items-center justify-center">
-            <h3 className="text-sm font-semibold text-center mb-2">{title}</h3>
-            <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                    <Pie data={data} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                        {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip formatter={(value, name) => [value, name]} />
-                    <Legend />
-                </PieChart>
-            </ResponsiveContainer>
-        </div>
-    );
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  return (
+    <div className="h-[250px] w-full flex flex-col items-center justify-center">
+      <h3 className="text-sm font-semibold text-center mb-2">{title}</h3>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            outerRadius={80}
+            fill="#8884d8"
+            dataKey="value"
+            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+          >
+            {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+          </Pie>
+          <Tooltip formatter={(value, name) => [value, name]} />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
 };
-
 
 const AdminDashboardPage = () => {
   const [loading, setLoading] = useState(true);
@@ -52,16 +46,16 @@ const AdminDashboardPage = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const { data: users, error: usersError } = await supabase.from('users').select('id', { count: 'exact', head: true });
+      const { data: users, error: usersError, count: usersCount } = await supabase.from('users').select('id', { count: 'exact', head: true });
       if (usersError) throw usersError;
 
-      const { data: parcels, error: parcelsError } = await supabase.from('parcels').select('status', { count: 'exact' });
+      const { data: parcels, error: parcelsError } = await supabase.from('parcels').select('status');
       if (parcelsError) throw parcelsError;
 
-      const { data: requests, error: requestsError } = await supabase.from('requests').select('id', { count: 'exact', head: true });
+      const { data: requests, error: requestsError, count: requestsCount } = await supabase.from('requests').select('id', { count: 'exact', head: true });
       if (requestsError) throw requestsError;
 
-      const { data: transactions, error: transactionsError } = await supabase.from('transactions').select('amount', { count: 'exact' }).eq('status', 'completed');
+      const { data: transactions, error: transactionsError } = await supabase.from('transactions').select('amount').eq('status', 'completed');
       if (transactionsError) throw transactionsError;
 
       const parcelStatusMap = (parcels || []).reduce((acc, parcel) => {
@@ -73,10 +67,10 @@ const AdminDashboardPage = () => {
       const totalSalesAmount = (transactions || []).reduce((sum, t) => sum + t.amount, 0);
 
       setReportData({
-        totalUsers: users?.count || 0,
-        totalParcels: parcels?.length || 0,
-        totalRequests: requests?.count || 0,
-        totalSalesAmount: totalSalesAmount,
+        totalUsers: usersCount || 0,
+        totalParcels: (parcels || []).length,
+        totalRequests: requestsCount || 0,
+        totalSalesAmount,
         parcelStatus
       });
 
@@ -112,6 +106,7 @@ const AdminDashboardPage = () => {
             <SimplePieChart data={reportData.parcelStatus} title="Répartition par statut" />
           </CardContent>
         </Card>
+        {/* Vous pouvez ajouter d'autres graphiques ici */}
       </div>
     </motion.div>
   );
