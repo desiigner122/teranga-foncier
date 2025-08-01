@@ -1,80 +1,129 @@
 // src/pages/VerificationPage.jsx
 import React, { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import LoadingSpinner from '@/components/ui/spinner';
-import { ShieldCheck, AlertTriangle } from 'lucide-react';
-
-const UploadForm = ({ onFileChange, onSubmit, loading }) => (
-    <Card className="w-full max-w-md"><CardHeader><CardTitle>Vérification de votre compte</CardTitle><CardDescription>Pour activer votre compte, veuillez soumettre une copie de votre carte d'identité (recto et verso).</CardDescription></CardHeader><CardContent className="space-y-6"><div className="space-y-2"><Label htmlFor="front-id">Recto de la carte d'identité</Label><Input id="front-id" type="file" onChange={(e) => onFileChange(e, 'front')} required /></div><div className="space-y-2"><Label htmlFor="back-id">Verso de la carte d'identité</Label><Input id="back-id" type="file" onChange={(e) => onFileChange(e, 'back')} required /></div><Button onClick={onSubmit} disabled={loading} className="w-full">{loading ? <LoadingSpinner size="small" /> : 'Soumettre pour vérification'}</Button></CardContent></Card>
-);
+import { useToast } from "@/components/ui/use-toast";
+import { Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const VerificationPage = () => {
+  const [frontFile, setFrontFile] = useState(null);
+  const [backFile, setBackFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
-  const [frontIdFile, setFrontIdFile] = useState(null);
-  const [backIdFile, setBackIdFile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleFileChange = (e, side) => {
-    if (e.target.files && e.target.files[0]) {
-      if (side === 'front') setFrontIdFile(e.target.files[0]);
-      else setBackIdFile(e.target.files[0]);
-    }
+  const bucketPublicUrl = supabase.storage.from('identity-documents').publicUrl; // Remplacez par l'URL publique correcte si nécessaire
+
+  const handleFileUpload = async (file, type) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
+    const { error: uploadError } = await supabase.storage
+      .from('identity-documents')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+    if (uploadError) throw uploadError;
+    return fileName;
   };
 
-  const handleUpload = async () => {
-    if (!frontIdFile || !backIdFile || !user) {
-      toast({ variant: "destructive", title: "Erreur", description: "Veuillez sélectionner les deux fichiers." });
-      return;
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
+    setError('');
+
     try {
-      const frontFilePath = `${user.id}/${Date.now()}_front.png`;
-      await supabase.storage.from('verification_documents').upload(frontFilePath, frontIdFile);
-      const { data: frontUrlData } = supabase.storage.from('verification_documents').getPublicUrl(frontFilePath);
-
-      const backFilePath = `${user.id}/${Date.now()}_back.png`;
-      await supabase.storage.from('verification_documents').upload(backFilePath, backIdFile);
-      const { data: backUrlData } = supabase.storage.from('verification_documents').getPublicUrl(backFilePath);
-
-      await supabase.from('users').update({
-          id_card_front_url: frontUrlData.publicUrl,
-          id_card_back_url: backUrlData.publicUrl,
-          verification_status: 'pending',
-      }).eq('id', user.id);
-      
-      toast({ title: "Documents soumis", description: "Votre compte est en cours de vérification." });
-      
-      // Appel d'une Edge Function pour envoyer un email (plus sécurisé en production)
-      // await supabase.functions.invoke('send-verification-email', {
-      //   body: { email: user.email, name: user.full_name, type: 'submission' },
-      // })
-      
-      if (refreshUser) {
-        await refreshUser();
+      if (!frontFile || !backFile) {
+        throw new Error('Veuillez fournir les deux côtés de votre carte d\'identité.');
       }
 
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erreur d'envoi", description: error.message });
+      // Étape 1 : Télécharger les fichiers
+      const frontPath = await handleFileUpload(frontFile, 'front');
+      const backPath = await handleFileUpload(backFile, 'back');
+
+      // Étape 2 : Mettre à jour le profil utilisateur
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          id_card_front_url: `${bucketPublicUrl}/${frontPath}`,
+          id_card_back_url: `${bucketPublicUrl}/${backPath}`,
+          verification_status: 'pending',
+        })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Étape 3 : Rafraîchir l'état de l'utilisateur
+      await refreshUser();
+
+      toast({ title: "Documents envoyés !", description: "Votre demande est en attente de vérification." });
+      navigate('/dashboard'); // Rediriger vers le tableau de bord
+
+    } catch (err) {
+      setError(err.message || "Une erreur est survenue lors de l'envoi des documents.");
     } finally {
       setLoading(false);
     }
   };
 
-  const renderContent = () => {
-    switch (user?.verification_status) {
-      case 'pending': return ( <Card className="w-full max-w-md text-center p-8"><CardHeader><ShieldCheck className="mx-auto h-12 w-12 text-yellow-500" /><CardTitle className="mt-4">Vérification en cours</CardTitle></CardHeader><CardContent><p className="text-muted-foreground">Vos documents sont en cours d'examen. Vous recevrez un e-mail une fois la vérification terminée.</p></CardContent></Card> );
-      case 'rejected': return ( <div className="w-full max-w-md space-y-4"><div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4"><div className="flex items-center"><AlertTriangle className="h-6 w-6 mr-3" /><div><p className="font-bold">Vérification Rejetée</p><p className="text-sm">Veuillez réessayer avec des images claires.</p></div></div></div><UploadForm onFileChange={handleFileChange} onSubmit={handleUpload} loading={loading} /></div> );
-      default: return <UploadForm onFileChange={handleFileChange} onSubmit={handleUpload} loading={loading} />;
-    }
-  };
+  if (!user) {
+    return <div>Chargement...</div>;
+  }
 
-  return <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">{renderContent()}</div>;
+  if (user.verification_status === 'verified') {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-center min-h-screen px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle>Vérification Complète</CardTitle>
+            <CardDescription>Votre compte est déjà vérifié.</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4"/>
+            <Button onClick={() => navigate('/dashboard')}>Aller au tableau de bord</Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center min-h-screen px-4 py-12">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle>Vérification d'Identité</CardTitle>
+          <CardDescription>Veuillez soumettre les documents requis pour vérifier votre compte.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="front">Recto de la carte d'identité</Label>
+              <Input id="front" type="file" accept="image/*" onChange={(e) => setFrontFile(e.target.files[0])} disabled={loading} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="back">Verso de la carte d'identité</Label>
+              <Input id="back" type="file" accept="image/*" onChange={(e) => setBackFile(e.target.files[0])} disabled={loading} />
+            </div>
+            {error && (
+              <div className="flex items-center p-3 bg-destructive/10 text-destructive text-sm rounded-md">
+                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0"/>
+                <span>{error}</span>
+              </div>
+            )}
+            <Button type="submit" className="w-full" disabled={loading || !frontFile || !backFile}>
+              {loading ? 'Envoi en cours...' : <><Upload className="mr-2 h-4 w-4"/>Envoyer les documents</>}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 };
+
 export default VerificationPage;

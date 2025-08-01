@@ -1,65 +1,74 @@
-// src/pages/LoginPage.jsx
+// src/pages/RegisterPage.jsx
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/components/ui/use-toast";
-import { LogIn, AlertCircle } from 'lucide-react';
+import { UserPlus, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [type, setType] = useState('Particulier'); // Exemple : menu déroulant pour type
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
 
-  const from = location.state?.from?.pathname || "/dashboard";
-
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Étape 1 : Créer le compte dans Supabase Auth
+      const { data: { user }, error: authError } = await supabase.auth.signUp({
         email,
         password,
       });
 
-      if (error) throw error;
-      
-      toast({ title: "Connexion réussie !" });
-      navigate(from, { replace: true });
+      if (authError) throw authError;
+
+      // Étape 2 : Créer le profil dans la table users
+      const { error: profileError } = await supabase.from('users').insert({
+        id: user.id, // Utiliser l'ID de l'utilisateur Supabase
+        email,
+        full_name: fullName,
+        type,
+        verification_status: 'not_verified',
+        created_at: new Date().toISOString(),
+      });
+
+      if (profileError) throw profileError;
+
+      toast({ title: "Inscription réussie !", description: "Veuillez vérifier votre email." });
+      navigate('/verify'); // Rediriger vers la page de vérification
 
     } catch (err) {
-      const errorMessage = err.message.includes("Invalid login credentials")
-        ? "Email ou mot de passe incorrect."
-        : "Une erreur est survenue. Veuillez vérifier vos informations.";
-      setError(errorMessage);
+      setError(err.message || "Une erreur est survenue lors de l'inscription.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-center min-h-screen px-4 py-12"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center min-h-screen px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Connexion</CardTitle>
-          <CardDescription>Accédez à votre espace Teranga Foncier</CardDescription>
+          <CardTitle className="text-2xl font-bold">Inscription</CardTitle>
+          <CardDescription>Créez votre compte Teranga Foncier</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Nom complet</Label>
+              <Input id="fullName" type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={loading} />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
@@ -68,6 +77,16 @@ const LoginPage = () => {
               <Label htmlFor="password">Mot de passe</Label>
               <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="type">Type de compte</Label>
+              <select id="type" value={type} onChange={(e) => setType(e.target.value)} disabled={loading} className="w-full p-2 border rounded">
+                <option value="Particulier">Particulier</option>
+                <option value="Vendeur">Vendeur</option>
+                <option value="Mairie">Mairie</option>
+                <option value="Banque">Banque</option>
+                <option value="Notaire">Notaire</option>
+              </select>
+            </div>
             {error && (
               <div className="flex items-center p-3 bg-destructive/10 text-destructive text-sm rounded-md">
                 <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0"/>
@@ -75,14 +94,14 @@ const LoginPage = () => {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Connexion en cours...' : 'Se Connecter'}
+              {loading ? 'Inscription en cours...' : 'S\'inscrire'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="text-center text-sm">
           <p className="w-full">
-            Pas encore de compte ?{" "}
-            <Link to="/register" className="font-medium text-primary hover:underline">S'inscrire</Link>
+            Déjà un compte ?{" "}
+            <Link to="/login" className="font-medium text-primary hover:underline">Se connecter</Link>
           </p>
         </CardFooter>
       </Card>
@@ -90,4 +109,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
