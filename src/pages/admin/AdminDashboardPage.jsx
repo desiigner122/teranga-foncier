@@ -21,7 +21,6 @@ const SimplePieChart = ({ data, title }) => {
             {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
           </Pie>
           <Tooltip formatter={(value, name) => [value, name]} />
-          <Legend />
         </PieChart>
       </ResponsiveContainer>
     </div>
@@ -60,6 +59,8 @@ const AdminDashboardPage = () => {
   const { toast } = useToast();
 
   const fetchData = useCallback(async () => {
+    // Note pour l'avenir : Si les performances ralentissent, ces calculs
+    // peuvent être déplacés vers une fonction RPC Supabase pour plus d'efficacité.
     try {
       const [usersRes, parcelsRes, requestsRes, transactionsRes, contractsRes] = await Promise.all([
         supabase.from('users').select('created_at, role, type, id, assigned_agent_id'),
@@ -87,7 +88,6 @@ const AdminDashboardPage = () => {
       }, {});
       const parcelStatus = Object.keys(parcelStatusMap).map(s => ({ name: s, value: parcelStatusMap[s] }));
 
-      // Calcul des ventes mensuelles (exemple)
       const monthlySalesMap = transactions
         .filter(t => t.status === 'completed')
         .reduce((acc, t) => {
@@ -161,48 +161,30 @@ const AdminDashboardPage = () => {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Utilisateurs</CardTitle>
-            <Users className="h-5 w-5 text-blue-500" />
-          </CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Utilisateurs</CardTitle><Users className="h-5 w-5 text-blue-500" /></CardHeader>
           <CardContent><div className="text-2xl font-bold">{reportData.totalUsers}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Parcelles</CardTitle>
-            <LandPlot className="h-5 w-5 text-green-500" />
-          </CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Parcelles</CardTitle><LandPlot className="h-5 w-5 text-green-500" /></CardHeader>
           <CardContent><div className="text-2xl font-bold">{reportData.totalParcels}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Demandes</CardTitle>
-            <FileCheck className="h-5 w-5 text-purple-500" />
-          </CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Demandes</CardTitle><FileCheck className="h-5 w-5 text-purple-500" /></CardHeader>
           <CardContent><div className="text-2xl font-bold">{reportData.totalRequests}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Ventes</CardTitle>
-            <DollarSign className="h-5 w-5 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(reportData.totalSalesAmount)}</div>
-          </CardContent>
+          <CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Ventes</CardTitle><DollarSign className="h-5 w-5 text-yellow-500" /></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(reportData.totalSalesAmount)}</div></CardContent>
         </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-base"><PieChartIcon className="mr-2 h-5 w-5"/>Statut des Parcelles</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="flex items-center text-base"><PieChartIcon className="mr-2 h-5 w-5"/>Statut des Parcelles</CardTitle></CardHeader>
           <CardContent><SimplePieChart data={reportData.parcelStatus} title="Répartition par statut" /></CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-base"><BarChartIcon className="mr-2 h-5 w-5"/>Ventes Mensuelles</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="flex items-center text-base"><BarChartIcon className="mr-2 h-5 w-5"/>Ventes Mensuelles</CardTitle></CardHeader>
           <CardContent><SimpleBarChart data={reportData.monthlySales} title="Ventes par mois" /></CardContent>
         </Card>
       </div>
@@ -211,45 +193,27 @@ const AdminDashboardPage = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium flex items-center"><Store className="mr-2 h-4 w-4"/>Vendeurs</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold">{actorStats.vendeur?.parcellesListees} <span className="text-sm">parcelles</span></p>
-            <p className="text-sm text-muted-foreground">{actorStats.vendeur?.transactionsReussies} ventes</p>
-          </CardContent>
+          <CardContent><p className="text-xl font-bold">{actorStats.vendeur?.parcellesListees} <span className="text-sm">parcelles</span></p><p className="text-sm text-muted-foreground">{actorStats.vendeur?.transactionsReussies} ventes</p></CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium flex items-center"><User className="mr-2 h-4 w-4"/>Particuliers</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold">{actorStats.particulier?.demandesSoumises} <span className="text-sm">demandes</span></p>
-            <p className="text-sm text-muted-foreground">{actorStats.particulier?.acquisitions} acquisitions</p>
-          </CardContent>
+          <CardContent><p className="text-xl font-bold">{actorStats.particulier?.demandesSoumises} <span className="text-sm">demandes</span></p><p className="text-sm text-muted-foreground">{actorStats.particulier?.acquisitions} acquisitions</p></CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium flex items-center"><Landmark className="mr-2 h-4 w-4"/>Mairies</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold">{actorStats.mairie?.parcellesCommunales} <span className="text-sm">parcelles</span></p>
-            <p className="text-sm text-muted-foreground">{actorStats.mairie?.demandesTraitees} demandes traitées</p>
-          </CardContent>
+          <CardContent><p className="text-xl font-bold">{actorStats.mairie?.parcellesCommunales} <span className="text-sm">parcelles</span></p><p className="text-sm text-muted-foreground">{actorStats.mairie?.demandesTraitees} demandes traitées</p></CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium flex items-center"><Banknote className="mr-2 h-4 w-4"/>Banques</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold">{actorStats.banque?.pretsAccordes} <span className="text-sm">prêts</span></p>
-            <p className="text-sm text-muted-foreground">{actorStats.banque?.garantiesEvaluees} garanties</p>
-          </CardContent>
+          <CardContent><p className="text-xl font-bold">{actorStats.banque?.pretsAccordes} <span className="text-sm">prêts</span></p><p className="text-sm text-muted-foreground">{actorStats.banque?.garantiesEvaluees} garanties</p></CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium flex items-center"><Gavel className="mr-2 h-4 w-4"/>Notaires</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold">{actorStats.notaire?.dossiersTraites} <span className="text-sm">dossiers</span></p>
-            <p className="text-sm text-muted-foreground">{actorStats.notaire?.actesAuthentifies} actes</p>
-          </CardContent>
+          <CardContent><p className="text-xl font-bold">{actorStats.notaire?.dossiersTraites} <span className="text-sm">dossiers</span></p><p className="text-sm text-muted-foreground">{actorStats.notaire?.actesAuthentifies} actes</p></CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium flex items-center"><AgentIcon className="mr-2 h-4 w-4"/>Agents</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold">{actorStats.agent?.clientsAssignes} <span className="text-sm">clients</span></p>
-            <p className="text-sm text-muted-foreground">{actorStats.agent?.visitesPlanifiees} visites</p>
-          </CardContent>
+          <CardContent><p className="text-xl font-bold">{actorStats.agent?.clientsAssignes} <span className="text-sm">clients</span></p><p className="text-sm text-muted-foreground">{actorStats.agent?.visitesPlanifiees} visites</p></CardContent>
         </Card>
       </div>
     </motion.div>

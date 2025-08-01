@@ -1,107 +1,132 @@
-// src/pages/RegisterPage.jsx
+// src/pages/LoginPage.jsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from "@/components/ui/use-toast";
-import { UserPlus, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext'; // On utilise useAuth mais plus la fonction login
+import { useToast } from '@/components/ui/use-toast';
+import { LogIn, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
-const RegisterPage = () => {
+const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [type, setType] = useState('Particulier'); // Exemple : menu déroulant pour type
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  // La redirection dépendra des infos du `user` dans le contexte, qui sera mis à jour automatiquement
+  const { user } = useAuth(); 
 
-  const handleRegister = async (e) => {
+  const from = location.state?.from?.pathname || "/dashboard";
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      // Étape 1 : Créer le compte dans Supabase Auth
-      const { data: { user }, error: authError } = await supabase.auth.signUp({
+      // 1. Authentification via Supabase. C'est tout !
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (authError) throw authError;
-
-      // Étape 2 : Créer le profil dans la table users
-      const { error: profileError } = await supabase.from('users').insert({
-        id: user.id, // Utiliser l'ID de l'utilisateur Supabase
-        email,
-        full_name: fullName,
-        type,
-        verification_status: 'not_verified',
-        created_at: new Date().toISOString(),
+      if (authError) {
+        throw authError;
+      }
+      
+      // Le listener `onAuthStateChange` de AuthContext va automatiquement
+      // détecter la connexion, récupérer le profil et mettre à jour l'état global.
+      
+      toast({
+        title: "Connexion réussie !",
+        description: `Bienvenue ! Redirection en cours...`,
       });
-
-      if (profileError) throw profileError;
-
-      toast({ title: "Inscription réussie !", description: "Veuillez vérifier votre email." });
-      navigate('/verify'); // Rediriger vers la page de vérification
+      
+      // La redirection peut être gérée plus globalement, mais pour l'instant on garde une redirection simple.
+      // Le `AuthContext` aura bientôt le `user.role` à jour.
+      navigate(from, { replace: true });
 
     } catch (err) {
-      setError(err.message || "Une erreur est survenue lors de l'inscription.");
+      console.error("Erreur de connexion:", err);
+      let errorMessage = "Une erreur inattendue est survenue lors de la connexion.";
+      if (err.message.includes("Invalid login credentials")) {
+        errorMessage = "Email ou mot de passe incorrect.";
+      } else if (err.message.includes("Email not confirmed")) {
+        errorMessage = "Veuillez confirmer votre adresse email.";
+      } else {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
+      toast({
+        title: "Échec de la Connexion",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center min-h-screen px-4 py-12">
-      <Card className="w-full max-w-md">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:to-emerald-900/50 px-4 py-12"
+    >
+      <Card className="w-full max-w-md shadow-xl border-border/50 bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Inscription</CardTitle>
-          <CardDescription>Créez votre compte Teranga Foncier</CardDescription>
+          <CardTitle className="text-2xl font-bold text-primary">Connexion</CardTitle>
+          <CardDescription>Accédez à votre espace Teranga Foncier</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleRegister} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Nom complet</Label>
-              <Input id="fullName" type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={loading} />
-            </div>
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
+              <Input id="email" type="email" placeholder="nom@exemple.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading}/>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="type">Type de compte</Label>
-              <select id="type" value={type} onChange={(e) => setType(e.target.value)} disabled={loading} className="w-full p-2 border rounded">
-                <option value="Particulier">Particulier</option>
-                <option value="Vendeur">Vendeur</option>
-                <option value="Mairie">Mairie</option>
-                <option value="Banque">Banque</option>
-                <option value="Notaire">Notaire</option>
-              </select>
+              <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Mot de passe</Label>
+                  <Link to="#" className="text-sm text-primary hover:underline" onClick={(e) => {e.preventDefault(); toast({title:"Fonctionnalité à venir", description: "La récupération de mot de passe n'est pas encore implémentée."})}}>Mot de passe oublié ?</Link>
+              </div>
+              <Input id="password" type="password" placeholder="********" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading}/>
             </div>
             {error && (
-              <div className="flex items-center p-3 bg-destructive/10 text-destructive text-sm rounded-md">
-                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0"/>
-                <span>{error}</span>
+              <div className="flex items-center p-3 bg-destructive/10 text-destructive text-sm rounded-md border border-destructive/30">
+                  <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0"/>
+                  <span>{error}</span>
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Inscription en cours...' : 'S\'inscrire'}
+            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-green-600 hover:opacity-90 text-white" disabled={loading}>
+              {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Connexion en cours...
+                  </>
+              ) : (
+                  <>
+                    <LogIn className="mr-2 h-4 w-4" /> Se Connecter
+                  </>
+              )}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="text-center text-sm">
-          <p className="w-full">
-            Déjà un compte ?{" "}
-            <Link to="/login" className="font-medium text-primary hover:underline">Se connecter</Link>
+          <p className="text-muted-foreground w-full">
+            Pas encore de compte ?{" "}
+            <Link to="/register" className="font-medium text-primary hover:underline">
+              S'inscrire
+            </Link>
           </p>
         </CardFooter>
       </Card>
@@ -109,4 +134,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage;
+export default LoginPage;

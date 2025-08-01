@@ -20,19 +20,6 @@ const VerificationPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const bucketPublicUrl = supabase.storage.from('identity-documents').publicUrl; // Remplacez par l'URL publique correcte si nécessaire
-
-  const handleFileUpload = async (file, type) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await supabase.storage
-      .from('identity-documents')
-      .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
-    if (uploadError) throw uploadError;
-    return fileName;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -40,33 +27,47 @@ const VerificationPage = () => {
 
     try {
       if (!frontFile || !backFile) {
-        throw new Error('Veuillez fournir les deux côtés de votre carte d\'identité.');
+        throw new Error("Veuillez fournir les deux côtés de votre carte d'identité.");
       }
 
-      // Étape 1 : Télécharger les fichiers
-      const frontPath = await handleFileUpload(frontFile, 'front');
-      const backPath = await handleFileUpload(backFile, 'back');
+      const uploadAndGetUrl = async (file, type) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('identity-documents')
+          .upload(fileName, file);
+        if (uploadError) throw uploadError;
 
-      // Étape 2 : Mettre à jour le profil utilisateur
+        const { data: urlData } = supabase.storage
+          .from('identity-documents')
+          .getPublicUrl(fileName);
+
+        return urlData.publicUrl;
+      };
+
+      const frontPublicUrl = await uploadAndGetUrl(frontFile, 'front');
+      const backPublicUrl = await uploadAndGetUrl(backFile, 'back');
+
       const { error: updateError } = await supabase
         .from('users')
         .update({
-          id_card_front_url: `${bucketPublicUrl}/${frontPath}`,
-          id_card_back_url: `${bucketPublicUrl}/${backPath}`,
+          id_card_front_url: frontPublicUrl,
+          id_card_back_url: backPublicUrl,
           verification_status: 'pending',
         })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      // Étape 3 : Rafraîchir l'état de l'utilisateur
       await refreshUser();
 
       toast({ title: "Documents envoyés !", description: "Votre demande est en attente de vérification." });
-      navigate('/dashboard'); // Rediriger vers le tableau de bord
+      navigate('/dashboard');
 
     } catch (err) {
       setError(err.message || "Une erreur est survenue lors de l'envoi des documents.");
+      toast({ variant: "destructive", title: "Erreur", description: err.message });
     } finally {
       setLoading(false);
     }

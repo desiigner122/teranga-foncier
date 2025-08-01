@@ -82,17 +82,17 @@ export default function AdminUsersPage() {
     }
   };
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (currentPage) => {
     try {
       setLoading(true);
       const { data, error, count } = await supabase
         .from('users')
         .select('id, email, full_name, type, verification_status, id_card_front_url, id_card_back_url', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .range((page - 1) * pageSize, (page - 1) * pageSize + pageSize);
+        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
       if (error) throw error;
       setUsers(data || []);
-      setHasMore((page * pageSize) < (count || 0));
+      setHasMore((currentPage * pageSize) < (count || 0));
     } catch (err) {
       console.error('Erreur fetchUsers:', err);
       toast({
@@ -103,37 +103,23 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, toast]);
+  }, [toast, pageSize]);
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(page);
     const channel = supabase
       .channel('public:users')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
         toast({ title: 'Mise à jour', description: 'La liste des utilisateurs a été mise à jour.' });
-        fetchUsers();
+        // Re-fetch a la page actuelle pour refleter les changements
+        fetchUsers(page);
       })
-      .subscribe((status, err) => {
-        if (err || status === 'CLOSED') {
-          toast({
-            variant: 'destructive',
-            title: 'Erreur Realtime',
-            description: 'Impossible de recevoir les mises à jour en temps réel.',
-          });
-        }
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchUsers]);
-
-  useEffect(() => {
-    if (selectedUser && !users.some((u) => u.id === selectedUser.id)) {
-      setIsModalOpen(false);
-      setSelectedUser(null);
-    }
-  }, [users, selectedUser]);
+  }, [fetchUsers, page, toast]);
 
   const handleVerification = async (userId, userEmail, newStatus) => {
     try {
@@ -142,18 +128,8 @@ export default function AdminUsersPage() {
         .update({ verification_status: newStatus })
         .eq('id', userId);
       if (error) throw error;
-
       toast({ title: 'Statut mis à jour', description: newStatus === 'verified' ? 'Utilisateur approuvé.' : 'Utilisateur rejeté.' });
-
-      if (newStatus === 'verified' && userEmail) {
-        toast({
-          title: 'Email de notification (simulation)',
-          description: `Un email a été envoyé à ${userEmail} pour l’informer.`,
-        });
-      }
-
       setIsModalOpen(false);
-      await fetchUsers();
     } catch (err) {
       toast({ variant: 'destructive', title: 'Erreur', description: err.message || 'Échec de la mise à jour.' });
     }
@@ -162,6 +138,8 @@ export default function AdminUsersPage() {
   const handleAnalyseWithAI = async () => {
     setIsAiLoading(true);
     try {
+      // Simulation d'un appel à une IA
+      await new Promise(resolve => setTimeout(resolve, 1500)); 
       const analysis = {
         document_validity: true,
         face_match: '90% confidence',
@@ -196,6 +174,11 @@ export default function AdminUsersPage() {
       default: return 'secondary';
     }
   };
+  
+  const handlePageChange = (newPage) => {
+      setPage(newPage);
+      fetchUsers(newPage);
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-4 md:p-8 space-y-6">
@@ -245,7 +228,7 @@ export default function AdminUsersPage() {
                     {loading ? (
                       <TableRow>
                         <TableCell colSpan="4" className="text-center h-24">
-                          <Spinner />
+                          <Spinner size="large" />
                         </TableCell>
                       </TableRow>
                     ) : filteredUsers.length === 0 ? (
@@ -283,11 +266,11 @@ export default function AdminUsersPage() {
                 </Table>
               </div>
               <div className="flex justify-between items-center mt-4">
-                <Button variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                <Button variant="outline" disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
                   Précédent
                 </Button>
                 <span>Page {page}</span>
-                <Button variant="outline" disabled={!hasMore} onClick={() => setPage(p => p + 1)}>
+                <Button variant="outline" disabled={!hasMore} onClick={() => handlePageChange(page + 1)}>
                   Suivant
                 </Button>
               </div>
@@ -303,7 +286,6 @@ export default function AdminUsersPage() {
               <DialogTitle>Vérification : {selectedUser.full_name || 'Non défini'}</DialogTitle>
               <DialogDescription>{selectedUser.email || 'Inconnu'}</DialogDescription>
             </DialogHeader>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 max-h-[70vh] overflow-y-auto">
               <div>
                 <h3 className="font-semibold mb-2">Documents Fournis</h3>
@@ -311,57 +293,33 @@ export default function AdminUsersPage() {
                   <div>
                     <Label>Recto CNI</Label>
                     {isValidImageUrl(selectedUser.id_card_front_url) ? (
-                      <img
-                        src={selectedUser.id_card_front_url}
-                        alt={`Recto de la carte d’identité de ${selectedUser.full_name || 'utilisateur'}`}
-                        className="rounded-lg border mt-1 w-full max-h-48 object-contain"
-                        aria-label="Recto de la carte d’identité"
-                      />
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Non fourni</p>
-                    )}
+                      <img src={selectedUser.id_card_front_url} alt="Recto de la carte d’identité" className="rounded-lg border mt-1 w-full max-h-48 object-contain"/>
+                    ) : ( <p className="text-sm text-muted-foreground">Non fourni</p> )}
                   </div>
                   <div>
                     <Label>Verso CNI</Label>
                     {isValidImageUrl(selectedUser.id_card_back_url) ? (
-                      <img
-                        src={selectedUser.id_card_back_url}
-                        alt={`Verso de la carte d’identité de ${selectedUser.full_name || 'utilisateur'}`}
-                        className="rounded-lg border mt-1 w-full max-h-48 object-contain"
-                        aria-label="Verso de la carte d’identité"
-                      />
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Non fourni</p>
-                    )}
+                      <img src={selectedUser.id_card_back_url} alt="Verso de la carte d’identité" className="rounded-lg border mt-1 w-full max-h-48 object-contain"/>
+                    ) : ( <p className="text-sm text-muted-foreground">Non fourni</p> )}
                   </div>
                 </div>
               </div>
-
               <div>
-                <h3 className="font-semibold mb-2">Assistant IA</h3>
-                <Button
-                  onClick={handleAnalyseWithAI}
-                  disabled={isAiLoading || !isValidImageUrl(selectedUser.id_card_front_url)}
-                  className="w-full"
-                >
+                <h3 className="font-semibold mb-2">Assistant IA (Simulation)</h3>
+                <Button onClick={handleAnalyseWithAI} disabled={isAiLoading || !isValidImageUrl(selectedUser.id_card_front_url)} className="w-full">
                   {isAiLoading ? <Spinner size="small" className="mr-2" /> : <Sparkles className="mr-2 h-4 w-4" />}
                   {isAiLoading ? 'Analyse...' : 'Analyser les documents'}
                 </Button>
                 {aiAnalysis && (
                   <Card className="mt-4">
-                    <CardHeader>
-                      <CardTitle className="text-base">Résultat de l’analyse</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <AiAnalysisResult analysis={aiAnalysis} />
-                    </CardContent>
+                    <CardHeader><CardTitle className="text-base">Résultat de l’analyse</CardTitle></CardHeader>
+                    <CardContent><AiAnalysisResult analysis={aiAnalysis} /></CardContent>
                   </Card>
                 )}
               </div>
             </div>
-
             <DialogFooter>
-              <Button variant="outline" onClick={() => handleVerification(selectedUser.id, selectedUser.email, 'rejected')}>
+              <Button variant="destructive" onClick={() => handleVerification(selectedUser.id, selectedUser.email, 'rejected')}>
                 <XCircle className="mr-2 h-4 w-4" /> Rejeter
               </Button>
               <Button onClick={() => handleVerification(selectedUser.id, selectedUser.email, 'verified')} className="bg-green-600 hover:bg-green-700">

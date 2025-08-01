@@ -20,7 +20,9 @@ export const AuthProvider = ({ children }) => {
         .single();
       
       if (error) {
-        console.warn("Profil utilisateur non trouvé. C'est normal si l'utilisateur vient de s'inscrire et que le trigger n'a pas encore tourné.", error.message);
+        // Cette erreur est normale si l'utilisateur vient de s'inscrire et que le profil n'est pas encore là.
+        // On retourne les infos de base de l'objet `auth` en attendant.
+        console.warn("Profil utilisateur non trouvé, probablement en cours de création :", error.message);
         return { ...authUser, email: authUser.email, id: authUser.id, verification_status: 'not_verified' };
       }
       return { ...authUser, ...data };
@@ -46,23 +48,19 @@ export const AuthProvider = ({ children }) => {
       setSession(session);
       const userProfile = await fetchUserProfile(session?.user);
       setUser(userProfile);
-      // Ne mettez setLoading(false) qu'après le premier chargement pour éviter les flashs
+      if (loading) setLoading(false);
     });
 
     return () => {
       subscription?.unsubscribe();
     };
-  }, [fetchUserProfile]);
+  }, [fetchUserProfile, loading]);
 
   const value = {
     session,
     user,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
-    isAgent: user?.role === 'agent',
     loading,
     signOut: () => supabase.auth.signOut(),
-    // Fonction essentielle pour forcer la mise à jour de l'état de l'utilisateur
     refreshUser: async () => {
         const { data: { user: authUser } } = await supabase.auth.getUser();
         if (authUser) {

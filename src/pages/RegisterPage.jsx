@@ -41,18 +41,34 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // ÉTAPE 1: Créer l'utilisateur dans le système d'authentification de Supabase.
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email,
         password: password,
-        options: {
-          data: {
-            full_name: name,
-            type: accountType,
-          }
-        }
       });
 
-      if (error) throw error;
+      if (authError) {
+        throw authError;
+      }
+
+      // ÉTAPE 2: Insérer le profil de l'utilisateur dans notre table publique `users`.
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: authData.user.id,
+              full_name: name,
+              email: email,
+              type: accountType,
+              verification_status: 'not_verified'
+            }
+          ]);
+        
+        if (profileError) {
+          throw profileError;
+        }
+      }
       
       toast({
         title: "Inscription presque terminée !",
