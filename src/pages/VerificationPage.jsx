@@ -11,18 +11,11 @@ import LoadingSpinner from '@/components/ui/spinner';
 import { ShieldCheck, AlertTriangle } from 'lucide-react';
 
 const UploadForm = ({ onFileChange, onSubmit, loading }) => (
-    <Card className="w-full max-w-md">
-        <CardHeader><CardTitle>Vérification de votre compte</CardTitle><CardDescription>Pour activer votre compte, veuillez soumettre une copie de votre carte d'identité (recto et verso).</CardDescription></CardHeader>
-        <CardContent className="space-y-6">
-            <div className="space-y-2"><Label htmlFor="front-id">Recto de la carte d'identité</Label><Input id="front-id" type="file" onChange={(e) => onFileChange(e, 'front')} required /></div>
-            <div className="space-y-2"><Label htmlFor="back-id">Verso de la carte d'identité</Label><Input id="back-id" type="file" onChange={(e) => onFileChange(e, 'back')} required /></div>
-            <Button onClick={onSubmit} disabled={loading} className="w-full">{loading ? <LoadingSpinner size="small" /> : 'Soumettre pour vérification'}</Button>
-        </CardContent>
-    </Card>
+    <Card className="w-full max-w-md"><CardHeader><CardTitle>Vérification de votre compte</CardTitle><CardDescription>Pour activer votre compte, veuillez soumettre une copie de votre carte d'identité (recto et verso).</CardDescription></CardHeader><CardContent className="space-y-6"><div className="space-y-2"><Label htmlFor="front-id">Recto de la carte d'identité</Label><Input id="front-id" type="file" onChange={(e) => onFileChange(e, 'front')} required /></div><div className="space-y-2"><Label htmlFor="back-id">Verso de la carte d'identité</Label><Input id="back-id" type="file" onChange={(e) => onFileChange(e, 'back')} required /></div><Button onClick={onSubmit} disabled={loading} className="w-full">{loading ? <LoadingSpinner size="small" /> : 'Soumettre pour vérification'}</Button></CardContent></Card>
 );
 
 const VerificationPage = () => {
-  const { user, fetchUserProfile } = useAuth();
+  const { user, refreshUser } = useAuth(); // Utilise refreshUser
   const { toast } = useToast();
   const [frontIdFile, setFrontIdFile] = useState(null);
   const [backIdFile, setBackIdFile] = useState(null);
@@ -42,25 +35,24 @@ const VerificationPage = () => {
     }
     setLoading(true);
     try {
-      const frontFilePath = `${user.id}/${Date.now()}_front`;
+      const frontFilePath = `${user.id}/${Date.now()}_front.png`;
       await supabase.storage.from('verification_documents').upload(frontFilePath, frontIdFile);
       const { data: { publicUrl: frontPublicUrl } } = supabase.storage.from('verification_documents').getPublicUrl(frontFilePath);
 
-      const backFilePath = `${user.id}/${Date.now()}_back`;
+      const backFilePath = `${user.id}/${Date.now()}_back.png`;
       await supabase.storage.from('verification_documents').upload(backFilePath, backIdFile);
-      // --- CORRECTION : La ligne suivante était manquante ---
       const { data: { publicUrl: backPublicUrl } } = supabase.storage.from('verification_documents').getPublicUrl(backFilePath);
 
       await supabase.from('users').update({
           id_card_front_url: frontPublicUrl,
-          id_card_back_url: backPublicUrl, // <- cette variable existe maintenant
+          id_card_back_url: backPublicUrl,
           verification_status: 'pending',
       }).eq('id', user.id);
       
       toast({ title: "Documents soumis", description: "Votre compte est en cours de vérification." });
       
-      if (fetchUserProfile) {
-        await fetchUserProfile();
+      if (refreshUser) {
+        await refreshUser(); // Force la mise à jour de l'état de l'utilisateur
       }
 
     } catch (error) {
@@ -78,11 +70,6 @@ const VerificationPage = () => {
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      {renderContent()}
-    </div>
-  );
+  return <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">{renderContent()}</div>;
 };
-
 export default VerificationPage;

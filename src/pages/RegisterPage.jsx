@@ -41,8 +41,6 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     try {
-      // Le Trigger SQL s'occupera de créer le profil dans la table 'users'.
-      // On passe les informations supplémentaires (nom, type) dans les métadonnées.
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
@@ -65,7 +63,11 @@ const RegisterPage = () => {
       navigate('/login');
 
     } catch (error) {
-      toast({ variant: "destructive", title: "Erreur d'inscription", description: error.message });
+      if (error.message.includes("User already registered")) {
+        toast({ variant: "destructive", title: "Erreur d'inscription", description: "Un utilisateur avec cet email existe déjà." });
+      } else {
+        toast({ variant: "destructive", title: "Erreur d'inscription", description: error.message });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,10 +76,7 @@ const RegisterPage = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="container mx-auto flex items-center justify-center min-h-screen py-12 px-4">
       <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl">Créer un Compte</CardTitle>
-          <CardDescription>Rejoignez Teranga Foncier.</CardDescription>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-2xl">Créer un Compte</CardTitle><CardDescription>Rejoignez Teranga Foncier.</CardDescription></CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="grid gap-4">
             <div className="grid gap-2">
@@ -85,11 +84,7 @@ const RegisterPage = () => {
                <Select value={accountType} onValueChange={setAccountType}>
                 <SelectTrigger id="accountType"><SelectValue placeholder="Sélectionnez un type" /></SelectTrigger>
                 <SelectContent>
-                  {accountTypes.map(({ value, label, icon: Icon }) => (
-                    <SelectItem key={value} value={value}>
-                      <div className="flex items-center"><Icon className="h-4 w-4 mr-2 text-muted-foreground" /><span>{label}</span></div>
-                    </SelectItem>
-                  ))}
+                  {accountTypes.map(({ value, label, icon: Icon }) => ( <SelectItem key={value} value={value}><div className="flex items-center"><Icon className="h-4 w-4 mr-2 text-muted-foreground" /><span>{label}</span></div></SelectItem> ))}
                 </SelectContent>
               </Select>
             </div>
@@ -100,10 +95,9 @@ const RegisterPage = () => {
             <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? 'Création...' : 'Créer un compte'}</Button>
           </form>
         </CardContent>
-        <CardFooter className="flex-col items-start text-sm"><div className="text-center w-full">Déjà un compte?{' '}<Link to="/login" className="underline">Connectez-vous</Link></div></CardFooter>
+        <CardFooter><div className="text-center w-full text-sm">Déjà un compte?{' '}<Link to="/login" className="underline">Connectez-vous</Link></div></CardFooter>
       </Card>
     </motion.div>
   );
 };
-
 export default RegisterPage;

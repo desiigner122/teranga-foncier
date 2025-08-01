@@ -20,8 +20,8 @@ export const AuthProvider = ({ children }) => {
         .single();
       
       if (error) {
-        console.warn("Profil utilisateur non trouvé. L'utilisateur existe dans Auth mais pas dans la table 'users'.", error.message);
-        return { ...authUser, email: authUser.email, id: authUser.id };
+        console.warn("Profil utilisateur non trouvé dans la table 'users'. C'est normal si l'utilisateur vient de s'inscrire.", error.message);
+        return { ...authUser, email: authUser.email, id: authUser.id, verification_status: 'not_verified' };
       }
       return { ...authUser, ...data };
     } catch (err) {
@@ -62,7 +62,8 @@ export const AuthProvider = ({ children }) => {
     isAgent: user?.role === 'agent',
     loading,
     signOut: () => supabase.auth.signOut(),
-    fetchUserProfile: async () => {
+    // Fonction essentielle pour forcer la mise à jour de l'état de l'utilisateur
+    refreshUser: async () => {
         const { data: { user: authUser } } = await supabase.auth.getUser();
         if (authUser) {
             const userProfile = await fetchUserProfile(authUser);
