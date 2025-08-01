@@ -21,8 +21,10 @@ export const AuthProvider = ({ children }) => {
       
       if (error) {
         console.warn("Profil utilisateur non trouvé, utilisation des données d'authentification par défaut.", error.message);
-        return authUser;
+        // Important: retourne l'objet utilisateur de Supabase Auth même si le profil n'est pas encore dans la table 'users'
+        return { ...authUser, email: authUser.email, id: authUser.id };
       }
+      // Combine l'utilisateur de Supabase Auth avec les données du profil (rôle, type, verification_status, etc.)
       return { ...authUser, ...data };
     } catch (err) {
       console.error("Erreur lors de la récupération du profil:", err);
@@ -62,8 +64,7 @@ export const AuthProvider = ({ children }) => {
     isAgent: user?.role === 'agent',
     loading,
     signOut: () => supabase.auth.signOut(),
-    // Exposer fetchUserProfile pour le rafraîchissement manuel
-    fetchUserProfile: async () => {
+    fetchUserProfile: async () => { // Fonction pour rafraîchir manuellement le profil
         const { data: { user: authUser } } = await supabase.auth.getUser();
         if (authUser) {
             const userProfile = await fetchUserProfile(authUser);

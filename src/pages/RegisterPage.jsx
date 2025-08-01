@@ -9,12 +9,17 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useToast } from "@/components/ui/use-toast";
 import { Users as UsersIcon, Briefcase, Building, Sprout, Banknote, Landmark, LandPlot, Store } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient'; // IMPORTANT
+import { supabase } from '@/lib/supabaseClient';
 
 const accountTypes = [
   { value: 'Particulier', label: 'Particulier (Acheteur)', icon: UsersIcon },
   { value: 'Vendeur', label: 'Vendeur', icon: Store },
-  // ... (les autres types de compte restent les mêmes)
+  { value: 'Investisseur', label: 'Investisseur', icon: Briefcase },
+  { value: 'Promoteur', label: 'Promoteur', icon: Building },
+  { value: 'Agriculteur', label: 'Agriculteur', icon: Sprout },
+  { value: 'Banque', label: 'Partenaire Bancaire', icon: Banknote },
+  { value: 'Mairie', label: 'Représentant Mairie', icon: Landmark },
+  { value: 'Notaire', label: 'Étude Notariale', icon: LandPlot },
 ];
 
 const RegisterPage = () => {
@@ -33,7 +38,6 @@ const RegisterPage = () => {
       toast({ variant: "destructive", title: "Erreur", description: "Les mots de passe ne correspondent pas." });
       return;
     }
-
     setIsLoading(true);
 
     try {
@@ -41,12 +45,19 @@ const RegisterPage = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email,
         password: password,
+        options: {
+          data: {
+            full_name: name,
+            type: accountType,
+          }
+        }
       });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error("La création du compte a échoué, veuillez réessayer.");
+      if (!authData.user) throw new Error("La création du compte a échoué.");
 
       // 2. Insérer le profil dans la table 'public.users'
+      // Supabase le fait automatiquement via un Trigger si configuré, sinon on le fait manuellement
       const { error: profileError } = await supabase
         .from('users')
         .insert({
@@ -59,28 +70,17 @@ const RegisterPage = () => {
         });
 
       if (profileError) throw profileError;
-
-      // 3. Simuler l'envoi de l'email de confirmation
-      console.log(`SIMULATION: Envoi d'un email de confirmation à ${email}.`);
-      toast({
-        title: "Email de confirmation (simulation)",
-        description: "Un email a été envoyé pour confirmer votre inscription. Consultez votre boîte de réception.",
-        duration: 7000,
-      });
       
       toast({
-        title: "Inscription réussie !",
-        description: "Veuillez confirmer votre email avant de vous connecter.",
+        title: "Inscription presque terminée !",
+        description: "Un email de confirmation a été envoyé. Veuillez vérifier votre boîte de réception pour activer votre compte.",
+        duration: 8000
       });
 
-      navigate('/login'); // Rediriger vers la page de connexion après l'inscription
+      navigate('/login');
 
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur d'inscription",
-        description: error.message,
-      });
+      toast({ variant: "destructive", title: "Erreur d'inscription", description: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +99,6 @@ const RegisterPage = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="grid gap-4">
-            {/* ... Le reste du formulaire reste identique ... */}
             <div className="grid gap-2">
               <Label htmlFor="accountType">Je suis un(e)</Label>
                <Select value={accountType} onValueChange={setAccountType}>
@@ -120,48 +119,19 @@ const RegisterPage = () => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="name">Nom complet ou Raison sociale</Label>
-              <Input
-                id="name"
-                placeholder="Votre nom"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={isLoading}
-              />
+              <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="nom@exemple.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
+              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Mot de passe</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
+              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
             </div>
              <div className="grid gap-2">
               <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
-              />
+              <Input id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={isLoading} />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Création...' : 'Créer un compte'}
@@ -171,9 +141,7 @@ const RegisterPage = () => {
          <CardFooter className="flex-col items-start text-sm">
            <div className="text-center w-full">
              Déjà un compte?{' '}
-             <Link to="/login" className="underline">
-               Connectez-vous
-             </Link>
+             <Link to="/login" className="underline">Connectez-vous</Link>
            </div>
          </CardFooter>
       </Card>
