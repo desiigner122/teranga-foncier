@@ -1,10 +1,13 @@
+// src/components/layout/header/AuthSection.jsx
+
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Importer useNavigate
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LayoutGrid, User, LogOut, Settings, Bell, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from "@/components/ui/use-toast"; // Importer useToast
 import { cn } from '@/lib/utils';
 import { sampleNotifications, sampleConversations } from '@/data';
 
@@ -15,16 +18,36 @@ const getInitials = (email) => {
 };
 
 const AuthSection = ({ isScrolled }) => {
-  const { user, logout } = useAuth();
+  // --- CORRECTION 1 : Utiliser signOut au lieu de logout ---
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { pathname } = window.location;
   const isHomePage = pathname === '/';
   
   const useLightButtons = isHomePage && !isScrolled;
 
   // Simulation data fetching
-  const unreadNotifications = user ? sampleNotifications.filter(n => n.user_id === user.id && !n.is_read).length : 0;
-  const unreadMessages = user ? sampleConversations.filter(c => c.participants.includes(user.id) && c.unread_count > 0).length : 0;
+  const unreadNotifications = user ? sampleNotifications.filter(n => n.user_id === user?.id && !n.is_read).length : 0;
+  const unreadMessages = user ? sampleConversations.filter(c => c.participants.includes(user?.id) && c.unread_count > 0).length : 0;
 
+  // --- CORRECTION 2 : Créer une fonction pour gérer la déconnexion ---
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès.",
+      });
+      navigate('/'); // Rediriger vers la page d'accueil
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur de déconnexion",
+        description: error.message,
+      });
+    }
+  };
 
   return (
     <div className="flex items-center gap-2 md:gap-3">
@@ -58,14 +81,14 @@ const AuthSection = ({ isScrolled }) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10 border-2 border-transparent hover:border-primary transition-colors">
-                  <AvatarImage src={user.avatar || `https://avatar.vercel.sh/${user.email}.png`} alt={user.name || user.email} />
+                  <AvatarImage src={user.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`} alt={user.full_name || user.email} />
                   <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
-                <p className="font-semibold truncate">{user.name || user.email}</p>
+                <p className="font-semibold truncate">{user.full_name || user.email}</p>
                 <p className="text-xs text-muted-foreground font-normal capitalize">{user.type || user.role}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -79,7 +102,8 @@ const AuthSection = ({ isScrolled }) => {
                 <Link to="/settings"><Settings className="mr-2 h-4 w-4" /> Paramètres</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/40">
+              {/* --- CORRECTION 3 : Appeler notre nouvelle fonction handleLogout --- */}
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/40">
                 <LogOut className="mr-2 h-4 w-4" /> Déconnexion
               </DropdownMenuItem>
             </DropdownMenuContent>

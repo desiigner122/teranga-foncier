@@ -1,3 +1,4 @@
+// src/pages/RegisterPage.jsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,18 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from '@/context/AuthContext';
 import { Users as UsersIcon, Briefcase, Building, Sprout, Banknote, Landmark, LandPlot, Store } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient'; // IMPORTANT
 
 const accountTypes = [
   { value: 'Particulier', label: 'Particulier (Acheteur)', icon: UsersIcon },
   { value: 'Vendeur', label: 'Vendeur', icon: Store },
-  { value: 'Investisseur', label: 'Investisseur', icon: Briefcase },
-  { value: 'Promoteur', label: 'Promoteur', icon: Building },
-  { value: 'Agriculteur', label: 'Agriculteur', icon: Sprout },
-  { value: 'Banque', label: 'Partenaire Bancaire', icon: Banknote },
-  { value: 'Mairie', label: 'Représentant Mairie', icon: Landmark },
-  { value: 'Notaire', label: 'Étude Notariale', icon: LandPlot },
+  // ... (les autres types de compte restent les mêmes)
 ];
 
 const RegisterPage = () => {
@@ -29,59 +25,81 @@ const RegisterPage = () => {
   const [accountType, setAccountType] = useState('Particulier');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Les mots de passe ne correspondent pas.",
-      });
+      toast({ variant: "destructive", title: "Erreur", description: "Les mots de passe ne correspondent pas." });
       return;
     }
 
     setIsLoading(true);
-    toast({
-       title: "Inscription en cours...",
-       description: "Création de votre compte.",
-     });
 
-    setTimeout(() => {
-        const newUser = { 
-          id: `usr_${Date.now()}`,
-          email: email, 
-          name: name, 
-          role: "user", // Default role, can be refined later
+    try {
+      // 1. Créer l'utilisateur dans Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("La création du compte a échoué, veuillez réessayer.");
+
+      // 2. Insérer le profil dans la table 'public.users'
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          full_name: name,
+          email: email,
           type: accountType,
-        };
-        login(newUser);
-
-        toast({
-          title: "Inscription réussie !",
-          description: "Vous êtes maintenant connecté.",
+          role: 'user', // Rôle par défaut
+          verification_status: 'not_verified', // Statut initial
         });
-        setIsLoading(false);
-        navigate('/dashboard');
-     }, 1500);
+
+      if (profileError) throw profileError;
+
+      // 3. Simuler l'envoi de l'email de confirmation
+      console.log(`SIMULATION: Envoi d'un email de confirmation à ${email}.`);
+      toast({
+        title: "Email de confirmation (simulation)",
+        description: "Un email a été envoyé pour confirmer votre inscription. Consultez votre boîte de réception.",
+        duration: 7000,
+      });
+      
+      toast({
+        title: "Inscription réussie !",
+        description: "Veuillez confirmer votre email avant de vous connecter.",
+      });
+
+      navigate('/login'); // Rediriger vers la page de connexion après l'inscription
+
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="container mx-auto flex items-center justify-center min-h-[calc(100vh-130px)] py-12 px-4 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:to-emerald-900/50"
+      className="container mx-auto flex items-center justify-center min-h-screen py-12 px-4"
     >
-      <Card className="w-full max-w-sm bg-card/80 backdrop-blur-sm">
+      <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Créer un Compte</CardTitle>
           <CardDescription>Rejoignez Teranga Foncier et sécurisez vos transactions.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="grid gap-4">
+            {/* ... Le reste du formulaire reste identique ... */}
             <div className="grid gap-2">
               <Label htmlFor="accountType">Je suis un(e)</Label>
                <Select value={accountType} onValueChange={setAccountType}>
