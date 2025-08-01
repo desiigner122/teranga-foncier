@@ -51,6 +51,11 @@ const VerificationPage = () => {
       
       toast({ title: "Documents soumis", description: "Votre compte est en cours de vérification." });
       
+      // Appel d'une Edge Function pour envoyer un email (plus sécurisé en production)
+      // await supabase.functions.invoke('send-verification-email', {
+      //   body: { email: user.email, name: user.full_name, type: 'submission' },
+      // })
+      
       if (refreshUser) {
         await refreshUser();
       }
