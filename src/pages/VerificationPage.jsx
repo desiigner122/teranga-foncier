@@ -19,11 +19,11 @@ const UploadForm = ({ onFileChange, onSubmit, loading }) => (
     <CardContent className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="front-id">Recto de la carte d'identité</Label>
-        <Input id="front-id" type="file" onChange={(e) => onFileChange(e, 'front')} />
+        <Input id="front-id" type="file" onChange={(e) => onFileChange(e, 'front')} required />
       </div>
       <div className="space-y-2">
         <Label htmlFor="back-id">Verso de la carte d'identité</Label>
-        <Input id="back-id" type="file" onChange={(e) => onFileChange(e, 'back')} />
+        <Input id="back-id" type="file" onChange={(e) => onFileChange(e, 'back')} required />
       </div>
       <Button onClick={onSubmit} disabled={loading} className="w-full">
         {loading ? <LoadingSpinner size="small" /> : 'Soumettre pour vérification'}
@@ -81,21 +81,19 @@ const VerificationPage = () => {
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
-          user_id: user.id,
-          message: `L'utilisateur ${user.email || user.id} a soumis ses documents.`,
-          link_url: '/dashboard/users' // Correction du lien pour admin
+          user_id: user.id, // Assurez-vous que cette colonne existe bien dans votre table 'notifications'
+          message: `L'utilisateur ${user.email || user.id} a soumis ses documents pour vérification.`,
+          link_url: `/dashboard/users`
         });
       if (notificationError) throw notificationError;
 
-      // --- SIMULATION DE L'ENVOI D'EMAIL ---
-      // Dans un vrai projet, ceci serait une Edge Function
+      // SIMULATION DE L'ENVOI D'EMAIL
       console.log(`SIMULATION: Envoi d'un email à ${user.email} pour confirmer la soumission.`);
-      toast({ title: "Email de confirmation (simulation)", description: "Un email a été envoyé à l'utilisateur." });
+      toast({ title: "Email de confirmation (simulation)", description: "Un email a été envoyé pour vous informer que votre demande est en cours de traitement." });
       
-      toast({ title: "Documents soumis", description: "Votre compte est en cours de vérification." });
+      toast({ title: "Documents soumis avec succès", description: "Votre compte est maintenant en cours de vérification." });
       
-      // --- RAFRAÎCHISSEMENT DE L'ÉTAT ---
-      // On force le rafraîchissement du profil dans le contexte
+      // RAFRAÎCHISSEMENT DE L'ÉTAT DE L'UTILISATEUR
       if (fetchUserProfile) {
         await fetchUserProfile();
       }
@@ -138,7 +136,7 @@ const VerificationPage = () => {
             <UploadForm onFileChange={handleFileChange} onSubmit={handleUpload} loading={loading} />
           </div>
         );
-      default:
+      default: // 'not_verified' ou autre
         return <UploadForm onFileChange={handleFileChange} onSubmit={handleUpload} loading={loading} />;
     }
   };

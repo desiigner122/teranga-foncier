@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Label } from '@/components/ui/label';
 
 const AiAnalysisResult = ({ analysis }) => {
+    // ... (ce composant ne change pas)
     if (!analysis) return null;
     if (analysis.error) return <p className="text-red-500 text-sm">{analysis.error}</p>;
     return (
@@ -32,15 +33,15 @@ const AdminUsersPage = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('pending'); // Onglet par défaut
   const { toast } = useToast();
-
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const fetchUsers = useCallback(async () => {
+    // Ne met pas setLoading à true ici pour une expérience plus fluide en temps réel
     try {
       const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
       if (error) throw error;
@@ -48,24 +49,18 @@ const AdminUsersPage = () => {
     } catch (err) {
       toast({ variant: "destructive", title: "Erreur de chargement", description: err.message });
     } finally {
-      setLoading(false);
+      setLoading(false); // S'assure que le chargement initial est terminé
     }
   }, [toast]);
 
   useEffect(() => {
-    // Premier chargement des données
     fetchUsers();
-
-    // --- MISE EN PLACE DE L'ÉCOUTE EN TEMPS RÉEL ---
     const channel = supabase.channel('public:users')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
-        console.log('Changement détecté dans la table users!', payload);
-        // Rafraîchir la liste des utilisateurs
+        toast({ title: "Mise à jour", description: "La liste des utilisateurs a été mise à jour." });
         fetchUsers();
       })
       .subscribe();
-
-    // Nettoyage de l'écouteur quand le composant est démonté
     return () => {
       supabase.removeChannel(channel);
     };
@@ -78,21 +73,18 @@ const AdminUsersPage = () => {
       
       toast({ title: "Statut mis à jour" });
       
-      // --- SIMULATION DE L'ENVOI D'EMAIL DE VÉRIFICATION ---
       if (newStatus === 'verified') {
         console.log(`SIMULATION: Envoi d'un email à ${userEmail} pour l'informer que son compte est vérifié.`);
         toast({ title: "Email de vérification (simulation)", description: "Un email a été envoyé à l'utilisateur." });
       }
-
-      // fetchUsers n'est plus nécessaire ici car le temps réel s'en occupe
       setIsModalOpen(false);
     } catch (err) {
       toast({ variant: "destructive", title: "Erreur", description: err.message });
     }
   };
-  
-  // Le reste du composant reste identique...
+
   const handleAnalyseWithAI = async (user) => {
+    // ... (cette fonction ne change pas)
     if (!user.id_card_front_url || !user.id_card_back_url) {
         toast({ variant: "destructive", title: "Images manquantes", description: "L'utilisateur n'a pas soumis les deux images." });
         return;
@@ -101,13 +93,8 @@ const AdminUsersPage = () => {
     setAiAnalysis(null);
     try {
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-        if (!apiKey) {
-            throw new Error("La clé API Gemini (VITE_GEMINI_API_KEY) n'est pas configurée.");
-        }
-        const [frontRes, backRes] = await Promise.all([
-            fetch(user.id_card_front_url),
-            fetch(user.id_card_back_url)
-        ]);
+        if (!apiKey) throw new Error("La clé API Gemini (VITE_GEMINI_API_KEY) n'est pas configurée.");
+        const [frontRes, backRes] = await Promise.all([ fetch(user.id_card_front_url), fetch(user.id_card_back_url) ]);
         const [frontBlob, backBlob] = await Promise.all([frontRes.blob(), backRes.blob()]);
         const toBase64 = file => new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -116,28 +103,13 @@ const AdminUsersPage = () => {
             reader.onerror = error => reject(error);
         });
         const [frontBase64, backBase64] = await Promise.all([toBase64(frontBlob), toBase64(backBlob)]);
-        const prompt = `Analyse ces deux images (recto et verso d'une carte d'identité sénégalaise). 
-        1. Confirme si les documents semblent être des pièces d'identité valides.
-        2. Extrais les informations suivantes : Nom complet, Date de naissance, Numéro de la carte.
-        3. Indique toute incohérence ou signe suspect.
-        Réponds au format JSON avec les clés suivantes : "document_valide" (boolean), "nom_complet" (string), "date_de_naissance" (string), "numero_carte" (string), "analyse_suspecte" (string).`;
+        const prompt = `Analyse ces deux images (recto et verso d'une carte d'identité sénégalaise). Extrais les informations suivantes : Nom complet, Date de naissance, Numéro de la carte. Indique si le document semble valide et s'il y a des signes suspects. Réponds au format JSON avec les clés : "document_valide" (boolean), "nom_complet" (string), "date_de_naissance" (string), "numero_carte" (string), "analyse_suspecte" (string).`;
         const payload = {
-            contents: [{
-                role: "user",
-                parts: [
-                    { text: prompt },
-                    { inlineData: { mimeType: "image/jpeg", data: frontBase64 } },
-                    { inlineData: { mimeType: "image/jpeg", data: backBase64 } }
-                ]
-            }],
+            contents: [{ role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/jpeg", data: frontBase64 } }, { inlineData: { mimeType: "image/jpeg", data: backBase64 } } ] }],
             generationConfig: { responseMimeType: "application/json" }
         };
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if (!response.ok) {
             const errorBody = await response.text();
             throw new Error(`Erreur API Gemini: ${response.statusText} - ${errorBody}`);
@@ -159,10 +131,21 @@ const AdminUsersPage = () => {
     setIsModalOpen(true);
   };
 
+  // --- CORRECTION DE LA LOGIQUE DE FILTRAGE ---
   const filteredUsers = users.filter(user => {
     const matchesSearch = (user.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTab = activeTab === 'all' || user.verification_status === activeTab;
+    
+    let matchesTab = false;
+    if (activeTab === 'all') {
+      matchesTab = true;
+    } else if (activeTab === 'pending') {
+      // L'onglet "En attente" inclut maintenant les nouveaux inscrits ET ceux qui ont soumis des documents
+      matchesTab = user.verification_status === 'pending' || user.verification_status === 'not_verified';
+    } else {
+      matchesTab = user.verification_status === activeTab;
+    }
+    
     return matchesSearch && matchesTab;
   });
 
@@ -171,16 +154,12 @@ const AdminUsersPage = () => {
       case 'verified': return 'success';
       case 'pending': return 'warning';
       case 'rejected': return 'destructive';
-      default: return 'secondary';
+      default: return 'secondary'; // pour 'not_verified'
     }
   };
 
   const TabButton = ({ value, label, icon: Icon, count }) => (
-    <Button
-      variant={activeTab === value ? "default" : "ghost"}
-      onClick={() => setActiveTab(value)}
-      className="w-full justify-start text-sm"
-    >
+    <Button variant={activeTab === value ? "default" : "ghost"} onClick={() => setActiveTab(value)} className="w-full justify-start text-sm">
       <Icon className="mr-2 h-4 w-4" />
       {label}
       <Badge variant={activeTab === value ? "secondary" : "default"} className="ml-auto">{count}</Badge>
@@ -195,8 +174,9 @@ const AdminUsersPage = () => {
             <div className="lg:col-span-1">
                 <Card>
                     <CardHeader><CardTitle>Catégories</CardTitle></CardHeader>
-                    <CardContent className="flex flex-row lg:flex-col lg:space-y-1 overflow-x-auto lg:overflow-x-visible">
-                        <TabButton value="pending" label="En attente" icon={Clock} count={users.filter(u => u.verification_status === 'pending').length} />
+                    <CardContent className="flex flex-row lg:flex-col lg:space-y-1">
+                        {/* --- CORRECTION DU COMPTEUR --- */}
+                        <TabButton value="pending" label="En attente" icon={Clock} count={users.filter(u => u.verification_status === 'pending' || u.verification_status === 'not_verified').length} />
                         <TabButton value="verified" label="Vérifiés" icon={UserCheck} count={users.filter(u => u.verification_status === 'verified').length} />
                         <TabButton value="rejected" label="Rejetés" icon={UserX} count={users.filter(u => u.verification_status === 'rejected').length} />
                         <TabButton value="all" label="Tous" icon={Users} count={users.length} />
@@ -211,7 +191,7 @@ const AdminUsersPage = () => {
                             <Table>
                                 <TableHeader><TableRow><TableHead>Utilisateur</TableHead><TableHead>Type</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
                                 <TableBody>
-                                    {loading && users.length === 0 ? (
+                                    {loading ? (
                                         <TableRow><TableCell colSpan="4" className="text-center h-24"><LoadingSpinner /></TableCell></TableRow>
                                     ) : filteredUsers.map((user) => (
                                         <TableRow key={user.id}>
@@ -237,8 +217,8 @@ const AdminUsersPage = () => {
                 <div>
                     <h3 className="font-semibold mb-2">Documents Fournis</h3>
                     <div className="space-y-4">
-                        <div><Label>Recto de la carte d'identité</Label>{selectedUser.id_card_front_url ? <img src={selectedUser.id_card_front_url} alt="Recto CNI" className="rounded-lg border mt-1 w-full" /> : <p className="text-sm text-muted-foreground">Non fourni</p>}</div>
-                        <div><Label>Verso de la carte d'identité</Label>{selectedUser.id_card_back_url ? <img src={selectedUser.id_card_back_url} alt="Verso CNI" className="rounded-lg border mt-1 w-full" /> : <p className="text-sm text-muted-foreground">Non fourni</p>}</div>
+                        <div><Label>Recto CNI</Label>{selectedUser.id_card_front_url ? <img src={selectedUser.id_card_front_url} alt="Recto CNI" className="rounded-lg border mt-1 w-full" /> : <p className="text-sm text-muted-foreground">Non fourni</p>}</div>
+                        <div><Label>Verso CNI</Label>{selectedUser.id_card_back_url ? <img src={selectedUser.id_card_back_url} alt="Verso CNI" className="rounded-lg border mt-1 w-full" /> : <p className="text-sm text-muted-foreground">Non fourni</p>}</div>
                     </div>
                 </div>
                 <div>
