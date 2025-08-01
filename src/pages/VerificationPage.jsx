@@ -11,25 +11,14 @@ import LoadingSpinner from '@/components/ui/spinner';
 import { ShieldCheck, AlertTriangle } from 'lucide-react';
 
 const UploadForm = ({ onFileChange, onSubmit, loading }) => (
-  <Card className="w-full max-w-md">
-    <CardHeader>
-      <CardTitle>Vérification de votre compte</CardTitle>
-      <CardDescription>Pour activer votre compte, veuillez soumettre une copie de votre carte d'identité (recto et verso).</CardDescription>
-    </CardHeader>
-    <CardContent className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="front-id">Recto de la carte d'identité</Label>
-        <Input id="front-id" type="file" onChange={(e) => onFileChange(e, 'front')} required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="back-id">Verso de la carte d'identité</Label>
-        <Input id="back-id" type="file" onChange={(e) => onFileChange(e, 'back')} required />
-      </div>
-      <Button onClick={onSubmit} disabled={loading} className="w-full">
-        {loading ? <LoadingSpinner size="small" /> : 'Soumettre pour vérification'}
-      </Button>
-    </CardContent>
-  </Card>
+    <Card className="w-full max-w-md">
+        <CardHeader><CardTitle>Vérification de votre compte</CardTitle><CardDescription>Pour activer votre compte, veuillez soumettre une copie de votre carte d'identité (recto et verso).</CardDescription></CardHeader>
+        <CardContent className="space-y-6">
+            <div className="space-y-2"><Label htmlFor="front-id">Recto de la carte d'identité</Label><Input id="front-id" type="file" onChange={(e) => onFileChange(e, 'front')} /></div>
+            <div className="space-y-2"><Label htmlFor="back-id">Verso de la carte d'identité</Label><Input id="back-id" type="file" onChange={(e) => onFileChange(e, 'back')} /></div>
+            <Button onClick={onSubmit} disabled={loading} className="w-full">{loading ? <LoadingSpinner size="small" /> : 'Soumettre pour vérification'}</Button>
+        </CardContent>
+    </Card>
 );
 
 const VerificationPage = () => {
@@ -47,17 +36,13 @@ const VerificationPage = () => {
   };
 
   const handleUpload = async () => {
-    if (!frontIdFile || !backIdFile) {
-      toast({ variant: "destructive", title: "Fichiers manquants", description: "Veuillez sélectionner le recto et le verso." });
+    if (!frontIdFile || !backIdFile || !user) {
+      toast({ variant: "destructive", title: "Erreur", description: "Veuillez sélectionner les deux fichiers et être connecté." });
       return;
     }
-    if (!user) {
-      toast({ variant: "destructive", title: "Erreur", description: "Utilisateur non trouvé." });
-      return;
-    }
-
     setLoading(true);
     try {
+      // ... (logique d'upload des fichiers vers Supabase Storage)
       const frontFilePath = `${user.id}/${Date.now()}_front`;
       const { error: frontError } = await supabase.storage.from('verification_documents').upload(frontFilePath, frontIdFile);
       if (frontError) throw frontError;
@@ -66,8 +51,7 @@ const VerificationPage = () => {
       const backFilePath = `${user.id}/${Date.now()}_back`;
       const { error: backError } = await supabase.storage.from('verification_documents').upload(backFilePath, backIdFile);
       if (backError) throw backError;
-      const { data: { publicUrl: backPublicUrl } } = supabase.storage.from('verification_documents').getPublicUrl(backFilePath);
-
+      
       const { error: updateError } = await supabase
         .from('users')
         .update({
@@ -78,28 +62,19 @@ const VerificationPage = () => {
         .eq('id', user.id);
       if (updateError) throw updateError;
       
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: user.id, // Assurez-vous que cette colonne existe bien dans votre table 'notifications'
-          message: `L'utilisateur ${user.email || user.id} a soumis ses documents pour vérification.`,
-          link_url: `/dashboard/users`
-        });
-      if (notificationError) throw notificationError;
+      const { error: notificationError } = await supabase.from('notifications').insert({ user_id: user.id, message: `L'utilisateur ${user.email} a soumis ses documents.` });
+      if (notificationError) console.warn("Erreur notification:", notificationError);
 
-      // SIMULATION DE L'ENVOI D'EMAIL
-      console.log(`SIMULATION: Envoi d'un email à ${user.email} pour confirmer la soumission.`);
-      toast({ title: "Email de confirmation (simulation)", description: "Un email a été envoyé pour vous informer que votre demande est en cours de traitement." });
+      console.log(`SIMULATION: Email envoyé à ${user.email} (demande en cours).`);
+      toast({ title: "Email de confirmation (simulation)", description: "Un email vous a été envoyé pour confirmer la réception de vos documents." });
+      toast({ title: "Documents soumis", description: "Votre compte est en cours de vérification." });
       
-      toast({ title: "Documents soumis avec succès", description: "Votre compte est maintenant en cours de vérification." });
-      
-      // RAFRAÎCHISSEMENT DE L'ÉTAT DE L'UTILISATEUR
+      // --- CORRECTION CLÉ : RAFRAÎCHIR L'ÉTAT DE L'UTILISATEUR ---
       if (fetchUserProfile) {
         await fetchUserProfile();
       }
 
     } catch (error) {
-      console.error("Erreur d'envoi:", error);
       toast({ variant: "destructive", title: "Erreur d'envoi", description: error.message });
     } finally {
       setLoading(false);
@@ -112,31 +87,18 @@ const VerificationPage = () => {
       case 'pending':
         return (
           <Card className="w-full max-w-md text-center p-8">
-            <CardHeader>
-              <ShieldCheck className="mx-auto h-12 w-12 text-yellow-500" />
-              <CardTitle className="mt-4">Vérification en cours</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Vos documents ont été reçus et sont en cours d'examen par notre équipe. Vous recevrez une notification par e-mail une fois la vérification terminée. Cela prend généralement quelques heures.</p>
-            </CardContent>
+            <CardHeader><ShieldCheck className="mx-auto h-12 w-12 text-yellow-500" /><CardTitle className="mt-4">Vérification en cours</CardTitle></CardHeader>
+            <CardContent><p className="text-muted-foreground">Vos documents ont été reçus et sont en cours d'examen. Vous recevrez un e-mail une fois la vérification terminée.</p></CardContent>
           </Card>
         );
       case 'rejected':
         return (
           <div className="w-full max-w-md space-y-4">
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md">
-              <div className="flex items-center">
-                <AlertTriangle className="h-6 w-6 text-red-500 mr-3" />
-                <div>
-                  <p className="font-bold">Vérification Rejetée</p>
-                  <p className="text-sm">Vos documents n'ont pas pu être validés. Veuillez réessayer avec des images claires et lisibles.</p>
-                </div>
-              </div>
-            </div>
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4"><div className="flex items-center"><AlertTriangle className="h-6 w-6 mr-3" /><div><p className="font-bold">Vérification Rejetée</p><p className="text-sm">Veuillez réessayer avec des images claires.</p></div></div></div>
             <UploadForm onFileChange={handleFileChange} onSubmit={handleUpload} loading={loading} />
           </div>
         );
-      default: // 'not_verified' ou autre
+      default:
         return <UploadForm onFileChange={handleFileChange} onSubmit={handleUpload} loading={loading} />;
     }
   };
