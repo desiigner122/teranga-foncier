@@ -12,14 +12,14 @@ import { Users as UsersIcon, Briefcase, Building, Sprout, Banknote, Landmark, La
 import { supabase } from '@/lib/supabaseClient';
 
 const accountTypes = [
-    { value: 'Particulier', label: 'Particulier (Acheteur)', icon: UsersIcon },
-    { value: 'Vendeur', label: 'Vendeur', icon: Store },
-    { value: 'Investisseur', label: 'Investisseur', icon: Briefcase },
-    { value: 'Promoteur', label: 'Promoteur', icon: Building },
-    { value: 'Agriculteur', label: 'Agriculteur', icon: Sprout },
-    { value: 'Banque', label: 'Partenaire Bancaire', icon: Banknote },
-    { value: 'Mairie', label: 'Représentant Mairie', icon: Landmark },
-    { value: 'Notaire', label: 'Étude Notariale', icon: LandPlot },
+  { value: 'Particulier', label: 'Particulier (Acheteur)', icon: UsersIcon },
+  { value: 'Vendeur', label: 'Vendeur', icon: Store },
+  { value: 'Investisseur', label: 'Investisseur', icon: Briefcase },
+  { value: 'Promoteur', label: 'Promoteur', icon: Building },
+  { value: 'Agriculteur', label: 'Agriculteur', icon: Sprout },
+  { value: 'Banque', label: 'Partenaire Bancaire', icon: Banknote },
+  { value: 'Mairie', label: 'Représentant Mairie', icon: Landmark },
+  { value: 'Notaire', label: 'Étude Notariale', icon: LandPlot },
 ];
 
 const RegisterPage = () => {
@@ -41,27 +41,20 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Le Trigger SQL s'occupera de créer le profil dans la table 'users'.
+      // On passe les informations supplémentaires (nom, type) dans les métadonnées.
+      const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
+        options: {
+          data: {
+            full_name: name,
+            type: accountType,
+          }
+        }
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("La création du compte a échoué.");
-
-      // Insérer le profil dans la table 'public.users'
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          full_name: name,
-          email: email,
-          type: accountType,
-          role: 'user',
-          verification_status: 'not_verified',
-        });
-
-      if (profileError) throw profileError;
+      if (error) throw error;
       
       toast({
         title: "Inscription presque terminée !",
@@ -83,55 +76,31 @@ const RegisterPage = () => {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Créer un Compte</CardTitle>
-          <CardDescription>Rejoignez Teranga Foncier et sécurisez vos transactions.</CardDescription>
+          <CardDescription>Rejoignez Teranga Foncier.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="accountType">Je suis un(e)</Label>
                <Select value={accountType} onValueChange={setAccountType}>
-                <SelectTrigger id="accountType" className="w-full">
-                  <SelectValue placeholder="Sélectionnez un type de compte" />
-                </SelectTrigger>
+                <SelectTrigger id="accountType"><SelectValue placeholder="Sélectionnez un type" /></SelectTrigger>
                 <SelectContent>
                   {accountTypes.map(({ value, label, icon: Icon }) => (
                     <SelectItem key={value} value={value}>
-                      <div className="flex items-center">
-                        <Icon className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{label}</span>
-                      </div>
+                      <div className="flex items-center"><Icon className="h-4 w-4 mr-2 text-muted-foreground" /><span>{label}</span></div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nom complet</Label>
-              <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
-            </div>
-             <div className="grid gap-2">
-              <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
-              <Input id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={isLoading} />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Création...' : 'Créer un compte'}
-            </Button>
+            <div className="grid gap-2"><Label htmlFor="name">Nom complet</Label><Input id="name" required value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} /></div>
+            <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} /></div>
+            <div className="grid gap-2"><Label htmlFor="password">Mot de passe</Label><Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} /></div>
+            <div className="grid gap-2"><Label htmlFor="confirm-password">Confirmer le mot de passe</Label><Input id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={isLoading} /></div>
+            <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? 'Création...' : 'Créer un compte'}</Button>
           </form>
         </CardContent>
-         <CardFooter className="flex-col items-start text-sm">
-           <div className="text-center w-full">
-             Déjà un compte?{' '}
-             <Link to="/login" className="underline">Connectez-vous</Link>
-           </div>
-         </CardFooter>
+        <CardFooter className="flex-col items-start text-sm"><div className="text-center w-full">Déjà un compte?{' '}<Link to="/login" className="underline">Connectez-vous</Link></div></CardFooter>
       </Card>
     </motion.div>
   );
