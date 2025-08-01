@@ -1,3 +1,5 @@
+// src/pages/admin/AdminBlogPage.jsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -12,7 +14,7 @@ import LoadingSpinner from '@/components/ui/spinner';
 import { PlusCircle, Edit, Trash2, Search, FileText, Calendar, Image as ImageIcon } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter // <-- CORRECTION ICI
 } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
@@ -146,15 +148,6 @@ const AdminBlogPage = () => {
     let finalImageUrl = formData.image_url;
 
     try {
-      // Vérifier si le bucket existe avant l'upload
-      const { data: bucketExists, error: bucketError } = await supabase.storage
-        .from('public_files')
-        .list('blog_images', { limit: 1 });
-      if (bucketError || !bucketExists.length) {
-        throw new Error('Le bucket public_files/blog_images n\'existe pas ou est inaccessible.');
-      }
-
-      // Upload de l'image si un nouveau fichier est sélectionné
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
@@ -176,7 +169,6 @@ const AdminBlogPage = () => {
         finalImageUrl = publicURLData.publicUrl;
       }
 
-      // Préparation des données
       const postData = {
         ...formData,
         image_url: finalImageUrl,
