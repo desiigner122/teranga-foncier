@@ -83,12 +83,23 @@ const VerificationPage = () => {
         .insert({
           user_id: user.id,
           message: `L'utilisateur ${user.email || user.id} a soumis ses documents.`,
-          link_url: '/dashboard/admin/users'
+          link_url: '/dashboard/users' // Correction du lien pour admin
         });
       if (notificationError) throw notificationError;
 
+      // --- SIMULATION DE L'ENVOI D'EMAIL ---
+      // Dans un vrai projet, ceci serait une Edge Function
+      console.log(`SIMULATION: Envoi d'un email à ${user.email} pour confirmer la soumission.`);
+      toast({ title: "Email de confirmation (simulation)", description: "Un email a été envoyé à l'utilisateur." });
+      
       toast({ title: "Documents soumis", description: "Votre compte est en cours de vérification." });
-      if (fetchUserProfile) await fetchUserProfile();
+      
+      // --- RAFRAÎCHISSEMENT DE L'ÉTAT ---
+      // On force le rafraîchissement du profil dans le contexte
+      if (fetchUserProfile) {
+        await fetchUserProfile();
+      }
+
     } catch (error) {
       console.error("Erreur d'envoi:", error);
       toast({ variant: "destructive", title: "Erreur d'envoi", description: error.message });
@@ -98,6 +109,7 @@ const VerificationPage = () => {
   };
 
   const renderContent = () => {
+    // Le `user` du contexte est maintenant toujours à jour
     switch (user?.verification_status) {
       case 'pending':
         return (
@@ -107,7 +119,7 @@ const VerificationPage = () => {
               <CardTitle className="mt-4">Vérification en cours</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Vos documents ont été reçus et sont en cours d'examen.</p>
+              <p className="text-muted-foreground">Vos documents ont été reçus et sont en cours d'examen par notre équipe. Vous recevrez une notification par e-mail une fois la vérification terminée. Cela prend généralement quelques heures.</p>
             </CardContent>
           </Card>
         );
@@ -119,7 +131,7 @@ const VerificationPage = () => {
                 <AlertTriangle className="h-6 w-6 text-red-500 mr-3" />
                 <div>
                   <p className="font-bold">Vérification Rejetée</p>
-                  <p className="text-sm">Vos documents n'ont pas pu être validés. Veuillez réessayer.</p>
+                  <p className="text-sm">Vos documents n'ont pas pu être validés. Veuillez réessayer avec des images claires et lisibles.</p>
                 </div>
               </div>
             </div>

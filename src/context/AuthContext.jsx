@@ -1,58 +1,84 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+// src/context/AuthContext.jsx
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import LoadingSpinner from '@/components/ui/spinner';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchUserProfile = useCallback(async (authUser) => {
+    if (!authUser) return null;
     try {
-      const storedUser = localStorage.getItem('authUser');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+      
+      if (error) {
+        console.warn("Profil utilisateur non trouvé, utilisation des données d'authentification par défaut.", error.message);
+        return authUser;
       }
-    } catch (error) {
-      console.error("Failed to parse auth user from localStorage", error);
-      localStorage.removeItem('authUser');
-    } finally {
-       setLoading(false);
+      return { ...authUser, ...data };
+    } catch (err) {
+      console.error("Erreur lors de la récupération du profil:", err);
+      return authUser;
     }
   }, []);
 
-  const login = (userData) => {
-    localStorage.setItem('authUser', JSON.stringify(userData));
-    setUser(userData);
-  };
+  useEffect(() => {
+    setLoading(true);
+    const getActiveSession = async () => {
+      const { data: { session: activeSession } } = await supabase.auth.getSession();
+      setSession(activeSession);
+      const userProfile = await fetchUserProfile(activeSession?.user);
+      setUser(userProfile);
+      setLoading(false);
+    };
 
-  const logout = () => {
-    localStorage.removeItem('authUser');
-    setUser(null);
-  };
+    getActiveSession();
 
-  const updateUserProfile = (updatedData) => {
-     if (user) {
-       const newUser = { ...user, ...updatedData };
-       localStorage.setItem('authUser', JSON.stringify(newUser));
-       setUser(newUser);
-     }
-  };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      const userProfile = await fetchUserProfile(session?.user);
+      setUser(userProfile);
+      setLoading(false);
+    });
 
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [fetchUserProfile]);
 
   const value = {
+    session,
     user,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isAgent: user?.role === 'agent',
-    login,
-    logout,
-    updateUserProfile,
-    loading
+    loading,
+    signOut: () => supabase.auth.signOut(),
+    // Exposer fetchUserProfile pour le rafraîchissement manuel
+    fetchUserProfile: async () => {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+            const userProfile = await fetchUserProfile(authUser);
+            setUser(userProfile);
+        }
+    }
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children} 
+      {loading ? (
+        <div className="flex h-screen w-full items-center justify-center">
+          <LoadingSpinner size="large" />
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 };
