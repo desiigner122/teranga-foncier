@@ -34,16 +34,13 @@ const LoginPage = () => {
 
       if (error) throw error;
       
-      // La redirection est maintenant gérée par ProtectedRoute et le AuthContext.
-      // onAuthStateChange va s'activer et mettre à jour l'état global.
       toast({ title: "Connexion réussie !" });
       navigate(from, { replace: true });
 
     } catch (err) {
-      console.error("Erreur de connexion:", err);
       const errorMessage = err.message.includes("Invalid login credentials")
         ? "Email ou mot de passe incorrect."
-        : "Une erreur est survenue.";
+        : "Une erreur est survenue. Veuillez vérifier vos informations.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -63,34 +60,18 @@ const LoginPage = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* ... Le reste du formulaire reste identique ... */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="nom@exemple.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-              />
+              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-              />
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
             </div>
             {error && (
               <div className="flex items-center p-3 bg-destructive/10 text-destructive text-sm rounded-md">
-                  <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0"/>
-                  <span>{error}</span>
+                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0"/>
+                <span>{error}</span>
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
@@ -101,9 +82,7 @@ const LoginPage = () => {
         <CardFooter className="text-center text-sm">
           <p className="w-full">
             Pas encore de compte ?{" "}
-            <Link to="/register" className="font-medium text-primary hover:underline">
-              S'inscrire
-            </Link>
+            <Link to="/register" className="font-medium text-primary hover:underline">S'inscrire</Link>
           </p>
         </CardFooter>
       </Card>

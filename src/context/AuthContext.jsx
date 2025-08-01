@@ -20,11 +20,9 @@ export const AuthProvider = ({ children }) => {
         .single();
       
       if (error) {
-        console.warn("Profil utilisateur non trouvé, utilisation des données d'authentification par défaut.", error.message);
-        // Important: retourne l'objet utilisateur de Supabase Auth même si le profil n'est pas encore dans la table 'users'
+        console.warn("Profil utilisateur non trouvé. L'utilisateur existe dans Auth mais pas dans la table 'users'.", error.message);
         return { ...authUser, email: authUser.email, id: authUser.id };
       }
-      // Combine l'utilisateur de Supabase Auth avec les données du profil (rôle, type, verification_status, etc.)
       return { ...authUser, ...data };
     } catch (err) {
       console.error("Erreur lors de la récupération du profil:", err);
@@ -64,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     isAgent: user?.role === 'agent',
     loading,
     signOut: () => supabase.auth.signOut(),
-    fetchUserProfile: async () => { // Fonction pour rafraîchir manuellement le profil
+    fetchUserProfile: async () => {
         const { data: { user: authUser } } = await supabase.auth.getUser();
         if (authUser) {
             const userProfile = await fetchUserProfile(authUser);
@@ -75,11 +73,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? (
-        <div className="flex h-screen w-full items-center justify-center">
-          <LoadingSpinner size="large" />
-        </div>
-      ) : children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

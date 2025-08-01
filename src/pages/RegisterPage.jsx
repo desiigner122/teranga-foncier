@@ -12,14 +12,14 @@ import { Users as UsersIcon, Briefcase, Building, Sprout, Banknote, Landmark, La
 import { supabase } from '@/lib/supabaseClient';
 
 const accountTypes = [
-  { value: 'Particulier', label: 'Particulier (Acheteur)', icon: UsersIcon },
-  { value: 'Vendeur', label: 'Vendeur', icon: Store },
-  { value: 'Investisseur', label: 'Investisseur', icon: Briefcase },
-  { value: 'Promoteur', label: 'Promoteur', icon: Building },
-  { value: 'Agriculteur', label: 'Agriculteur', icon: Sprout },
-  { value: 'Banque', label: 'Partenaire Bancaire', icon: Banknote },
-  { value: 'Mairie', label: 'Représentant Mairie', icon: Landmark },
-  { value: 'Notaire', label: 'Étude Notariale', icon: LandPlot },
+    { value: 'Particulier', label: 'Particulier (Acheteur)', icon: UsersIcon },
+    { value: 'Vendeur', label: 'Vendeur', icon: Store },
+    { value: 'Investisseur', label: 'Investisseur', icon: Briefcase },
+    { value: 'Promoteur', label: 'Promoteur', icon: Building },
+    { value: 'Agriculteur', label: 'Agriculteur', icon: Sprout },
+    { value: 'Banque', label: 'Partenaire Bancaire', icon: Banknote },
+    { value: 'Mairie', label: 'Représentant Mairie', icon: Landmark },
+    { value: 'Notaire', label: 'Étude Notariale', icon: LandPlot },
 ];
 
 const RegisterPage = () => {
@@ -41,23 +41,15 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     try {
-      // 1. Créer l'utilisateur dans Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email,
         password: password,
-        options: {
-          data: {
-            full_name: name,
-            type: accountType,
-          }
-        }
       });
 
       if (authError) throw authError;
       if (!authData.user) throw new Error("La création du compte a échoué.");
 
-      // 2. Insérer le profil dans la table 'public.users'
-      // Supabase le fait automatiquement via un Trigger si configuré, sinon on le fait manuellement
+      // Insérer le profil dans la table 'public.users'
       const { error: profileError } = await supabase
         .from('users')
         .insert({
@@ -65,8 +57,8 @@ const RegisterPage = () => {
           full_name: name,
           email: email,
           type: accountType,
-          role: 'user', // Rôle par défaut
-          verification_status: 'not_verified', // Statut initial
+          role: 'user',
+          verification_status: 'not_verified',
         });
 
       if (profileError) throw profileError;
@@ -87,11 +79,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="container mx-auto flex items-center justify-center min-h-screen py-12 px-4"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="container mx-auto flex items-center justify-center min-h-screen py-12 px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Créer un Compte</CardTitle>
@@ -118,7 +106,7 @@ const RegisterPage = () => {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="name">Nom complet ou Raison sociale</Label>
+              <Label htmlFor="name">Nom complet</Label>
               <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
             </div>
             <div className="grid gap-2">
