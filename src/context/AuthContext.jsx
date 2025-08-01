@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
         .single();
       
       if (error) {
-        console.warn("Profil utilisateur non trouvé dans la table 'users'. C'est normal si l'utilisateur vient de s'inscrire.", error.message);
+        console.warn("Profil utilisateur non trouvé. C'est normal si l'utilisateur vient de s'inscrire et que le trigger n'a pas encore tourné.", error.message);
         return { ...authUser, email: authUser.email, id: authUser.id, verification_status: 'not_verified' };
       }
       return { ...authUser, ...data };
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       setSession(session);
       const userProfile = await fetchUserProfile(session?.user);
       setUser(userProfile);
-      setLoading(false);
+      // Ne mettez setLoading(false) qu'après le premier chargement pour éviter les flashs
     });
 
     return () => {
@@ -74,7 +74,11 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? (
+        <div className="flex h-screen w-full items-center justify-center">
+          <LoadingSpinner size="large" />
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 };

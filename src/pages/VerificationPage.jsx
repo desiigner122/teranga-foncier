@@ -15,7 +15,7 @@ const UploadForm = ({ onFileChange, onSubmit, loading }) => (
 );
 
 const VerificationPage = () => {
-  const { user, refreshUser } = useAuth(); // Utilise refreshUser
+  const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const [frontIdFile, setFrontIdFile] = useState(null);
   const [backIdFile, setBackIdFile] = useState(null);
@@ -37,22 +37,22 @@ const VerificationPage = () => {
     try {
       const frontFilePath = `${user.id}/${Date.now()}_front.png`;
       await supabase.storage.from('verification_documents').upload(frontFilePath, frontIdFile);
-      const { data: { publicUrl: frontPublicUrl } } = supabase.storage.from('verification_documents').getPublicUrl(frontFilePath);
+      const { data: frontUrlData } = supabase.storage.from('verification_documents').getPublicUrl(frontFilePath);
 
       const backFilePath = `${user.id}/${Date.now()}_back.png`;
       await supabase.storage.from('verification_documents').upload(backFilePath, backIdFile);
-      const { data: { publicUrl: backPublicUrl } } = supabase.storage.from('verification_documents').getPublicUrl(backFilePath);
+      const { data: backUrlData } = supabase.storage.from('verification_documents').getPublicUrl(backFilePath);
 
       await supabase.from('users').update({
-          id_card_front_url: frontPublicUrl,
-          id_card_back_url: backPublicUrl,
+          id_card_front_url: frontUrlData.publicUrl,
+          id_card_back_url: backUrlData.publicUrl,
           verification_status: 'pending',
       }).eq('id', user.id);
       
       toast({ title: "Documents soumis", description: "Votre compte est en cours de vérification." });
       
       if (refreshUser) {
-        await refreshUser(); // Force la mise à jour de l'état de l'utilisateur
+        await refreshUser();
       }
 
     } catch (error) {
