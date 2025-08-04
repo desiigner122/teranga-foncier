@@ -1,4 +1,3 @@
-// src/pages/admin/AdminDashboardPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
