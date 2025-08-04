@@ -1,28 +1,44 @@
 // src/pages/LoginPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext'; // On utilise useAuth mais plus la fonction login
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { LogIn, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import LoadingSpinner from '@/components/ui/spinner';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // État de chargement du formulaire
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  // La redirection dépendra des infos du `user` dans le contexte, qui sera mis à jour automatiquement
-  const { user } = useAuth(); 
+  // Récupérer l'état complet du contexte
+  const { user, profile, loading: authLoading, isAuthenticated } = useAuth(); 
 
   const from = location.state?.from?.pathname || "/dashboard";
+
+  // Redirection basée sur l'état du contexte
+  useEffect(() => {
+    if (isAuthenticated && profile) { // Attendre que l'utilisateur soit authentifié et que le profil soit chargé
+      let destination = "/"; // Par défaut, on redirige vers l'accueil
+      if (profile.role === 'admin') {
+        destination = "/admin"; // Rediriger l'admin vers /admin
+      } else if (profile.role === 'agent') {
+        destination = "/agent-dashboard"; // Rediriger l'agent vers son dashboard
+      } else {
+        destination = from; // Rediriger les autres rôles vers la page d'origine
+      }
+      navigate(destination, { replace: true });
+    }
+  }, [isAuthenticated, profile, from, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -30,7 +46,6 @@ const LoginPage = () => {
     setError('');
 
     try {
-      // 1. Authentification via Supabase. C'est tout !
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -40,17 +55,8 @@ const LoginPage = () => {
         throw authError;
       }
       
-      // Le listener `onAuthStateChange` de AuthContext va automatiquement
-      // détecter la connexion, récupérer le profil et mettre à jour l'état global.
-      
-      toast({
-        title: "Connexion réussie !",
-        description: `Bienvenue ! Redirection en cours...`,
-      });
-      
-      // La redirection peut être gérée plus globalement, mais pour l'instant on garde une redirection simple.
-      // Le `AuthContext` aura bientôt le `user.role` à jour.
-      navigate(from, { replace: true });
+      // Le listener `onAuthStateChange` de AuthContext va gérer la suite.
+      // Le `useEffect` ci-dessus va prendre le relais et rediriger l'utilisateur.
 
     } catch (err) {
       console.error("Erreur de connexion:", err);
