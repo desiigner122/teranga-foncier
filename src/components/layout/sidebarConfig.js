@@ -5,7 +5,8 @@ import {
     Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive,
     Handshake, Activity, LogOut,
     PieChart, Globe, Palette, Package, ShoppingCart, Calendar, FileText, BookOpen, Layers,
-    Store, Sprout, Shield // Assurez-vous que toutes les icônes utilisées dans accountTypes de LoginPage sont importées ici
+    Store, Sprout, Shield, Building, // Assurez-vous que toutes les icônes utilisées sont importées
+    DollarSign, LifeBuoy // <-- ICÔNES MANQUANTES AJOUTÉES ICI
 } from 'lucide-react';
 
 const commonLinks = {
@@ -45,10 +46,10 @@ const adminConfig = [
     { isHeader: true, label: 'RÉGULATION & SURVEILLANCE' },
     { label: 'Conformité', href: '/dashboard/admin/compliance', icon: ShieldCheck, end: true },
     { label: 'Rapports & Stats', href: '/dashboard/admin/reports', icon: BarChart, end: true },
-    { label: 'Litiges', href: '/dashboard/admin/disputes', icon: AlertTriangle, end: true }, // Assurez-vous que cette page existe
+    { label: 'Litiges', href: '/dashboard/admin/disputes', icon: AlertTriangle, end: true },
     { isSeparator: true },
     { isHeader: true, label: 'OUTILS' },
-    { label: 'Assistant IA', href: '/dashboard/admin/ai-assistant', icon: LifeBuoy, end: true }, // Assurez-vous que cette page existe
+    { label: 'Assistant IA', href: '/dashboard/admin/ai-assistant', icon: LifeBuoy, end: true },
     { label: 'Gestion du Blog', href: '/dashboard/admin/blog', icon: BookOpen, end: true },
     { isSeparator: true },
     { isHeader: true, label: 'MON COMPTE' },
@@ -242,7 +243,6 @@ export const getSidebarConfig = (user) => {
         ];
     }
 
-    // Si l'utilisateur a un rôle spécifique défini dans Supabase Auth
     if (user.role === 'admin') {
         return adminConfig;
     }
@@ -250,7 +250,6 @@ export const getSidebarConfig = (user) => {
         return agentConfig;
     }
 
-    // Si l'utilisateur a un rôle générique 'user', on utilise son 'type' de la table 'users'
     switch (user.type) {
         case 'Vendeur':
             return vendeurConfig;
@@ -269,14 +268,6 @@ export const getSidebarConfig = (user) => {
         case 'Particulier':
             return particulierConfig;
         default:
-            // Configuration par défaut pour les utilisateurs non reconnus ou 'Particulier' par défaut
-            return [
-                { label: 'Dashboard', href: '/dashboard/particulier', icon: LayoutDashboard, end: true },
-                commonLinks.profile,
-                commonLinks.settings,
-                commonLinks.notifications,
-                commonLinks.messaging,
-                commonLinks.logout,
-            ];
+            return particulierConfig;
     }
 };
