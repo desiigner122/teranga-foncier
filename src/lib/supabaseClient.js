@@ -1,16 +1,38 @@
-    // src/lib/supabaseClient.js
-    import { createClient } from '@supabase/supabase-js';
+// src/lib/supabaseClient.js
+import { createClient } from '@supabase/supabase-js';
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error("Erreur: Les variables d'environnement SUPABASE_URL ou SUPABASE_ANON_KEY ne sont pas définies.");
-      // En production, vous pourriez vouloir lancer une erreur pour éviter un comportement inattendu
-      // throw new Error("Supabase environment variables are missing.");
-    }
+// Mock client for development when environment variables are not configured
+const createMockClient = () => ({
+  from: () => ({
+    select: () => Promise.resolve({ data: [], error: null }),
+    insert: () => Promise.resolve({ data: null, error: null }),
+    update: () => Promise.resolve({ data: null, error: null }),
+    delete: () => Promise.resolve({ data: null, error: null })
+  }),
+  auth: {
+    signUp: () => Promise.resolve({ data: null, error: null }),
+    signIn: () => Promise.resolve({ data: null, error: null }),
+    signOut: () => Promise.resolve({ error: null }),
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+  }
+});
 
-    // Crée et exporte une seule instance du client Supabase.
-    // Cela garantit qu'il n'y a pas de multiples instances de GoTrueClient.
-    export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Initialize Supabase client
+let supabaseClient;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  if (import.meta.env.DEV) {
+    console.warn("Variables d'environnement Supabase manquantes. Utilisation du client mock pour le développement.");
+    console.warn("Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY pour une fonctionnalité complète.");
+  }
+  supabaseClient = createMockClient();
+} else {
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+}
+
+export const supabase = supabaseClient;
     
