@@ -1,17 +1,18 @@
+// src/pages/admin/AdminDashboardPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import {
   Users, MapPin, FileCheck, DollarSign, UserCheck, Activity, FileText, BarChart, CalendarDays,
   ShieldCheck as ComplianceIcon, LandPlot, Building, Banknote, Leaf, TrendingUp, Scale, Gavel,
-  Home, Store, LayoutDashboard, User, Landmark, Handshake, MessageSquare
+  Home, Store, LayoutDashboard, User, Landmark, Handshake, MessageSquare, PieChart // Assurez-vous que PieChart est importé
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
 import { useToast } from "@/components/ui/use-toast";
-import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Bar } from 'recharts';
+import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, Pie, Cell, Bar } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 
 // Composant de graphique à barres simple (réutilisable)
