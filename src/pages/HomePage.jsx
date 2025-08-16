@@ -1,33 +1,17 @@
 // src/pages/HomePage.jsx
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Helmet } from 'react-helmet-async';
-import HeroSection from '@/components/home/sections/HeroSection';
-import CitiesCarousel from '@/components/home/sections/CitiesCarousel';
-import FeaturedParcelsSection from '@/components/home/sections/FeaturedParcelsSection';
-import UniqueFeaturesSection from '@/components/home/sections/UniqueFeaturesSection';
-import PlatformObjectivesSection from '@/components/home/sections/PlatformObjectivesSection';
-import HowItWorksSection from '@/components/home/sections/HowItWorksSection';
-import SolutionsOverviewSection from '@/components/home/sections/SolutionsOverviewSection';
-import TrustedSellersSection from '@/components/home/sections/TrustedSellersSection';
-import DiasporaGuideSection from '@/components/home/sections/DiasporaGuideSection';
-import FraudPreventionSection from '@/components/home/sections/FraudPreventionSection';
-import MarketNewsSection from '@/components/home/sections/MarketNewsSection';
-import VideoPresentationSection from '@/components/home/sections/VideoPresentationSection';
-import PartnerCarouselSection from '@/components/home/sections/PartnerCarouselSection';
-import ConstructorLogosSection from '@/components/home/sections/ConstructorLogosSection';
-import TestimonialsSection from '@/components/home/sections/TestimonialsSection';
-import BlogPreviewSection from '@/components/home/sections/BlogPreviewSection';
-import CallToActionSection from '@/components/home/sections/CallToActionSection';
-import {
-  Search, MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, Users, FileText, DollarSign,
-  Newspaper, Map, BarChart, Lightbulb, Gavel, ClipboardCheck, Briefcase, Leaf, Store, Banknote, UserCheck,
-  ArrowRight, CheckCircle, Globe, Clock, Sparkles, Lock, Zap, Building // <-- AJOUTÉ ICI
-} from 'lucide-react';
-import { useChatbot } from '@/context/ChatbotContext';
-import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+// Importation de Button est toujours nécessaire pour les autres usages
+import { Button } from '@/components/ui/button'; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  Search, MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, Users, FileText, DollarSign, // <-- AJOUTÉ ICI
+  Newspaper, Map, BarChart, Lightbulb, Gavel, ClipboardCheck, Briefcase, Leaf, Store, Banknote, UserCheck,
+  ArrowRight, CheckCircle, Globe, Clock, Sparkles, Lock, Zap, Building 
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useChatbot } from '@/context/ChatbotContext';
 
 // Données mockées pour les parcelles en vedette
 const mockFeaturedParcels = [
@@ -170,7 +154,7 @@ const HomePage = () => {
           <motion.p
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, type: 'spring', stiffness: 100 }}
+            transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
             className="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90"
           >
             Sécurisez vos transactions, explorez des terrains vérifiés et accédez aux services fonciers essentiels.
@@ -180,7 +164,7 @@ const HomePage = () => {
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.6, type: 'spring', stiffness: 100 }}
+            transition={{ delay: 0.6, type: "spring", stiffness: 100 }}
             className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-xl shadow-2xl p-6 md:p-8"
           >
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Trouver votre terrain idéal</h2>
@@ -349,7 +333,7 @@ const HomePage = () => {
             {/* Correction: Appliquer les styles de bouton directement au Link */}
             <Link to="/parcelles" className="inline-flex items-center justify-center text-blue-600 border-2 border-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900 rounded-lg px-8 py-6 font-bold transition-all duration-300 transform hover:scale-105">
               <span className="flex items-center gap-2">
-                Voir toutes les parcelles <MapPin className="ml-2 h-5 w-5" />
+                Explorer les Terrains Vérifiés <MapPin className="h-6 w-6" />
               </span>
             </Link>
           </div>
