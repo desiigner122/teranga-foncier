@@ -5,10 +5,9 @@ import {
     Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive,
     Handshake, Activity, LogOut,
     PieChart, Globe, Palette, Package, ShoppingCart, Calendar, FileText, BookOpen, Layers,
-    Store, Sprout, Shield, Building
+    Store, Sprout, Shield, Building, DollarSign, Receipt // Ajoutez toutes les icônes nécessaires
 } from 'lucide-react';
 
-// Liens communs pour tous les utilisateurs
 const commonLinks = {
     profile: { label: 'Mon Profil', href: '/dashboard/profile', icon: User, end: true },
     settings: { label: 'Paramètres', href: '/dashboard/settings', icon: Settings, end: true },
@@ -17,7 +16,6 @@ const commonLinks = {
     logout: { label: 'Déconnexion', href: '/logout', icon: LogOut, end: true }
 };
 
-// Configuration du menu d'administration
 const adminConfig = [
     { label: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard, end: true },
     { isSeparator: true },
