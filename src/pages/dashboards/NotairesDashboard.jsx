@@ -24,14 +24,100 @@ import {
   User,
   MapPin
 } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/context/AuthContext';
+import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
+import LoadingSpinner from '@/components/ui/spinner';
 
 const NotairesDashboard = () => {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState('dossiers');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDossier, setCurrentDossier] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [dossiers, setDossiers] = useState([]);
+  const [stats, setStats] = useState([
+    { title: "Dossiers à Vérifier", value: 0, icon: FileClock, color: "text-yellow-500" },
+    { title: "Actes Authentifiés (Mois)", value: 0, icon: Gavel, color: "text-green-500" },
+    { title: "Procédures en Attente", value: 0, icon: History, color: "text-blue-500" },
+    { title: "Vérifications de Conformité", value: 0, icon: Scale, color: "text-indigo-500" },
+  ]);
+  const [recentActivities, setRecentActivities] = useState([]);
+
+  // Charger les données réelles depuis Supabase
+  useEffect(() => {
+    loadNotaireData();
+  }, [profile]);
+
+  const loadNotaireData = async () => {
+    if (!profile?.id) return;
+    
+    setLoading(true);
+    try {
+      // Charger les dossiers notariaux
+      const { data: dossiersData, error: dossiersError } = await supabase
+        .from('notaire_dossiers')
+        .select(`
+          *,
+          parcels(reference, location),
+          profiles(full_name, email)
+        `)
+        .eq('notaire_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      if (dossiersError) throw dossiersError;
+
+      // Charger les activités récentes
+      const { data: activitiesData, error: activitiesError } = await supabase
+        .from('notaire_activities')
+        .select('*')
+        .eq('notaire_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (activitiesError) throw activitiesError;
+
+      // Calculer les statistiques
+      const dossiersStats = calculateStats(dossiersData);
+      
+      setDossiers(dossiersData || []);
+      setRecentActivities(activitiesData || []);
+      setStats([
+        { title: "Dossiers à Vérifier", value: dossiersStats.pending, icon: FileClock, color: "text-yellow-500" },
+        { title: "Actes Authentifiés (Mois)", value: dossiersStats.authenticated, icon: Gavel, color: "text-green-500" },
+        { title: "Procédures en Attente", value: dossiersStats.inProgress, icon: History, color: "text-blue-500" },
+        { title: "Vérifications de Conformité", value: dossiersStats.compliant, icon: Scale, color: "text-indigo-500" },
+      ]);
+
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de charger les données du notaire",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateStats = (dossiersData) => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    return {
+      pending: dossiersData.filter(d => d.status === 'En attente vérification').length,
+      authenticated: dossiersData.filter(d => 
+        d.status === 'Authentifié' && 
+        new Date(d.updated_at) >= startOfMonth
+      ).length,
+      inProgress: dossiersData.filter(d => d.status === 'En cours').length,
+      compliant: dossiersData.filter(d => d.status === 'Conforme').length
+    };
+  };
 
   const handleAction = (action, dossierId = '') => {
     switch(action) {
@@ -68,62 +154,52 @@ const NotairesDashboard = () => {
     setIsModalOpen(false);
   };
 
-  const handleDecision = (decision) => {
+  const handleDecision = async (decision) => {
     if (currentDossier) {
-      toast({
-        title: decision === 'approve' ? "Dossier approuvé" : "Dossier rejeté",
-        description: `${currentDossier.id} - ${decision === 'approve' ? 'Approuvé' : 'Rejeté'} avec succès.`,
-      });
+      try {
+        // Mise à jour en base de données
+        const { error } = await supabase
+          .from('notaire_dossiers')
+          .update({ 
+            status: decision === 'approve' ? 'Approuvé' : 'Rejeté',
+            updated_at: new Date().toISOString(),
+            notes: decision === 'approve' ? 'Dossier approuvé par le notaire' : 'Dossier rejeté par le notaire'
+          })
+          .eq('id', currentDossier.id);
+
+        if (error) throw error;
+
+        // Recharger les données
+        await loadNotaireData();
+
+        toast({
+          title: decision === 'approve' ? "Dossier approuvé" : "Dossier rejeté",
+          description: `${currentDossier.id} - ${decision === 'approve' ? 'Approuvé' : 'Rejeté'} avec succès.`,
+        });
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour:', error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de mettre à jour le dossier",
+        });
+      }
       closeModal();
     }
   };
 
-  const stats = [
-    { title: "Dossiers à Vérifier", value: 12, icon: FileClock, color: "text-yellow-500" },
-    { title: "Actes Authentifiés (Mois)", value: 45, icon: Gavel, color: "text-green-500" },
-    { title: "Procédures en Attente", value: 8, icon: History, color: "text-blue-500" },
-    { title: "Vérifications de Conformité", value: 22, icon: Scale, color: "text-indigo-500" },
-  ];
-
-  const recentActivities = [
-    { id: 'ACT-001', type: 'Vérification', parcelRef: 'dk-alm-002', status: 'En cours', date: 'Aujourd\'hui', client: 'Amadou Diallo' },
-    { id: 'ACT-002', type: 'Authentification', parcelRef: 'sly-ngp-010', status: 'Terminé', date: 'Hier', client: 'Fatou Sow' },
-    { id: 'ACT-003', type: 'Demande de certification', parcelRef: 'dmn-cit-005', status: 'Nouveau', date: 'Il y a 2 jours', client: 'Moussa Ba' },
-    { id: 'ACT-004', type: 'Consultation', parcelRef: 'ths-ext-021', status: 'Confirmée', date: 'Demain à 10h', client: 'Aissatou Diop' },
-  ];
-
-  const dossiers = [
-    { 
-      id: 'DOS-001', 
-      parcelRef: 'dk-alm-002', 
-      client: 'Amadou Diallo', 
-      type: 'Vente', 
-      status: 'En attente vérification',
-      dateCreation: '2025-01-10',
-      valeur: '150,000,000 XOF',
-      priority: 'high'
-    },
-    { 
-      id: 'DOS-002', 
-      parcelRef: 'sly-ngp-010', 
-      client: 'Fatou Sow', 
-      type: 'Succession', 
-      status: 'Authentification requise',
-      dateCreation: '2025-01-08',
-      valeur: '32,000,000 XOF',
-      priority: 'medium'
-    },
-    { 
-      id: 'DOS-003', 
-      parcelRef: 'dmn-cit-005', 
-      client: 'Moussa Ba', 
-      type: 'Donation', 
-      status: 'Conforme',
-      dateCreation: '2025-01-05',
-      valeur: '25,000,000 XOF',
-      priority: 'low'
+  const handleAIAction = async (actionType, result) => {
+    switch (actionType) {
+      case 'VALIDATE_DOCUMENT':
+        await loadNotaireData();
+        break;
+      case 'SEARCH_DATA':
+        // Filtrer les dossiers selon les résultats de l'IA
+        break;
+      default:
+        await loadNotaireData();
     }
-  ];
+  };
   
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -175,73 +251,86 @@ const NotairesDashboard = () => {
 
             {/* Liste des dossiers */}
             <div className="grid gap-4">
-              {dossiers.map((dossier) => (
-                <motion.div
-                  key={dossier.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg">{dossier.id}</CardTitle>
-                          <CardDescription>
-                            <div className="flex items-center gap-2 mt-1">
-                              <User className="h-4 w-4" />
-                              {dossier.client}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <MapPin className="h-4 w-4" />
-                              {dossier.parcelRef}
-                            </div>
-                          </CardDescription>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <LoadingSpinner />
+                </div>
+              ) : dossiers.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">Aucun dossier trouvé</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                dossiers.map((dossier) => (
+                  <motion.div
+                    key={dossier.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg">{dossier.reference || dossier.id}</CardTitle>
+                            <CardDescription>
+                              <div className="flex items-center gap-2 mt-1">
+                                <User className="h-4 w-4" />
+                                {dossier.profiles?.full_name || dossier.client_name}
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <MapPin className="h-4 w-4" />
+                                {dossier.parcels?.reference || dossier.parcel_reference}
+                              </div>
+                            </CardDescription>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            {getStatusBadge(dossier.status)}
+                            <Badge variant={dossier.priority === 'high' ? 'destructive' : dossier.priority === 'medium' ? 'default' : 'secondary'}>
+                              {dossier.priority === 'high' ? 'Urgent' : dossier.priority === 'medium' ? 'Normal' : 'Faible'}
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                          {getStatusBadge(dossier.status)}
-                          <Badge variant={dossier.priority === 'high' ? 'destructive' : dossier.priority === 'medium' ? 'default' : 'secondary'}>
-                            {dossier.priority === 'high' ? 'Urgent' : dossier.priority === 'medium' ? 'Normal' : 'Faible'}
-                          </Badge>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <Label className="text-muted-foreground">Type</Label>
+                            <p className="font-medium">{dossier.type}</p>
+                          </div>
+                          <div>
+                            <Label className="text-muted-foreground">Valeur</Label>
+                            <p className="font-medium">{dossier.valuation ? `${dossier.valuation.toLocaleString()} XOF` : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-muted-foreground">Date création</Label>
+                            <p className="font-medium">{new Date(dossier.created_at).toLocaleDateString('fr-FR')}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openModal(dossier)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Voir
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleAction('verify', dossier.id)}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              Vérifier
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <Label className="text-muted-foreground">Type</Label>
-                          <p className="font-medium">{dossier.type}</p>
-                        </div>
-                        <div>
-                          <Label className="text-muted-foreground">Valeur</Label>
-                          <p className="font-medium">{dossier.valeur}</p>
-                        </div>
-                        <div>
-                          <Label className="text-muted-foreground">Date création</Label>
-                          <p className="font-medium">{new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openModal(dossier)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Voir
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleAction('verify', dossier.id)}
-                          >
-                            <FileText className="h-4 w-4 mr-1" />
-                            Vérifier
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
             </div>
           </div>
         );
@@ -412,6 +501,17 @@ const NotairesDashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Assistant IA */}
+      <AIAssistantWidget 
+        dashboardContext={{
+          role: 'notaire',
+          totalDossiers: dossiers.length,
+          dossiersEnAttente: dossiers.filter(d => d.status === 'En attente vérification').length,
+          actesAuthentifies: stats.find(s => s.title.includes('Authentifiés'))?.value || 0
+        }}
+        onAction={handleAIAction}
+      />
     </div>
   );
 };

@@ -14,6 +14,7 @@ import LoadingSpinner from '@/components/ui/spinner';
 import { useToast } from "@/components/ui/use-toast";
 import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Bar } from 'recharts';
 import { Badge } from '@/components/ui/badge';
+import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 
 // Composant de graphique à barres simple (réutilisable)
 const SimpleBarChart = ({ data, dataKey, labelKey, barColorClass, title }) => {
@@ -455,11 +456,42 @@ const AdminDashboardPage = () => {
         </Card>
       </div>
 
+      {/* Assistant IA */}
+      <AIAssistantWidget 
+        dashboardContext={{
+          role: 'admin',
+          totalUsers: reportData.totalUsers,
+          totalParcels: reportData.totalParcels,
+          totalRequests: reportData.totalRequests,
+          userStats: actorStats
+        }}
+        onAction={handleAIAction}
+      />
+
       <div className="mt-8 text-center text-muted-foreground text-sm">
         <p>Données mises à jour en temps réel depuis la base de données Supabase.</p>
       </div>
     </motion.div>
   );
+
+  const handleAIAction = async (actionType, result) => {
+    switch (actionType) {
+      case 'DELETE_USER':
+        // Rafraîchir les données après suppression
+        await fetchData();
+        toast({
+          title: "Utilisateur supprimé",
+          description: `${result.deletedUser.full_name} a été supprimé du système`,
+        });
+        break;
+      case 'GENERATE_REPORT':
+        // Ouvrir un modal avec le rapport ou rediriger
+        break;
+      default:
+        // Rafraîchir les données par défaut
+        await fetchData();
+    }
+  };
 };
 
 export default AdminDashboardPage;
