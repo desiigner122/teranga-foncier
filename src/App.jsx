@@ -58,6 +58,9 @@ import VendeurDashboard from '@/pages/dashboards/VendeurDashboard';
 import InvestisseurDashboard from '@/pages/dashboards/InvestisseurDashboard';
 import PromoteurDashboard from '@/pages/dashboards/PromoteurDashboard';
 import AgriculteurDashboard from '@/pages/dashboards/AgriculteurDashboard';
+import BanqueDashboard from '@/pages/dashboards/BanqueDashboard';
+import NotairesDashboard from '@/pages/dashboards/NotairesDashboard';
+import MairiesDashboard from '@/pages/dashboards/MairiesDashboard';
 
 // Dashboard Pages
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
@@ -81,13 +84,6 @@ import AgentTasksPage from '@/pages/agent/AgentTasksPage';
 
 // Role-based Dashboard Pages
 import ParticulierDashboard from '@/pages/dashboards/ParticulierDashboard';
-import VendeurDashboardPage from '@/pages/solutions/dashboards/VendeurDashboardPage';
-import InvestisseursDashboardPage from '@/pages/solutions/dashboards/InvestisseursDashboardPage';
-import PromoteursDashboardPage from '@/pages/solutions/dashboards/PromoteursDashboardPage';
-import AgriculteursDashboardPage from '@/pages/solutions/dashboards/AgriculteursDashboardPage';
-import BanquesDashboardPage from '@/pages/solutions/dashboards/BanquesDashboardPage';
-import MairiesDashboardPage from '@/pages/solutions/dashboards/MairiesDashboardPage';
-import NotairesDashboardPage from '@/pages/solutions/dashboards/NotairesDashboardPage';
 
 // Specific Role Pages
 import LandManagementPage from '@/pages/dashboards/mairie/LandManagementPage';
@@ -204,9 +200,9 @@ function App() {
                     <Route path="/dashboard/investisseur" element={<InvestisseurDashboard />} />
                     <Route path="/dashboard/promoteur" element={<PromoteurDashboard />} />
                     <Route path="/dashboard/agriculteur" element={<AgriculteurDashboard />} />
-                    <Route path="/dashboard/banque" element={<BanquesDashboardPage />} />
-                    <Route path="/dashboard/mairie" element={<MairiesDashboardPage />} />
-                    <Route path="/dashboard/notaire" element={<NotairesDashboardPage />} />
+                    <Route path="/dashboard/banque" element={<BanqueDashboard />} />
+                    <Route path="/dashboard/mairie" element={<MairiesDashboard />} />
+                    <Route path="/dashboard/notaire" element={<NotairesDashboard />} />
 
                     {/* Mairie-specific Routes */}
                     <Route path="/dashboard/mairie/land-management" element={<LandManagementPage />} />
