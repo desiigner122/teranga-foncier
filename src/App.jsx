@@ -53,6 +53,11 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ChatbotProvider } from '@/context/ChatbotContext';
 import { MessagingNotificationProvider } from '@/context/MessagingNotificationContext';
 import VerificationPage from '@/pages/VerificationPage';
+import IdentityVerificationPage from '@/pages/IdentityVerificationPage';
+import VendeurDashboard from '@/pages/dashboards/VendeurDashboard';
+import InvestisseurDashboard from '@/pages/dashboards/InvestisseurDashboard';
+import PromoteurDashboard from '@/pages/dashboards/PromoteurDashboard';
+import AgriculteurDashboard from '@/pages/dashboards/AgriculteurDashboard';
 
 // Dashboard Pages
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
@@ -159,8 +164,13 @@ function App() {
                     <Route path="*" element={<NotFoundPage />} />
                   </Route>
 
-                  {/* Verification Route */}
+                  {/* Verification Routes */}
                   <Route path="/verification" element={<VerificationPage />} />
+                  <Route path="/identity-verification" element={
+                    <ProtectedRoute>
+                      <IdentityVerificationPage />
+                    </ProtectedRoute>
+                  } />
 
                   {/* Dashboard Routes - All under DashboardLayout */}
                   <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -179,6 +189,7 @@ function App() {
                     <Route path="/dashboard/admin/compliance" element={<AdminCompliancePage />} />
                     <Route path="/dashboard/admin/disputes" element={<AdminDisputesPage />} />
                     <Route path="/dashboard/admin/transactions" element={<AdminTransactionsPage />} />
+                    <Route path="/dashboard/admin/disputes" element={<AdminDisputesPage />} />
                     <Route path="/dashboard/admin/ai-assistant" element={<AdminAIAssistantPage />} />
 
                     {/* Agent Routes */}
@@ -189,10 +200,10 @@ function App() {
 
                     {/* Role-specific Dashboard Routes */}
                     <Route path="/dashboard/particulier" element={<ParticulierDashboard />} />
-                    <Route path="/dashboard/vendeur" element={<VendeurDashboardPage />} />
-                    <Route path="/dashboard/investisseur" element={<InvestisseursDashboardPage />} />
-                    <Route path="/dashboard/promoteur" element={<PromoteursDashboardPage />} />
-                    <Route path="/dashboard/agriculteur" element={<AgriculteursDashboardPage />} />
+                    <Route path="/dashboard/vendeur" element={<VendeurDashboard />} />
+                    <Route path="/dashboard/investisseur" element={<InvestisseurDashboard />} />
+                    <Route path="/dashboard/promoteur" element={<PromoteurDashboard />} />
+                    <Route path="/dashboard/agriculteur" element={<AgriculteurDashboard />} />
                     <Route path="/dashboard/banque" element={<BanquesDashboardPage />} />
                     <Route path="/dashboard/mairie" element={<MairiesDashboardPage />} />
                     <Route path="/dashboard/notaire" element={<NotairesDashboardPage />} />

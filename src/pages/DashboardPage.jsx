@@ -29,6 +29,15 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && profile) {
+      // Vérifier si l'utilisateur doit vérifier son identité
+      const requiresIdentityVerification = ['Particulier', 'Vendeur'].includes(profile.type);
+      
+      if (requiresIdentityVerification && 
+          (!profile.identity_verification_status || profile.identity_verification_status === 'not_started')) {
+        navigate('/identity-verification', { replace: true });
+        return;
+      }
+
       let dashboardPath = '/dashboard/particulier'; // Default fallback
 
       // Determine dashboard path based on user role and type

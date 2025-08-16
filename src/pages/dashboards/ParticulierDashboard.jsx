@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, FileText, UserCheck, Briefcase, TrendingUp, Leaf, Info, CalendarDays, MessageSquare } from 'lucide-react';
+import { ArrowRight, FileText, UserCheck, Briefcase, TrendingUp, Leaf, Info, CalendarDays, MessageSquare, User } from 'lucide-react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
