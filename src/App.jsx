@@ -95,9 +95,36 @@ import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage';
 import GuaranteesPage from '@/pages/dashboards/banque/GuaranteesPage';
 import LandValuationPage from '@/pages/dashboards/banque/LandValuationPage';
 import CompliancePage from '@/pages/dashboards/banque/CompliancePage';
+// Notaire-specific pages
 import ArchivesPage from '@/pages/dashboards/notaire/ArchivesPage';
 import AuthenticationPage from '@/pages/dashboards/notaire/AuthenticationPage';
 import CasesPage from '@/pages/dashboards/notaire/CasesPage';
+import ComplianceCheckPage from '@/pages/dashboards/notaire/ComplianceCheckPage';
+
+// Investisseur-specific pages
+import MarketAnalysisPage from '@/pages/dashboards/investisseur/MarketAnalysisPage';
+import OpportunitiesPage from '@/pages/dashboards/investisseur/OpportunitiesPage';
+import RoiCalculatorPage from '@/pages/dashboards/investisseur/RoiCalculatorPage';
+import InvestmentsPage from '@/pages/dashboards/investisseur/InvestmentsPage';
+import DueDiligencePage from '@/pages/dashboards/investisseur/DueDiligencePage';
+
+// Promoteur-specific pages
+import ProjectsPage from '@/pages/dashboards/promoteur/ProjectsPage';
+import ConstructionTrackingPage from '@/pages/dashboards/promoteur/ConstructionTrackingPage';
+import SalesPage from '@/pages/dashboards/promoteur/SalesPage';
+
+// Agriculteur-specific pages
+import MyLandsPage from '@/pages/dashboards/agriculteur/MyLandsPage';
+import SoilAnalysisPage from '@/pages/dashboards/agriculteur/SoilAnalysisPage';
+import WeatherPage from '@/pages/dashboards/agriculteur/WeatherPage';
+import LogbookPage from '@/pages/dashboards/agriculteur/LogbookPage';
+import EquipmentPage from '@/pages/dashboards/agriculteur/EquipmentPage';
+
+// Additional platform pages
+import TransactionTrackingPage from '@/pages/TransactionTrackingPage';
+import MarketPredictionPage from '@/pages/MarketPredictionPage';
+import DocumentManagementPage from '@/pages/DocumentManagementPage';
+import AlertsNotificationsPage from '@/pages/AlertsNotificationsPage';
 
 const PublicLayout = () => (
   <div className="flex flex-col min-h-screen">
@@ -221,6 +248,26 @@ function App() {
                     <Route path="/dashboard/notaire/cases" element={<CasesPage />} />
                     <Route path="/dashboard/notaire/authentication" element={<AuthenticationPage />} />
                     <Route path="/dashboard/notaire/archives" element={<ArchivesPage />} />
+                    <Route path="/dashboard/notaire/compliance-check" element={<ComplianceCheckPage />} />
+
+                    {/* Investisseur-specific Routes */}
+                    <Route path="/dashboard/investisseur/market-analysis" element={<MarketAnalysisPage />} />
+                    <Route path="/dashboard/investisseur/opportunities" element={<OpportunitiesPage />} />
+                    <Route path="/dashboard/investisseur/roi-calculator" element={<RoiCalculatorPage />} />
+                    <Route path="/dashboard/investisseur/investissements" element={<InvestmentsPage />} />
+                    <Route path="/dashboard/investisseur/due-diligence" element={<DueDiligencePage />} />
+
+                    {/* Promoteur-specific Routes */}
+                    <Route path="/dashboard/promoteur/projects" element={<ProjectsPage />} />
+                    <Route path="/dashboard/promoteur/construction-tracking" element={<ConstructionTrackingPage />} />
+                    <Route path="/dashboard/promoteur/sales" element={<SalesPage />} />
+
+                    {/* Agriculteur-specific Routes */}
+                    <Route path="/dashboard/agriculteur/my-lands" element={<MyLandsPage />} />
+                    <Route path="/dashboard/agriculteur/soil-analysis" element={<SoilAnalysisPage />} />
+                    <Route path="/dashboard/agriculteur/weather" element={<WeatherPage />} />
+                    <Route path="/dashboard/agriculteur/logbook" element={<LogbookPage />} />
+                    <Route path="/dashboard/agriculteur/equipment" element={<EquipmentPage />} />
 
                     {/* Common Protected Routes */}
                     <Route path="/dashboard/profile" element={<ProfilePage />} />
@@ -236,6 +283,12 @@ function App() {
                     <Route path="/dashboard/case-tracking/:id" element={<CaseTrackingPage />} />
                     <Route path="/dashboard/digital-vault" element={<DigitalVaultPage />} />
                     <Route path="/dashboard/municipal-land-request" element={<MunicipalLandRequestPage />} />
+                    
+                    {/* Advanced Platform Features */}
+                    <Route path="/dashboard/transaction-tracking" element={<TransactionTrackingPage />} />
+                    <Route path="/dashboard/market-prediction" element={<MarketPredictionPage />} />
+                    <Route path="/dashboard/document-management" element={<DocumentManagementPage />} />
+                    <Route path="/dashboard/alerts-notifications" element={<AlertsNotificationsPage />} />
 
                     {/* Legacy Route Redirects */}
                     <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />

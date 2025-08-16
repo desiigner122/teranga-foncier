@@ -25,12 +25,12 @@ const NavItemContent = ({ item, unreadCount }) => (
 );
 
 const Sidebar = ({ isCollapsed, toggleSidebar }) => {
-  const { user, signOut } = useAuth(); // signOut a été renommé dans AuthContext
+  const { user, profile, signOut } = useAuth(); // signOut a été renommé dans AuthContext
   const [openMenus, setOpenMenus] = useState({});
   const location = useLocation();
   
-  // Utilise directement `user` qui contient le profil fusionné depuis AuthContext
-  const sidebarConfig = getSidebarConfig(user);
+  // Utilise profile pour obtenir les informations de rôle et type
+  const sidebarConfig = getSidebarConfig(profile);
 
   // Get unread counts from MessagingNotificationContext
   const { unreadCounts } = useMessagingNotification() || { 
@@ -74,16 +74,16 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
         </Button>
       </div>
 
-      {user && (
+      {profile && (
         <div className="flex items-center gap-3 p-4 border-b">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.avatar_url || `https://avatar.vercel.sh/${user.email}.png`} alt={user.full_name || user.email} />
-            <AvatarFallback>{user.full_name?.substring(0, 2).toUpperCase() || user.email?.substring(0, 2).toUpperCase() || '??'}</AvatarFallback>
+            <AvatarImage src={profile.avatar_url || `https://avatar.vercel.sh/${profile.email}.png`} alt={profile.full_name || profile.email} />
+            <AvatarFallback>{profile.full_name?.substring(0, 2).toUpperCase() || profile.email?.substring(0, 2).toUpperCase() || '??'}</AvatarFallback>
           </Avatar>
           {!isCollapsed && (
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-semibold truncate">{user.full_name || user.email}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user.type || user.role || 'Utilisateur'}</p>
+              <p className="text-sm font-semibold truncate">{profile.full_name || profile.email}</p>
+              <p className="text-xs text-muted-foreground capitalize">{profile.type || profile.role || 'Utilisateur'}</p>
             </div>
           )}
         </div>
