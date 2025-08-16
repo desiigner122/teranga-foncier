@@ -4,7 +4,6 @@
   "framework": "vite",
   "installCommand": "npm install && npm run postinstall",
   "devCommand": "npm run dev",
-  "functions": {},
   "rewrites": [
     {
       "source": "/(.*)",
