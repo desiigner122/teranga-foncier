@@ -27,18 +27,11 @@ const LoginPage = () => {
 
   // Redirection basée sur l'état du contexte
   useEffect(() => {
-    if (isAuthenticated && profile) { // Attendre que l'utilisateur soit authentifié et que le profil soit chargé
-      let destination = "/"; // Par défaut, on redirige vers l'accueil
-      if (profile.role === 'admin') {
-        destination = "/admin"; // Rediriger l'admin vers /admin
-      } else if (profile.role === 'agent') {
-        destination = "/agent-dashboard"; // Rediriger l'agent vers son dashboard
-      } else {
-        destination = from; // Rediriger les autres rôles vers la page d'origine
-      }
-      navigate(destination, { replace: true });
+    if (isAuthenticated && profile) {
+      // Always redirect to /dashboard, which will then dispatch to appropriate dashboard
+      navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, profile, from, navigate]);
+  }, [isAuthenticated, profile, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

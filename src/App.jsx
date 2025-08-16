@@ -54,6 +54,48 @@ import { ChatbotProvider } from '@/context/ChatbotContext';
 import { MessagingNotificationProvider } from '@/context/MessagingNotificationContext';
 import VerificationPage from '@/pages/VerificationPage';
 
+// Dashboard Pages
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
+import AdminUsersPage from '@/pages/admin/AdminUsersPage';
+import AdminParcelsPage from '@/pages/admin/AdminParcelsPage';
+import AdminBlogPage from '@/pages/admin/AdminBlogPage';
+import AdminAgentsPage from '@/pages/admin/AdminAgentsPage';
+import AdminRequestsPage from '@/pages/admin/AdminRequestsPage';
+import AdminReportsPage from '@/pages/admin/AdminReportsPage';
+import AdminContractsPage from '@/pages/admin/AdminContractsPage';
+import AdminCompliancePage from '@/pages/admin/AdminCompliancePage';
+import AdminTransactionsPage from '@/pages/admin/AdminTransactionsPage';
+import AdminAIAssistantPage from '@/pages/admin/AdminAIAssistantPage';
+
+// Agent Dashboard Pages
+import AgentDashboardPage from '@/pages/agent/AgentDashboardPage';
+import AgentClientsPage from '@/pages/agent/AgentClientsPage';
+import AgentParcelsPage from '@/pages/agent/AgentParcelsPage';
+import AgentTasksPage from '@/pages/agent/AgentTasksPage';
+
+// Role-based Dashboard Pages
+import ParticulierDashboard from '@/pages/dashboards/ParticulierDashboard';
+import VendeurDashboardPage from '@/pages/solutions/dashboards/VendeurDashboardPage';
+import InvestisseursDashboardPage from '@/pages/solutions/dashboards/InvestisseursDashboardPage';
+import PromoteursDashboardPage from '@/pages/solutions/dashboards/PromoteursDashboardPage';
+import AgriculteursDashboardPage from '@/pages/solutions/dashboards/AgriculteursDashboardPage';
+import BanquesDashboardPage from '@/pages/solutions/dashboards/BanquesDashboardPage';
+import MairiesDashboardPage from '@/pages/solutions/dashboards/MairiesDashboardPage';
+import NotairesDashboardPage from '@/pages/solutions/dashboards/NotairesDashboardPage';
+
+// Specific Role Pages
+import LandManagementPage from '@/pages/dashboards/mairie/LandManagementPage';
+import UrbanPlanPage from '@/pages/dashboards/mairie/UrbanPlanPage';
+import CadastrePage from '@/pages/dashboards/mairie/CadastrePage';
+import DisputesPage from '@/pages/dashboards/mairie/DisputesPage';
+import MairieRequestsPage from '@/pages/dashboards/mairie/MairieRequestsPage';
+import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage';
+import GuaranteesPage from '@/pages/dashboards/banque/GuaranteesPage';
+import LandValuationPage from '@/pages/dashboards/banque/LandValuationPage';
+import CompliancePage from '@/pages/dashboards/banque/CompliancePage';
+import ArchivesPage from '@/pages/dashboards/notaire/ArchivesPage';
+import AuthenticationPage from '@/pages/dashboards/notaire/AuthenticationPage';
+import CasesPage from '@/pages/dashboards/notaire/CasesPage';
 
 const PublicLayout = () => (
   <div className="flex flex-col min-h-screen">
@@ -88,58 +130,119 @@ function App() {
             <ChatbotProvider>
               <MessagingNotificationProvider>
                 <Routes>
-                <Route path="/" element={<PublicLayout />}>
-                  <Route index element={<HomePage />} />
-                  <Route path="login" element={<LoginPage />} />
-                  <Route path="register" element={<RegisterPage />} />
-                  <Route path="parcelles" element={<ParcelsListPage />} />
-                  <Route path="parcelles/:id" element={<ParcelDetailPage />} />
-                  <Route path="contact" element={<ContactPage />} />
-                  <Route path="about" element={<AboutPage />} />
-                  <Route path="how-it-works" element={<HowItWorksPage />} />
-                  <Route path="faq" element={<FaqPage />} />
-                  <Route path="partners" element={<PartnersPage />} />
-                  <Route path="map" element={<MapPage />} />
-                  <Route path="blog" element={<BlogPage />} />
-                  <Route path="blog/:slug" element={<BlogPostPage />} />
-                  <Route path="legal" element={<LegalPage />} />
-                  <Route path="privacy" element={<PrivacyPage />} />
-                  <Route path="cookie-policy" element={<CookiePolicyPage />} />
-                  <Route path="saved-searches" element={<SavedSearchesPage />} />
-                  <Route path="compare" element={<ComparisonPage />} />
-                  <Route path="municipal-land-request-info" element={<MunicipalLandRequestInfoPage />} />
-                  <Route path="solutions/banques" element={<SolutionsBanquesPage />} />
-                  <Route path="pricing" element={<PricingPage />} />
-                  <Route path="glossary" element={<GlossaryPage />} />
-                  <Route path="tax-guide" element={<TaxGuidePage />} />
+                  {/* Public Routes */}
+                  <Route path="/" element={<PublicLayout />}>
+                    <Route index element={<HomePage />} />
+                    <Route path="login" element={<LoginPage />} />
+                    <Route path="register" element={<RegisterPage />} />
+                    <Route path="parcelles" element={<ParcelsListPage />} />
+                    <Route path="parcelles/:id" element={<ParcelDetailPage />} />
+                    <Route path="contact" element={<ContactPage />} />
+                    <Route path="about" element={<AboutPage />} />
+                    <Route path="how-it-works" element={<HowItWorksPage />} />
+                    <Route path="faq" element={<FaqPage />} />
+                    <Route path="partners" element={<PartnersPage />} />
+                    <Route path="map" element={<MapPage />} />
+                    <Route path="blog" element={<BlogPage />} />
+                    <Route path="blog/:slug" element={<BlogPostPage />} />
+                    <Route path="legal" element={<LegalPage />} />
+                    <Route path="privacy" element={<PrivacyPage />} />
+                    <Route path="cookie-policy" element={<CookiePolicyPage />} />
+                    <Route path="saved-searches" element={<SavedSearchesPage />} />
+                    <Route path="compare" element={<ComparisonPage />} />
+                    <Route path="municipal-land-request-info" element={<MunicipalLandRequestInfoPage />} />
+                    <Route path="solutions/banques" element={<SolutionsBanquesPage />} />
+                    <Route path="pricing" element={<PricingPage />} />
+                    <Route path="glossary" element={<GlossaryPage />} />
+                    <Route path="tax-guide" element={<TaxGuidePage />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Route>
+
+                  {/* Verification Route */}
+                  <Route path="/verification" element={<VerificationPage />} />
+
+                  {/* Dashboard Routes - All under DashboardLayout */}
+                  <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+                    {/* Dashboard Dispatcher */}
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    
+                    {/* Admin Routes */}
+                    <Route path="/dashboard/admin" element={<AdminDashboardPage />} />
+                    <Route path="/dashboard/admin/users" element={<AdminUsersPage />} />
+                    <Route path="/dashboard/admin/parcels" element={<AdminParcelsPage />} />
+                    <Route path="/dashboard/admin/blog" element={<AdminBlogPage />} />
+                    <Route path="/dashboard/admin/agents" element={<AdminAgentsPage />} />
+                    <Route path="/dashboard/admin/requests" element={<AdminRequestsPage />} />
+                    <Route path="/dashboard/admin/reports" element={<AdminReportsPage />} />
+                    <Route path="/dashboard/admin/contracts" element={<AdminContractsPage />} />
+                    <Route path="/dashboard/admin/compliance" element={<AdminCompliancePage />} />
+                    <Route path="/dashboard/admin/transactions" element={<AdminTransactionsPage />} />
+                    <Route path="/dashboard/admin/ai-assistant" element={<AdminAIAssistantPage />} />
+
+                    {/* Agent Routes */}
+                    <Route path="/dashboard/agent" element={<AgentDashboardPage />} />
+                    <Route path="/dashboard/agent/clients" element={<AgentClientsPage />} />
+                    <Route path="/dashboard/agent/parcels" element={<AgentParcelsPage />} />
+                    <Route path="/dashboard/agent/tasks" element={<AgentTasksPage />} />
+
+                    {/* Role-specific Dashboard Routes */}
+                    <Route path="/dashboard/particulier" element={<ParticulierDashboard />} />
+                    <Route path="/dashboard/vendeur" element={<VendeurDashboardPage />} />
+                    <Route path="/dashboard/investisseur" element={<InvestisseursDashboardPage />} />
+                    <Route path="/dashboard/promoteur" element={<PromoteursDashboardPage />} />
+                    <Route path="/dashboard/agriculteur" element={<AgriculteursDashboardPage />} />
+                    <Route path="/dashboard/banque" element={<BanquesDashboardPage />} />
+                    <Route path="/dashboard/mairie" element={<MairiesDashboardPage />} />
+                    <Route path="/dashboard/notaire" element={<NotairesDashboardPage />} />
+
+                    {/* Mairie-specific Routes */}
+                    <Route path="/dashboard/mairie/land-management" element={<LandManagementPage />} />
+                    <Route path="/dashboard/mairie/urban-plan" element={<UrbanPlanPage />} />
+                    <Route path="/dashboard/mairie/cadastre" element={<CadastrePage />} />
+                    <Route path="/dashboard/mairie/disputes" element={<DisputesPage />} />
+                    <Route path="/dashboard/mairie/requests" element={<MairieRequestsPage />} />
+
+                    {/* Banque-specific Routes */}
+                    <Route path="/dashboard/banque/funding-requests" element={<FundingRequestsPage />} />
+                    <Route path="/dashboard/banque/guarantees" element={<GuaranteesPage />} />
+                    <Route path="/dashboard/banque/land-valuation" element={<LandValuationPage />} />
+                    <Route path="/dashboard/banque/compliance" element={<CompliancePage />} />
+
+                    {/* Notaire-specific Routes */}
+                    <Route path="/dashboard/notaire/cases" element={<CasesPage />} />
+                    <Route path="/dashboard/notaire/authentication" element={<AuthenticationPage />} />
+                    <Route path="/dashboard/notaire/archives" element={<ArchivesPage />} />
+
+                    {/* Common Protected Routes */}
+                    <Route path="/dashboard/profile" element={<ProfilePage />} />
+                    <Route path="/dashboard/my-requests" element={<MyRequestsPage />} />
+                    <Route path="/dashboard/settings" element={<SettingsPage />} />
+                    <Route path="/dashboard/sell-property" element={<SellPropertyPage />} />
+                    <Route path="/dashboard/my-listings" element={<MyListingsPage />} />
+                    <Route path="/dashboard/transactions" element={<TransactionsPage />} />
+                    <Route path="/dashboard/payment/:transactionId" element={<PaymentPage />} />
+                    <Route path="/dashboard/favorites" element={<MyFavoritesPage />} />
+                    <Route path="/dashboard/notifications" element={<NotificationsPage />} />
+                    <Route path="/dashboard/messaging" element={<SecureMessagingPage />} />
+                    <Route path="/dashboard/case-tracking/:id" element={<CaseTrackingPage />} />
+                    <Route path="/dashboard/digital-vault" element={<DigitalVaultPage />} />
+                    <Route path="/dashboard/municipal-land-request" element={<MunicipalLandRequestPage />} />
+
+                    {/* Legacy Route Redirects */}
+                    <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
+                    <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
+                    <Route path="/my-requests" element={<Navigate to="/dashboard/my-requests" replace />} />
+                    <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+                    <Route path="/favorites" element={<Navigate to="/dashboard/favorites" replace />} />
+                    <Route path="/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
+                    <Route path="/messaging" element={<Navigate to="/dashboard/messaging" replace />} />
+                  </Route>
+
+                  {/* Catch-all 404 Route */}
                   <Route path="*" element={<NotFoundPage />} />
-                </Route>
-
-                <Route path="/verification" element={<VerificationPage />} />
-
-                <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-                  <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
-                  <Route path="/dashboard/*" element={<DashboardPage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="my-requests" element={<MyRequestsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                  <Route path="sell-property" element={<SellPropertyPage />} />
-                  <Route path="my-listings" element={<MyListingsPage />} />
-                  <Route path="transactions" element={<TransactionsPage />} />
-                  <Route path="payment/:transactionId" element={<PaymentPage />} />
-                  <Route path="favorites" element={<MyFavoritesPage />} />
-                  <Route path="notifications" element={<NotificationsPage />} />
-                  <Route path="messaging" element={<SecureMessagingPage />} />
-                  <Route path="case-tracking/:id" element={<CaseTrackingPage />} />
-                  <Route path="digital-vault" element={<DigitalVaultPage />} />
-                  <Route path="municipal-land-request" element={<MunicipalLandRequestPage />} />
-                </Route>
-
-                <Route path="*" element={<NotFoundPage />} />
-
-              </Routes>
-              <Toaster />
-              <GlobalChatbot />
+                </Routes>
+                <Toaster />
+                <GlobalChatbot />
               </MessagingNotificationProvider>
             </ChatbotProvider>
           </AuthProvider>
