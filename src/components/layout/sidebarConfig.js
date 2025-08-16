@@ -5,9 +5,10 @@ import {
     Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive,
     Handshake, Activity, LogOut,
     PieChart, Globe, Palette, Package, ShoppingCart, Calendar, FileText, BookOpen, Layers,
-    Store, Sprout, Shield // Assurez-vous que toutes les icônes utilisées dans accountTypes de LoginPage sont importées ici
+    Store, Sprout, Shield, Building
 } from 'lucide-react';
 
+// Liens communs pour tous les utilisateurs
 const commonLinks = {
     profile: { label: 'Mon Profil', href: '/dashboard/profile', icon: User, end: true },
     settings: { label: 'Paramètres', href: '/dashboard/settings', icon: Settings, end: true },
@@ -16,6 +17,7 @@ const commonLinks = {
     logout: { label: 'Déconnexion', href: '/logout', icon: LogOut, end: true }
 };
 
+// Configuration du menu d'administration
 const adminConfig = [
     { label: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard, end: true },
     { isSeparator: true },
@@ -241,17 +243,18 @@ export const getSidebarConfig = (user) => {
             { label: 'Accueil', href: '/', icon: Home, end: true },
         ];
     }
+    
+    const userRole = user.role;
+    const userType = user.type;
 
-    // Si l'utilisateur a un rôle spécifique défini dans Supabase Auth
-    if (user.role === 'admin') {
+    if (userRole === 'admin' || userType === 'Administrateur') {
         return adminConfig;
     }
-    if (user.role === 'agent') {
+    if (userRole === 'agent' || userType === 'Agent') {
         return agentConfig;
     }
 
-    // Si l'utilisateur a un rôle générique 'user', on utilise son 'type' de la table 'users'
-    switch (user.type) {
+    switch (userType) {
         case 'Vendeur':
             return vendeurConfig;
         case 'Investisseur':
@@ -269,7 +272,6 @@ export const getSidebarConfig = (user) => {
         case 'Particulier':
             return particulierConfig;
         default:
-            // Configuration par défaut pour les utilisateurs non reconnus ou 'Particulier' par défaut
             return [
                 { label: 'Dashboard', href: '/dashboard/particulier', icon: LayoutDashboard, end: true },
                 commonLinks.profile,
