@@ -1,17 +1,33 @@
 // src/pages/HomePage.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
-// Importation de Button est toujours nécessaire pour les autres usages
-import { Button } from '@/components/ui/button'; 
+import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
+import HeroSection from '@/components/home/sections/HeroSection';
+import CitiesCarousel from '@/components/home/sections/CitiesCarousel';
+import FeaturedParcelsSection from '@/components/home/sections/FeaturedParcelsSection';
+import UniqueFeaturesSection from '@/components/home/sections/UniqueFeaturesSection';
+import PlatformObjectivesSection from '@/components/home/sections/PlatformObjectivesSection';
+import HowItWorksSection from '@/components/home/sections/HowItWorksSection';
+import SolutionsOverviewSection from '@/components/home/sections/SolutionsOverviewSection';
+import TrustedSellersSection from '@/components/home/sections/TrustedSellersSection';
+import DiasporaGuideSection from '@/components/home/sections/DiasporaGuideSection';
+import FraudPreventionSection from '@/components/home/sections/FraudPreventionSection';
+import MarketNewsSection from '@/components/home/sections/MarketNewsSection';
+import VideoPresentationSection from '@/components/home/sections/VideoPresentationSection';
+import PartnerCarouselSection from '@/components/home/sections/PartnerCarouselSection';
+import ConstructorLogosSection from '@/components/home/sections/ConstructorLogosSection';
+import TestimonialsSection from '@/components/home/sections/TestimonialsSection';
+import BlogPreviewSection from '@/components/home/sections/BlogPreviewSection';
+import CallToActionSection from '@/components/home/sections/CallToActionSection';
+import {
+  Search, MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, Users, FileText, DollarSign,
+  Newspaper, Map, BarChart, Lightbulb, Gavel, ClipboardCheck, Briefcase, Leaf, Store, Banknote, UserCheck,
+  ArrowRight, CheckCircle, Globe, Clock, Sparkles, Lock, Zap, Building // <-- AJOUTÉ ICI
+} from 'lucide-react';
+import { useChatbot } from '@/context/ChatbotContext';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Search, MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, Users, Building, FileText, DollarSign,
-  Newspaper, Map, BarChart, Lightbulb, Gavel, ClipboardCheck, Briefcase, Leaf, Store, Banknote, UserCheck,
-  ArrowRight, CheckCircle, Globe, Clock, Sparkles, Lock, Zap
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useChatbot } from '@/context/ChatbotContext';
 
 // Données mockées pour les parcelles en vedette
 const mockFeaturedParcels = [
@@ -354,10 +370,10 @@ const HomePage = () => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" /* Réduction du gap */
           >
             <motion.div variants={itemVariants}>
-              <Card className="rounded-xl hover:shadow-xl transition-shadow h-full flex flex-col p-5 bg-white dark:bg-card border border-gray-200 dark:border-gray-700"> {/* Réduction du padding */}
+              <Card className="rounded-xl hover:shadow-xl transition-shadow h-full flex flex-col p-5 bg-white dark:bg-card border border-gray-200 dark:border-gray-700"> /* Réduction du padding */
                 <CardHeader className="pb-2">
-                  <Building className="h-12 w-12 text-blue-600 mb-3" strokeWidth={1.5} /> {/* Icônes légèrement plus petites */}
-                  <CardTitle className="text-xl font-bold">Mairies</CardTitle> {/* Titre légèrement plus petit */}
+                  <Building className="h-12 w-12 text-blue-600 mb-3" strokeWidth={1.5} /> /* Icônes légèrement plus petites */
+                  <CardTitle className="text-xl font-bold">Mairies</CardTitle> /* Titre légèrement plus petit */
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <p className="text-muted-foreground text-sm leading-relaxed">Gérez le foncier communal, les demandes citoyens et le cadastre numérique avec une efficacité inégalée.</p>
@@ -447,7 +463,7 @@ const HomePage = () => {
             </ul>
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Correction: Appliquer les styles de bouton directement au Link */}
-              <Link to="/map" className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white shadow-lg rounded-lg px-8 py-6 font-bold transition-all duration-300 transform hover:scale-105">
+              <Link to="/parcelles" className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white shadow-lg rounded-lg px-8 py-6 font-bold transition-all duration-300 transform hover:scale-105">
                 <span className="flex items-center gap-2">
                   Voir la Carte Interactive <Map className="ml-2 h-5 w-5" />
                 </span>
