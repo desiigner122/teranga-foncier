@@ -5,7 +5,7 @@ import {
     Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive,
     Handshake, Activity, LogOut,
     PieChart, Globe, Palette, Package, ShoppingCart, Calendar, FileText, BookOpen, Layers,
-    Store, Sprout, Shield, Building, DollarSign, Receipt // Ajoutez toutes les icônes nécessaires
+    Store, Sprout, Shield, Building, DollarSign // <-- L'icône DollarSign est correcte ici
 } from 'lucide-react';
 
 const commonLinks = {
@@ -125,7 +125,7 @@ const investisseurConfig = [
     { label: 'Calculateur ROI', href: '/dashboard/investisseur/roi-calculator', icon: Calculator, end: true },
     { isSeparator: true },
     { isHeader: true, label: 'MES INVESTISSEMENTS' },
-    { label: 'Mes Investissements', href: '/dashboard/investisseur/investments', icon: Briefcase, end: true },
+    { label: 'Mes Investissements', href: '/dashboard/investisseur/investissements', icon: Briefcase, end: true },
     { label: 'Due Diligence', href: '/dashboard/investisseur/due-diligence', icon: ClipboardList, end: true },
     { isSeparator: true },
     { isHeader: true, label: 'MON COMPTE' },
