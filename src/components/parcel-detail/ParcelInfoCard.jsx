@@ -26,8 +26,12 @@ const ParcelInfoCard = ({ parcel, onRequestInfo, onInitiateBuy, onRequestVisit, 
                text: `Découvrez cette parcelle sur Teranga Foncier: ${parcel.name}`,
                url: window.location.href,
            })
-           .then(() => console.log('Successful share'))
-           .catch((error) => console.log('Error sharing', error));
+           .then(() => {
+             // Share successful
+           })
+           .catch((error) => {
+             // Error sharing
+           });
        } else {
            // Fallback for browsers that don't support navigator.share
            alert("La fonction de partage n'est pas supportée sur ce navigateur. Copiez le lien manuellement.");

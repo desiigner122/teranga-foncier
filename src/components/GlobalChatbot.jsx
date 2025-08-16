@@ -111,13 +111,13 @@ const GlobalChatbot = () => {
         }
       };
 
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       
       if (!apiKey) {
-        throw new Error("API Key pour Gemini non configurée. Veuillez définir VITE_GEMINI_API_KEY.");
+        throw new Error("Configuration manquante: API Key pour Gemini non configurée.");
       }
 
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
 
       const MAX_RETRIES = 3;
       let retries = 0;

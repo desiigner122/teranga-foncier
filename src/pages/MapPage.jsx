@@ -88,7 +88,7 @@ const MapPage = () => {
       event.preventDefault();
       const query = event.target.elements.locationSearch.value;
       if (!query) return;
-      console.log("Recherche pour :", query);
+      // Search query: ${query}
       alert(`Recherche pour "${query}" - L'intégration de l'API de Géocodage est nécessaire pour cette fonctionnalité.`);
   }
 

@@ -5,7 +5,7 @@ import {
     Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive,
     Handshake, Activity, LogOut,
     PieChart, Globe, Palette, Package, ShoppingCart, Calendar, FileText, BookOpen, Layers,
-    Store, Sprout, Shield, Building, DollarSign, Receipt, LifeBuoy // <-- AJOUTÉ : Import de l'icône LifeBuoy
+    Store, Sprout, Shield, Building, DollarSign, LifeBuoy // <-- AJOUTÉ : Import de l'icône LifeBuoy
 } from 'lucide-react';
 
 const commonLinks = {

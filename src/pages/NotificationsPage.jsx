@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { sampleNotifications as initialSampleNotifications } from '@/data/sampleData';
 import { useAuth } from '@/context/AuthContext';
+import { useMessagingNotification } from '@/context/MessagingNotificationContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,18 +37,20 @@ const NotificationItem = ({ notification, onMarkRead, onDelete }) => (
     transition={{ duration: 0.3 }}
     className={cn(
       "flex items-start gap-4 p-4 border-b last:border-b-0 transition-colors",
-      !notification.is_read && "bg-primary/5 hover:bg-primary/10"
+      !notification.isRead && "bg-primary/5 hover:bg-primary/10"
     )}
   >
-    <div className={cn("mt-1 relative", !notification.is_read ? "text-primary" : "text-muted-foreground")}>
+    <div className={cn("mt-1 relative", !notification.isRead ? "text-primary" : "text-muted-foreground")}>
       <BellRing className="h-5 w-5" />
-      {!notification.is_read && <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-red-500"></span>}
+      {!notification.isRead && <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-red-500"></span>}
     </div>
     <div className="flex-grow">
-      <p className={cn("text-sm", !notification.is_read && "font-semibold")}>
+      <p className={cn("text-sm", !notification.isRead && "font-semibold")}>
         {notification.message}
       </p>
-      <span className="text-xs text-muted-foreground">{formatDate(notification.created_at)}</span>
+      <span className="text-xs text-muted-foreground">
+        {formatDate(notification.createdAt?.toDate?.() || notification.createdAt)}
+      </span>
     </div>
     <div className="flex flex-col sm:flex-row gap-1 items-center">
       {notification.link && (
@@ -56,7 +58,7 @@ const NotificationItem = ({ notification, onMarkRead, onDelete }) => (
           <Link to={notification.link}>Voir <ArrowRight className="h-3 w-3 ml-1"/></Link>
         </Button>
       )}
-      {!notification.is_read && (
+      {!notification.isRead && (
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMarkRead(notification.id)} title="Marquer comme lu">
           <CheckCheck className="h-4 w-4" />
         </Button>
@@ -85,81 +87,87 @@ const NotificationsSkeleton = () => (
 
 const NotificationsPage = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { toast } = useToast();
+  const {
+    notifications,
+    loading,
+    isFirebaseAvailable,
+    markNotificationAsRead,
+    deleteNotification,
+    markAllNotificationsAsRead,
+    deleteAllNotifications
+  } = useMessagingNotification();
+  
+  const [error, setError] = useState(null);
 
+  // Set error state if user not logged in
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-
     if (!user) {
       setError("Veuillez vous connecter pour voir vos notifications.");
-      setLoading(false);
-      return;
+    } else {
+      setError(null);
     }
-
-    setTimeout(() => {
-      try {
-        const userNotifications = initialSampleNotifications
-          .filter(n => n.user_id === 'user1')
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        setNotifications(userNotifications);
-      } catch (err) {
-        console.error("Error loading notifications:", err);
-        setError("Impossible de charger vos notifications.");
-        setNotifications([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 300);
-
   }, [user]);
 
-  const handleMarkRead = (notificationId) => {
+  const handleMarkRead = async (notificationId) => {
     try {
-      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n));
+      await markNotificationAsRead(notificationId);
+      toast({ title: "Notification marquée comme lue." });
     } catch (err) {
-      console.error("Error marking notification as read (simulation):", err);
-      toast({ title: "Erreur", description: "Impossible de marquer la notification comme lue.", variant: "destructive" });
+      console.error("Error marking notification as read:", err);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de marquer la notification comme lue.", 
+        variant: "destructive" 
+      });
     }
   };
 
-   const handleMarkAllRead = () => {
-      if (!user) return;
-      try {
-         setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-         toast({ title: "Notifications marquées comme lues." });
-      } catch (err) {
-         console.error("Error marking all notifications as read (simulation):", err);
-         toast({ title: "Erreur", description: "Impossible de marquer toutes les notifications comme lues.", variant: "destructive" });
-      }
-   };
-
-
-  const handleDelete = (notificationId) => {
+  const handleMarkAllRead = async () => {
+    if (!user) return;
     try {
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      await markAllNotificationsAsRead();
+      toast({ title: "Notifications marquées comme lues." });
+    } catch (err) {
+      console.error("Error marking all notifications as read:", err);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de marquer toutes les notifications comme lues.", 
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const handleDelete = async (notificationId) => {
+    try {
+      await deleteNotification(notificationId);
       toast({ title: "Notification supprimée." });
     } catch (err) {
-      console.error("Error deleting notification (simulation):", err);
-      toast({ title: "Erreur", description: "Impossible de supprimer la notification.", variant: "destructive" });
+      console.error("Error deleting notification:", err);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de supprimer la notification.", 
+        variant: "destructive" 
+      });
     }
   };
 
-   const handleDeleteAll = () => {
-      if (!user) return;
-      try {
-         setNotifications([]);
-         toast({ title: "Toutes les notifications ont été supprimées." });
-      } catch (err) {
-         console.error("Error deleting all notifications (simulation):", err);
-         toast({ title: "Erreur", description: "Impossible de supprimer toutes les notifications.", variant: "destructive" });
-      }
-   };
+  const handleDeleteAll = async () => {
+    if (!user) return;
+    try {
+      await deleteAllNotifications();
+      toast({ title: "Toutes les notifications ont été supprimées." });
+    } catch (err) {
+      console.error("Error deleting all notifications:", err);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de supprimer toutes les notifications.", 
+        variant: "destructive" 
+      });
+    }
+  };
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <motion.div
@@ -210,7 +218,12 @@ const NotificationsPage = () => {
             <div className="text-center py-16 px-4">
               <BellOff className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
               <h2 className="text-xl font-semibold mb-2">Aucune notification</h2>
-              <p className="text-muted-foreground">Vous n'avez aucune nouvelle notification pour le moment.</p>
+              <p className="text-muted-foreground">
+                {isFirebaseAvailable 
+                  ? "Vous n'avez aucune nouvelle notification pour le moment."
+                  : "Service de notifications non disponible."
+                }
+              </p>
             </div>
           )}
         </CardContent>

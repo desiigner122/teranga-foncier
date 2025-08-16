@@ -23,25 +23,56 @@ const AdminAIAssistantPage = () => {
 
   const handleGenerateContent = async (currentPrompt) => {
     if (!currentPrompt.trim()) return;
+    
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      toast({ 
+        variant: 'destructive', 
+        title: 'Configuration manquante', 
+        description: 'La clé API Gemini n\'est pas configurée. Ajoutez VITE_GEMINI_API_KEY à votre fichier .env' 
+      });
+      return;
+    }
+    
     setLoading(true);
     setGeneratedContent('');
     try {
       const payload = { contents: [{ role: "user", parts: [{ text: currentPrompt }] }] };
-      const apiKey = "";
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
       
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!response.ok) throw new Error(`Erreur API: ${response.statusText}`);
+      
+      if (!response.ok) {
+        throw new Error(`Erreur API: ${response.status} ${response.statusText}`);
+      }
 
       const result = await response.json();
+      
+      if (!result.candidates || !result.candidates[0]?.content?.parts?.[0]?.text) {
+        throw new Error('Réponse API invalide ou vide');
+      }
+      
       const text = result.candidates[0].content.parts[0].text;
       setGeneratedContent(text);
+      
+      toast({ 
+        title: 'Contenu généré avec succès!', 
+        description: 'Le contenu a été généré et est prêt à être utilisé.' 
+      });
     } catch (err) {
-      toast({ variant: 'destructive', title: 'Erreur de génération', description: err.message });
+      // Log error for debugging in development only
+      if (import.meta.env.DEV) {
+        console.error('AI generation error:', err);
+      }
+      toast({ 
+        variant: 'destructive', 
+        title: 'Erreur de génération', 
+        description: err.message || 'Une erreur inattendue s\'est produite lors de la génération du contenu.' 
+      });
     } finally {
       setLoading(false);
     }

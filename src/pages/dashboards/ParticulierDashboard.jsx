@@ -95,7 +95,7 @@ const ParticulierDashboard = () => {
   const handleScheduleVisit = (e) => {
     e.preventDefault();
     // Ici, vous enverriez les données à votre backend (Supabase)
-    console.log("Demande de visite soumise:", visitFormData);
+    // Demande de visite soumise: visitFormData
     toast({
       title: "Demande de visite envoyée",
       description: `Votre demande pour la parcelle ${visitFormData.parcelId} le ${visitFormData.date} à ${visitFormData.time} a été enregistrée.`,

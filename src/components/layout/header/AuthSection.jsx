@@ -4,11 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 import { LayoutGrid, User, LogOut, Settings, Bell, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useMessagingNotification } from '@/context/MessagingNotificationContext';
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from '@/lib/utils';
-import { sampleNotifications, sampleConversations } from '@/data';
 
 const getInitials = (email) => {
   if (!email) return '??';
@@ -25,9 +26,11 @@ const AuthSection = ({ isScrolled }) => {
   
   const useLightButtons = isHomePage && !isScrolled;
 
-  // Simulation
-  const unreadNotifications = 0;
-  const unreadMessages = 0;
+  // Get unread counts from MessagingNotificationContext
+  const { unreadCounts, isFirebaseAvailable } = useMessagingNotification() || { 
+    unreadCounts: { messages: 0, notifications: 0 }, 
+    isFirebaseAvailable: false 
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -39,7 +42,47 @@ const AuthSection = ({ isScrolled }) => {
     <div className="flex items-center gap-2 md:gap-3">
       {user ? (
         <>
-          {/* ... boutons notifications et messages ... */}
+          {/* Notifications Button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative h-10 w-10" 
+            asChild
+          >
+            <Link to="/dashboard/notifications">
+              <Bell className="h-5 w-5" />
+              {unreadCounts.notifications > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                >
+                  {unreadCounts.notifications > 99 ? '99+' : unreadCounts.notifications}
+                </Badge>
+              )}
+            </Link>
+          </Button>
+
+          {/* Messages Button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative h-10 w-10" 
+            asChild
+          >
+            <Link to="/dashboard/messaging">
+              <MessageSquare className="h-5 w-5" />
+              {unreadCounts.messages > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                >
+                  {unreadCounts.messages > 99 ? '99+' : unreadCounts.messages}
+                </Badge>
+              )}
+            </Link>
+          </Button>
+
+          {/* User Avatar Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">

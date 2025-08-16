@@ -57,13 +57,13 @@ const InstallmentPaymentModal = ({ isOpen, onClose, parcelPrice, parcelName }) =
     e.preventDefault();
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log("Financing Request Submitted:", {
-      parcelName,
-      parcelPrice,
-      downPayment,
-      loanTerm,
-      ...formData
-    });
+    // Financing Request Submitted: {
+    //   parcelName,
+    //   parcelPrice,
+    //   downPayment,
+    //   loanTerm,
+    //   ...formData
+    // }
     setIsSubmitting(false);
     setStep(3); // Move to confirmation step
   };

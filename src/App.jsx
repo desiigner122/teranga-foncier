@@ -51,6 +51,7 @@ import PaymentPage from '@/pages/PaymentPage';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/context/AuthContext';
 import { ChatbotProvider } from '@/context/ChatbotContext';
+import { MessagingNotificationProvider } from '@/context/MessagingNotificationContext';
 import VerificationPage from '@/pages/VerificationPage';
 
 
@@ -85,7 +86,8 @@ function App() {
           <ScrollToTop />
           <AuthProvider>
             <ChatbotProvider>
-              <Routes>
+              <MessagingNotificationProvider>
+                <Routes>
                 <Route path="/" element={<PublicLayout />}>
                   <Route index element={<HomePage />} />
                   <Route path="login" element={<LoginPage />} />
@@ -138,6 +140,7 @@ function App() {
               </Routes>
               <Toaster />
               <GlobalChatbot />
+              </MessagingNotificationProvider>
             </ChatbotProvider>
           </AuthProvider>
         </ComparisonProvider>

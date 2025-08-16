@@ -4,6 +4,7 @@ import { NavLink, Link, useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import { useMessagingNotification } from '@/context/MessagingNotificationContext';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getSidebarConfig } from './sidebarConfig';
@@ -31,9 +32,10 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
   // Utilise directement `user` qui contient le profil fusionné depuis AuthContext
   const sidebarConfig = getSidebarConfig(user);
 
-  // Valeurs mockées pour les notifications
-  const unreadNotifications = 0; 
-  const unreadMessages = 0;     
+  // Get unread counts from MessagingNotificationContext
+  const { unreadCounts } = useMessagingNotification() || { 
+    unreadCounts: { messages: 0, notifications: 0 } 
+  };     
 
   const toggleMenu = (label) => {
     if (!isCollapsed) {
@@ -143,7 +145,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
             >
               <NavItemContent 
                 item={item} 
-                unreadCount={item.href.includes('notifications') ? unreadNotifications : item.href.includes('messaging') ? unreadMessages : 0} 
+                unreadCount={item.href.includes('notifications') ? unreadCounts.notifications : item.href.includes('messaging') ? unreadCounts.messages : 0} 
               />
             </NavLink>
           );

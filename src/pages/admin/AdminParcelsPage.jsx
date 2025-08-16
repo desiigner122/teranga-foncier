@@ -29,11 +29,13 @@ const AdminParcelsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
-  // --- NOUVEAU : États pour le modal d'édition ---
+  // --- NOUVEAU : États pour le modal d'ajout/édition ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentEditParcel, setCurrentEditParcel] = useState(null);
   const [formData, setFormData] = useState({});
   const [isFormLoading, setIsFormLoading] = useState(false);
+  const [owners, setOwners] = useState([]); // Vendeurs and Mairies
+  const [loadingOwners, setLoadingOwners] = useState(false);
 
   const fetchParcels = useCallback(async () => {
     // ... (cette fonction ne change pas)
@@ -55,9 +57,34 @@ const AdminParcelsPage = () => {
     }
   }, [searchTerm, toast]);
 
+  // Fetch potential owners (Vendeurs and Mairies)
+  const fetchOwners = useCallback(async () => {
+    setLoadingOwners(true);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, email, type')
+        .in('type', ['Vendeur', 'Mairie'])
+        .order('full_name', { ascending: true });
+      
+      if (error) throw error;
+      setOwners(data || []);
+    } catch (err) {
+      console.error('Error fetching owners:', err);
+      toast({ 
+        variant: "destructive", 
+        title: "Erreur", 
+        description: "Impossible de charger la liste des propriétaires" 
+      });
+    } finally {
+      setLoadingOwners(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchParcels();
-  }, [fetchParcels]);
+    fetchOwners();
+  }, [fetchParcels, fetchOwners]);
 
   // --- NOUVEAU : Ouvre le modal et charge les données de la parcelle ---
   const handleEditClick = (parcel) => {
@@ -69,6 +96,22 @@ const AdminParcelsPage = () => {
       area_sqm: parcel.area_sqm || '',
       description: parcel.description || '',
       status: parcel.status || 'Disponible',
+      owner_id: parcel.owner_id || '',
+    });
+    setIsModalOpen(true);
+  };
+
+  // Handle Add New Parcel
+  const handleAddClick = () => {
+    setCurrentEditParcel(null);
+    setFormData({
+      name: '',
+      reference: '',
+      location_name: '',
+      area_sqm: '',
+      description: '',
+      status: 'Disponible',
+      owner_id: '',
     });
     setIsModalOpen(true);
   };
@@ -86,27 +129,51 @@ const AdminParcelsPage = () => {
   // --- NOUVEAU : Soumet le formulaire à Supabase ---
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!currentEditParcel) return;
+    if (!formData.name || !formData.reference || !formData.owner_id) {
+      toast({
+        variant: "destructive",
+        title: "Champs manquants",
+        description: "Veuillez remplir tous les champs obligatoires.",
+      });
+      return;
+    }
+
     setIsFormLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('parcels')
-        .update(formData)
-        .eq('id', currentEditParcel.id);
+      if (currentEditParcel) {
+        // Update existing parcel
+        const { error } = await supabase
+          .from('parcels')
+          .update(formData)
+          .eq('id', currentEditParcel.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Parcelle mise à jour",
-        description: `La parcelle "${formData.name}" a été mise à jour avec succès.`,
-      });
+        toast({
+          title: "Parcelle mise à jour",
+          description: `La parcelle "${formData.name}" a été mise à jour avec succès.`,
+        });
+      } else {
+        // Add new parcel
+        const { error } = await supabase
+          .from('parcels')
+          .insert([formData]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Parcelle ajoutée",
+          description: `La parcelle "${formData.name}" a été ajoutée avec succès.`,
+        });
+      }
+
       setIsModalOpen(false);
       fetchParcels(); // Recharger les données
     } catch (err) {
       toast({
         variant: "destructive",
-        title: "Erreur de mise à jour",
+        title: currentEditParcel ? "Erreur de mise à jour" : "Erreur d'ajout",
         description: err.message,
       });
     } finally {
@@ -160,6 +227,10 @@ const AdminParcelsPage = () => {
       >
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold flex items-center"><LandPlot className="mr-3 h-8 w-8"/>Gestion des Parcelles</h1>
+          <Button onClick={handleAddClick} className="flex items-center gap-2">
+            <LandPlot className="h-4 w-4" />
+            Ajouter une Parcelle
+          </Button>
         </div>
 
         <Card>
@@ -233,23 +304,64 @@ const AdminParcelsPage = () => {
         </Card>
       </motion.div>
 
-      {/* --- NOUVEAU : Modal d'édition --- */}
+      {/* --- NOUVEAU : Modal d'ajout/édition --- */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Modifier la parcelle</DialogTitle>
+            <DialogTitle>
+              {currentEditParcel ? 'Modifier la parcelle' : 'Ajouter une nouvelle parcelle'}
+            </DialogTitle>
             <DialogDescription>
-              Mettez à jour les informations de la parcelle. Cliquez sur "Enregistrer" pour sauvegarder.
+              {currentEditParcel 
+                ? 'Mettez à jour les informations de la parcelle. Cliquez sur "Enregistrer" pour sauvegarder.'
+                : 'Remplissez les informations de la nouvelle parcelle. Tous les champs marqués (*) sont obligatoires.'
+              }
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleFormSubmit} className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">Nom</Label>
-              <Input id="name" value={formData.name} onChange={handleFormChange} className="col-span-3" />
+              <Label htmlFor="name" className="text-right">Nom *</Label>
+              <Input 
+                id="name" 
+                value={formData.name} 
+                onChange={handleFormChange} 
+                className="col-span-3" 
+                required 
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="reference" className="text-right">Référence</Label>
-              <Input id="reference" value={formData.reference} onChange={handleFormChange} className="col-span-3" />
+              <Label htmlFor="reference" className="text-right">Référence *</Label>
+              <Input 
+                id="reference" 
+                value={formData.reference} 
+                onChange={handleFormChange} 
+                className="col-span-3" 
+                required 
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="owner_id" className="text-right">Propriétaire *</Label>
+              <Select 
+                value={formData.owner_id} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, owner_id: value }))}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner un propriétaire" />
+                </SelectTrigger>
+                <SelectContent>
+                  {loadingOwners ? (
+                    <SelectItem value="" disabled>Chargement...</SelectItem>
+                  ) : owners.length === 0 ? (
+                    <SelectItem value="" disabled>Aucun propriétaire disponible</SelectItem>
+                  ) : (
+                    owners.map(owner => (
+                      <SelectItem key={owner.id} value={owner.id}>
+                        {owner.full_name || owner.email} ({owner.type})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="location_name" className="text-right">Localisation</Label>
@@ -261,7 +373,7 @@ const AdminParcelsPage = () => {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="status" className="text-right">Statut</Label>
-                <Select onValueChange={handleSelectChange} defaultValue={formData.status}>
+                <Select onValueChange={handleSelectChange} value={formData.status}>
                     <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Sélectionner un statut" />
                     </SelectTrigger>
@@ -283,7 +395,7 @@ const AdminParcelsPage = () => {
               </DialogClose>
               <Button type="submit" disabled={isFormLoading}>
                 {isFormLoading && <LoadingSpinner size="small" className="mr-2" />}
-                Enregistrer
+                {currentEditParcel ? 'Enregistrer' : 'Ajouter'}
               </Button>
             </DialogFooter>
           </form>

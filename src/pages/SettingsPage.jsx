@@ -70,8 +70,8 @@ const SettingsPage = () => {
       setIsSaving(true);
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log("Notification Settings:", notificationSettings);
-      console.log("Preferences:", preferences);
+      // Notification Settings: notificationSettings
+      // Preferences: preferences
       
       toast({ 
          title: "Paramètres Sauvegardés", 

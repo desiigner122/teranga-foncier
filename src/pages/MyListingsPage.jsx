@@ -59,7 +59,7 @@ const MyListingsPage = () => {
    }, []);
 
    const handleDelete = (listingId) => {
-       console.log("Deleting listing:", listingId);
+       // Deleting listing: ${listingId}
        setListings(prev => prev.filter(l => l.id !== listingId));
        toast({
            title: "Bien supprimé",

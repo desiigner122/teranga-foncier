@@ -53,7 +53,7 @@ const MunicipalLandRequestPage = () => {
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    console.log("Municipal Land Request Submitted:", { ...formData, files: files.map(f => f.name) });
+    // Municipal Land Request Submitted: { ...formData, files: files.map(f => f.name) }
 
     toast({
       title: "Demande Envoyée (Simulation)",

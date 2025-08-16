@@ -47,7 +47,7 @@ const SellPropertyPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log("Form Data Submitted:", formData, "Files:", files);
+    // Form Data Submitted: formData, Files: files
     toast({
       title: "Soumission Réussie (Simulation)",
       description: "Votre proposition de terrain a été envoyée. Notre équipe vous contactera bientôt.",

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { sampleConversations as initialSampleConversations, sampleMessages as initialSampleMessages, sampleUsers } from '@/data/userData';
 import { useAuth } from '@/context/AuthContext';
+import { useMessagingNotification } from '@/context/MessagingNotificationContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -31,15 +31,23 @@ const SecureMessagingPage = () => {
   const { user } = useAuth();
   const location = useLocation();
   const { toast } = useToast();
+  const {
+    conversations,
+    messages,
+    loading,
+    isFirebaseAvailable,
+    sendMessage,
+    createConversation,
+    subscribeToMessages,
+    markMessagesAsRead
+  } = useMessagingNotification();
   
-  const [conversations, setConversations] = useState([]);
   const [selectedConversationId, setSelectedConversationId] = useState(null);
-  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
+  const messageUnsubscribeRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,106 +57,108 @@ const SecureMessagingPage = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Handle conversation creation from external navigation (e.g., from parcel details)
   useEffect(() => {
-    setLoadingConversations(true);
-    setError(null);
-    if (!user) {
-       setError("Veuillez vous connecter pour accéder à la messagerie.");
-       setLoadingConversations(false);
-       return;
-    }
-    
-    setTimeout(() => {
-      let userConvs = initialSampleConversations.filter(c => c.participants && c.participants.includes(user.id));
+    if (!user || !isFirebaseAvailable) return;
+
+    const { parcelId, parcelName, contactUser } = location.state || {};
+    if (parcelId && contactUser) {
+      // Check if conversation already exists
+      const existingConv = conversations.find(c => 
+        c.parcelId === parcelId && c.participants.includes(contactUser)
+      );
       
-      let convsWithDetails = userConvs.map(c => {
-        const otherUserId = c.participants.find(pId => pId !== user.id);
-        const otherUser = sampleUsers.find(u => u.id === otherUserId);
-        return { ...c, otherUserName: otherUser?.name || 'Utilisateur Inconnu', otherUserAvatar: otherUser?.avatar };
-      });
-      
-      const { parcelId, parcelName, contactUser } = location.state || {};
-      if (parcelId && contactUser) {
-        let existingConv = convsWithDetails.find(c => c.parcel_id === parcelId && c.participants.includes(contactUser));
-        if (!existingConv) {
-            const otherUserDetails = sampleUsers.find(u => u.id === contactUser);
-            const newConv = {
-              id: `conv_${parcelId}_${contactUser}`,
-              participants: [user.id, contactUser],
-              parcel_id: parcelId,
-              last_message: `Nouvelle conversation pour ${parcelName}`,
-              unread_count: 0,
-              updated_at: new Date().toISOString(),
-              otherUserName: otherUserDetails?.name || 'Utilisateur Inconnu',
-              otherUserAvatar: otherUserDetails?.avatar,
-            };
-            convsWithDetails = [newConv, ...convsWithDetails];
-            setSelectedConversationId(newConv.id);
-        } else {
-            setSelectedConversationId(existingConv.id);
-        }
+      if (existingConv) {
+        setSelectedConversationId(existingConv.id);
+      } else {
+        // Create new conversation
+        createConversation([user.id, contactUser], parcelId, `Conversation pour ${parcelName}`)
+          .then(conversationId => {
+            if (conversationId) {
+              setSelectedConversationId(conversationId);
+            }
+          });
       }
-
-      setConversations(convsWithDetails);
-      setLoadingConversations(false);
-    }, 300);
-  }, [user, location.state]);
-
-  useEffect(() => {
-    if (selectedConversationId) {
-      setLoadingMessages(true);
-      setMessages([]);
-      setTimeout(() => {
-        setMessages(initialSampleMessages[selectedConversationId] || []);
-        setLoadingMessages(false);
-        setConversations(prev => prev.map(c => c.id === selectedConversationId ? {...c, unread_count: 0} : c));
-      }, 200);
-    } else {
-       setMessages([]);
     }
-  }, [selectedConversationId]);
+  }, [user, isFirebaseAvailable, location.state, conversations, createConversation]);
+
+  // Subscribe to messages when conversation is selected
+  useEffect(() => {
+    if (selectedConversationId && isFirebaseAvailable) {
+      setLoadingMessages(true);
+      
+      // Unsubscribe from previous conversation
+      if (messageUnsubscribeRef.current) {
+        messageUnsubscribeRef.current();
+      }
+      
+      // Subscribe to new conversation messages
+      messageUnsubscribeRef.current = subscribeToMessages(selectedConversationId);
+      
+      // Mark messages as read
+      markMessagesAsRead(selectedConversationId);
+      
+      setLoadingMessages(false);
+    }
+
+    return () => {
+      if (messageUnsubscribeRef.current) {
+        messageUnsubscribeRef.current();
+      }
+    };
+  }, [selectedConversationId, isFirebaseAvailable, subscribeToMessages, markMessagesAsRead]);
 
   const handleSelectConversation = (convId) => {
     setSelectedConversationId(convId);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedConversationId || !user) return;
 
-    const messageToSend = {
-      id: `msg${Date.now()}`,
-      conversation_id: selectedConversationId,
-      sender_id: user.id,
-      content: newMessage,
-      created_at: new Date().toISOString(),
-    };
-
-    setMessages(prev => [...prev, messageToSend]);
+    const messageContent = newMessage.trim();
     setNewMessage('');
 
-    const currentConv = conversations.find(c => c.id === selectedConversationId);
-    const otherUserId = currentConv.participants.find(pId => pId !== user.id);
-
-    setTimeout(() => {
-       const reply = {
-          id: `msg${Date.now()+1}`,
-          conversation_id: selectedConversationId,
-          sender_id: otherUserId,
-          content: 'Message reçu (Simulation). Je vous réponds dès que possible.',
-          created_at: new Date().toISOString(),
-       };
-       setMessages(prev => [...prev, reply]);
-    }, 1500);
-
-    setConversations(prev => prev.map(c =>
-       c.id === selectedConversationId ? {...c, last_message: newMessage, updated_at: new Date().toISOString()} : c
-    ).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)));
-
-    toast({ title: "Message envoyé (Simulation)" });
+    try {
+      await sendMessage(selectedConversationId, messageContent);
+      toast({ title: "Message envoyé" });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible d'envoyer le message",
+        variant: "destructive" 
+      });
+      // Restore message on error
+      setNewMessage(messageContent);
+    }
   };
 
+  // Set error state if user not logged in
+  useEffect(() => {
+    if (!user) {
+      setError("Veuillez vous connecter pour accéder à la messagerie.");
+    } else {
+      setError(null);
+    }
+  }, [user]);
+
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
+  const conversationMessages = selectedConversationId ? messages[selectedConversationId] || [] : [];
+
+  // Helper function to get other participant details
+  const getOtherParticipant = (conversation) => {
+    if (!conversation || !user) return { name: 'Utilisateur Inconnu', avatar: null };
+    
+    const otherUserId = conversation.participants?.find(pId => pId !== user.id);
+    // In a real app, you'd fetch user details from Supabase
+    // For now, return basic info
+    return {
+      name: conversation.title || `Utilisateur ${otherUserId?.slice(-4)}`,
+      avatar: null,
+      id: otherUserId
+    };
+  };
 
   return (
     <motion.div
@@ -166,38 +176,51 @@ const SecureMessagingPage = () => {
             <h2 className="text-xl font-semibold flex items-center"><Users className="h-5 w-5 mr-2"/> Conversations</h2>
           </div>
           <div className="flex-grow overflow-y-auto">
-            {loadingConversations ? (
+            {loading ? (
               <div className="p-4 space-y-3">
                 {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
               </div>
             ) : error ? (
                <p className="p-4 text-destructive">{error}</p>
             ) : conversations.length === 0 ? (
-               <p className="p-4 text-muted-foreground text-center">Aucune conversation.</p>
+               <div className="p-4 text-muted-foreground text-center">
+                 {isFirebaseAvailable ? 'Aucune conversation.' : 'Service de messagerie non disponible.'}
+               </div>
             ) : (
-              conversations.map(conv => (
-                <div
-                  key={conv.id}
-                  className={cn(
-                    "flex items-center gap-3 p-3 cursor-pointer border-b last:border-b-0 hover:bg-muted/50",
-                    selectedConversationId === conv.id && "bg-muted"
-                  )}
-                  onClick={() => handleSelectConversation(conv.id)}
-                >
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={conv.otherUserAvatar} alt={conv.otherUserName} />
-                    <AvatarFallback>{getInitials(conv.otherUserName)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-grow overflow-hidden">
-                    <div className="flex justify-between items-center">
-                       <h3 className="text-sm font-semibold truncate">{conv.otherUserName}</h3>
-                       {conv.unread_count > 0 && <Badge variant="destructive" className="h-5 px-1.5 text-xs">{conv.unread_count}</Badge>}
+              conversations.map(conv => {
+                const otherParticipant = getOtherParticipant(conv);
+                return (
+                  <div
+                    key={conv.id}
+                    className={cn(
+                      "flex items-center gap-3 p-3 cursor-pointer border-b last:border-b-0 hover:bg-muted/50",
+                      selectedConversationId === conv.id && "bg-muted"
+                    )}
+                    onClick={() => handleSelectConversation(conv.id)}
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={otherParticipant.avatar} alt={otherParticipant.name} />
+                      <AvatarFallback>{getInitials(otherParticipant.name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-grow overflow-hidden">
+                      <div className="flex justify-between items-center">
+                         <h3 className="text-sm font-semibold truncate">{otherParticipant.name}</h3>
+                         {conv.unreadCount?.[user?.id] > 0 && 
+                           <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                             {conv.unreadCount[user.id]}
+                           </Badge>
+                         }
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {conv.lastMessage || 'Nouvelle conversation'}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">{conv.last_message}</p>
+                     <span className="text-xs text-muted-foreground flex-shrink-0 ml-auto self-start pt-1">
+                       {formatDate(conv.lastMessageAt?.toDate?.() || conv.updatedAt?.toDate?.())}
+                     </span>
                   </div>
-                   <span className="text-xs text-muted-foreground flex-shrink-0 ml-auto self-start pt-1">{formatDate(conv.updated_at)}</span>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -212,18 +235,25 @@ const SecureMessagingPage = () => {
                  <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={() => setSelectedConversationId(null)}>
                     <ArrowLeft className="h-5 w-5"/>
                  </Button>
-                 <Avatar className="h-9 w-9">
-                   <AvatarImage src={selectedConversation.otherUserAvatar} alt={selectedConversation.otherUserName} />
-                   <AvatarFallback>{getInitials(selectedConversation.otherUserName)}</AvatarFallback>
-                 </Avatar>
-                 <div>
-                    <h2 className="text-lg font-semibold">{selectedConversation.otherUserName}</h2>
-                    {selectedConversation.parcel_id &&
-                      <Link to={`/parcelles/${selectedConversation.parcel_id}`} className="text-xs text-primary hover:underline">
-                          Concerne la parcelle: {selectedConversation.parcel_id}
-                      </Link>
-                    }
-                 </div>
+                 {(() => {
+                   const otherParticipant = getOtherParticipant(selectedConversation);
+                   return (
+                     <>
+                       <Avatar className="h-9 w-9">
+                         <AvatarImage src={otherParticipant.avatar} alt={otherParticipant.name} />
+                         <AvatarFallback>{getInitials(otherParticipant.name)}</AvatarFallback>
+                       </Avatar>
+                       <div>
+                          <h2 className="text-lg font-semibold">{otherParticipant.name}</h2>
+                          {selectedConversation.parcelId &&
+                            <Link to={`/parcelles/${selectedConversation.parcelId}`} className="text-xs text-primary hover:underline">
+                                Concerne la parcelle: {selectedConversation.parcelId}
+                            </Link>
+                          }
+                       </div>
+                     </>
+                   );
+                 })()}
               </div>
 
               <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-muted/20">
@@ -233,18 +263,18 @@ const SecureMessagingPage = () => {
                      <Skeleton className="h-10 w-3/5 ml-auto" />
                      <Skeleton className="h-10 w-3/5" />
                   </div>
-                ) : messages.length === 0 ? (
+                ) : conversationMessages.length === 0 ? (
                    <p className="text-center text-muted-foreground pt-10">Aucun message. Soyez le premier à en envoyer un !</p>
                 ) : (
-                  messages.map(msg => (
-                    <div key={msg.id} className={cn("flex", msg.sender_id === user.id ? 'justify-end' : 'justify-start')}>
+                  conversationMessages.map(msg => (
+                    <div key={msg.id} className={cn("flex", msg.senderId === user.id ? 'justify-end' : 'justify-start')}>
                       <div className={cn(
                         "p-2 px-3 rounded-lg max-w-[75%]",
-                        msg.sender_id === user.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                        msg.senderId === user.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
                       )}>
                         <p className="text-sm">{msg.content}</p>
-                        <span className={cn("text-xs mt-1 block text-right", msg.sender_id === user.id ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                           {formatDate(msg.created_at)}
+                        <span className={cn("text-xs mt-1 block text-right", msg.senderId === user.id ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                           {formatDate(msg.createdAt?.toDate?.() || msg.createdAt)}
                         </span>
                       </div>
                     </div>
