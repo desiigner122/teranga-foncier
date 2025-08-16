@@ -2,7 +2,7 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
-import { useToast } from "@/components/ui/use-toast"; // Ajout de useToast pour une meilleure gestion des erreurs
+import { useToast } from "@/components/ui/use-toast";
 
 const AuthContext = createContext(null);
 
@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
   const fetchUserProfile = useCallback(async (authUser) => {
     if (!authUser) return null;
     try {
-      // Récupère les infos complètes de l'utilisateur
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -28,7 +27,6 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
       
-      // Retourne l'objet de profil complet
       return data;
 
     } catch (err) {
@@ -75,7 +73,7 @@ export const AuthProvider = ({ children }) => {
     profile, // profile est l'objet de la table public.users
     loading,
     isAuthenticated: !!user && !!profile, // L'utilisateur est authentifié si on a l'objet user ET le profil
-    isAdmin: profile?.role === 'admin', // Vérifie le rôle sur l'objet profile
+    isAdmin: profile?.role === 'admin' || profile?.type === 'Administrateur', // Vérifie le rôle ou le type sur l'objet profile
     signOut: async () => {
       try {
         const { error } = await supabase.auth.signOut();

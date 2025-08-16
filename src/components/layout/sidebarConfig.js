@@ -5,8 +5,7 @@ import {
     Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive,
     Handshake, Activity, LogOut,
     PieChart, Globe, Palette, Package, ShoppingCart, Calendar, FileText, BookOpen, Layers,
-    Store, Sprout, Shield, Building, // Assurez-vous que toutes les icônes utilisées sont importées
-    DollarSign, LifeBuoy // <-- ICÔNES MANQUANTES AJOUTÉES ICI
+    Store, Sprout, Shield // Assurez-vous que toutes les icônes utilisées dans accountTypes de LoginPage sont importées ici
 } from 'lucide-react';
 
 const commonLinks = {
@@ -243,6 +242,7 @@ export const getSidebarConfig = (user) => {
         ];
     }
 
+    // Si l'utilisateur a un rôle spécifique défini dans Supabase Auth
     if (user.role === 'admin') {
         return adminConfig;
     }
@@ -250,6 +250,7 @@ export const getSidebarConfig = (user) => {
         return agentConfig;
     }
 
+    // Si l'utilisateur a un rôle générique 'user', on utilise son 'type' de la table 'users'
     switch (user.type) {
         case 'Vendeur':
             return vendeurConfig;
@@ -268,6 +269,14 @@ export const getSidebarConfig = (user) => {
         case 'Particulier':
             return particulierConfig;
         default:
-            return particulierConfig;
+            // Configuration par défaut pour les utilisateurs non reconnus ou 'Particulier' par défaut
+            return [
+                { label: 'Dashboard', href: '/dashboard/particulier', icon: LayoutDashboard, end: true },
+                commonLinks.profile,
+                commonLinks.settings,
+                commonLinks.notifications,
+                commonLinks.messaging,
+                commonLinks.logout,
+            ];
     }
 };
