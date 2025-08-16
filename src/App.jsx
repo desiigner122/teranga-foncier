@@ -63,6 +63,7 @@ import AdminAgentsPage from '@/pages/admin/AdminAgentsPage';
 import AdminRequestsPage from '@/pages/admin/AdminRequestsPage';
 import AdminReportsPage from '@/pages/admin/AdminReportsPage';
 import AdminContractsPage from '@/pages/admin/AdminContractsPage';
+import AdminDisputesPage from '@/pages/admin/AdminDisputesPage';
 import AdminCompliancePage from '@/pages/admin/AdminCompliancePage';
 import AdminTransactionsPage from '@/pages/admin/AdminTransactionsPage';
 import AdminAIAssistantPage from '@/pages/admin/AdminAIAssistantPage';
@@ -176,6 +177,7 @@ function App() {
                     <Route path="/dashboard/admin/reports" element={<AdminReportsPage />} />
                     <Route path="/dashboard/admin/contracts" element={<AdminContractsPage />} />
                     <Route path="/dashboard/admin/compliance" element={<AdminCompliancePage />} />
+                    <Route path="/dashboard/admin/disputes" element={<AdminDisputesPage />} />
                     <Route path="/dashboard/admin/transactions" element={<AdminTransactionsPage />} />
                     <Route path="/dashboard/admin/ai-assistant" element={<AdminAIAssistantPage />} />
 

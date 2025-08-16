@@ -1,7 +1,7 @@
 // src/components/GlobalChatbot.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageSquareText, X, Send, User, Bot, Loader2, Trash2 } from 'lucide-react';
+import { MessageSquareText, X, Send, User, Bot, Loader2, Trash2, Sparkles, MessageCircle, HelpCircle, MapPin, Search, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/ScrollArea';
 import { useAuth } from '@/context/AuthContext';
@@ -21,25 +21,45 @@ const GlobalChatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Suggestions prédéfinies pour le début de conversation
+  // Suggestions prédéfinies pour le début de conversation avec icônes
   const initialSuggestions = [
-    "Je suis un acheteur, aidez-moi.",
-    "Je suis un vendeur, que proposez-vous ?",
-    "Je suis une mairie, comment ça marche ?",
-    "J'ai une question légale sur le foncier.",
-    "Comment contacter le support ?"
+    { text: "Je suis un acheteur, aidez-moi.", icon: Search, category: "achat" },
+    { text: "Je suis un vendeur, que proposez-vous ?", icon: MapPin, category: "vente" },
+    { text: "Je suis une mairie, comment ça marche ?", icon: MessageCircle, category: "institution" },
+    { text: "J'ai une question légale sur le foncier.", icon: HelpCircle, category: "legal" },
+    { text: "Comment contacter le support ?", icon: Phone, category: "support" }
   ];
   const [currentSuggestions, setCurrentSuggestions] = useState([]);
 
-  // Fonction pour un message de bienvenue dynamique
+  // Fonction pour un message de bienvenue dynamique avec emoji personnalisé
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
-    let greeting;
-    if (hour < 12) greeting = "Bonjour";
-    else if (hour < 18) greeting = "Bon après-midi";
-    else greeting = "Bonsoir";
+    let greeting, emoji;
+    if (hour < 12) {
+      greeting = "Bonjour";
+      emoji = "🌅";
+    } else if (hour < 18) {
+      greeting = "Bon après-midi";
+      emoji = "☀️";
+    } else {
+      greeting = "Bonsoir";
+      emoji = "🌙";
+    }
 
-    return `${greeting} ! Je suis votre assistant virtuel Teranga Foncier. Je suis là pour vous aider avec toutes vos questions sur l'immobilier au Sénégal.`;
+    const username = isAuthenticated ? ` ${user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}` : '';
+    
+    return `${greeting}${username} ! ${emoji}
+
+Je suis **Teranga AI**, votre assistant intelligent pour tout ce qui concerne l'immobilier foncier au Sénégal. 🏡
+
+Je peux vous aider avec :
+• 🔍 Recherche de terrains et propriétés
+• 📋 Procédures administratives
+• 💼 Conseils d'investissement
+• 🏛️ Démarches légales et notariales
+• 📞 Mise en relation avec nos experts
+
+Comment puis-je vous assister aujourd'hui ?`;
   };
 
   const scrollToBottom = () => {
@@ -197,19 +217,70 @@ const GlobalChatbot = () => {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    handleSendMessage(suggestion); // Envoie la suggestion comme un message utilisateur
+    const textToSend = typeof suggestion === 'string' ? suggestion : suggestion.text;
+    handleSendMessage(textToSend); // Envoie la suggestion comme un message utilisateur
   };
 
   return (
     <>
-      {/* Bouton flottant du chatbot */}
-      <Button
-        className="fixed bottom-6 right-6 z-50 rounded-full h-14 w-14 shadow-lg bg-blue-600 hover:bg-blue-700 transition-all duration-300"
-        size="icon"
-        onClick={toggleChatbot}
+      {/* Bouton flottant du chatbot avec animation pulse */}
+      <motion.div
+        className="fixed bottom-6 right-6 z-50"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
-        {isChatbotOpen ? <X className="h-6 w-6" /> : <MessageSquareText className="h-6 w-6" />}
-      </Button>
+        <Button
+          className={cn(
+            "rounded-full h-16 w-16 shadow-2xl transition-all duration-300 relative overflow-hidden",
+            isChatbotOpen 
+              ? "bg-gray-600 hover:bg-gray-700" 
+              : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          )}
+          size="icon"
+          onClick={toggleChatbot}
+        >
+          <AnimatePresence mode="wait">
+            {isChatbotOpen ? (
+              <motion.div
+                key="close"
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <X className="h-6 w-6" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="open"
+                initial={{ rotate: 90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: -90, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="relative"
+              >
+                <MessageSquareText className="h-6 w-6" />
+                <motion.div
+                  className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full flex items-center justify-center"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <div className="h-2 w-2 bg-white rounded-full"></div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* Effet de pulse autour du bouton */}
+          {!isChatbotOpen && (
+            <motion.div
+              className="absolute inset-0 rounded-full border-2 border-blue-400"
+              animate={{ scale: [1, 1.5], opacity: [0.7, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          )}
+        </Button>
+      </motion.div>
 
       {/* Fenêtre du chatbot */}
       <AnimatePresence>
@@ -218,90 +289,208 @@ const GlobalChatbot = () => {
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-50 w-[350px] h-[500px] bg-card border rounded-lg shadow-xl flex flex-col"
+            transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
+            className="fixed bottom-24 right-6 z-50 w-[380px] h-[600px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
-            <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
-              <div className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                <h3 className="font-semibold">Assistant Teranga Foncier</h3>
+            {/* Header avec gradient moderne */}
+            <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Avatar className="h-10 w-10 border-2 border-white/20">
+                      <AvatarFallback className="bg-white/20 text-white">
+                        <Bot className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <motion.div
+                      className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-400 rounded-full border-2 border-white"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Teranga AI</h3>
+                    <div className="flex items-center gap-1 text-sm text-white/80">
+                      <Sparkles className="h-3 w-3" />
+                      <span>En ligne • Répond instantanément</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={clearChatHistory} 
+                    className="text-white hover:bg-white/20 h-8 w-8" 
+                    aria-label="Effacer l'historique"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={closeChatbot} 
+                    className="text-white hover:bg-white/20 h-8 w-8" 
+                    aria-label="Fermer le chatbot"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" onClick={clearChatHistory} className="text-primary-foreground hover:bg-primary-foreground/20" aria-label="Effacer l'historique">
-                  <Trash2 className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={closeChatbot} className="text-primary-foreground hover:bg-primary-foreground/20" aria-label="Fermer le chatbot">
-                  <X className="h-5 w-5" />
-                </Button>
+              
+              {/* Effet d'onde décoratif */}
+              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r from-blue-600 to-purple-600">
+                <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="h-full w-full">
+                  <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="rgba(255,255,255,0.1)"></path>
+                </svg>
               </div>
             </div>
 
-            <ScrollArea className="flex-1 p-4 space-y-4">
-              {messages.map((msg, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.05 }}
-                  className={cn(
-                    "flex items-start gap-3",
-                    msg.sender === 'user' ? "justify-end" : "justify-start"
-                  )}
-                >
-                  {msg.sender === 'bot' && <Avatar className="h-8 w-8 shrink-0"><AvatarFallback><Bot className="h-5 w-5"/></AvatarFallback></Avatar>}
-                  <div
+            {/* Zone de messages */}
+            <ScrollArea className="flex-1 p-4 bg-gray-50 dark:bg-gray-800">
+              <div className="space-y-4">
+                {messages.map((msg, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
                     className={cn(
-                      "rounded-lg p-3 max-w-[75%]",
-                      msg.sender === 'user'
-                        ? "bg-blue-500 text-white rounded-br-none"
-                        : "bg-muted text-foreground rounded-bl-none"
+                      "flex items-start gap-3",
+                      msg.sender === 'user' ? "justify-end" : "justify-start"
                     )}
                   >
-                    {msg.text}
-                  </div>
-                  {msg.sender === 'user' && <Avatar className="h-8 w-8 shrink-0"><AvatarFallback><User className="h-5 w-5"/></AvatarFallback></Avatar>}
-                </motion.div>
-              ))}
-              {isTyping && (
-                <div className="flex items-center gap-3 justify-start">
-                  <Avatar className="h-8 w-8 shrink-0"><AvatarFallback><Bot className="h-5 w-5"/></AvatarFallback></Avatar>
-                  <div className="rounded-lg p-3 bg-muted text-foreground rounded-bl-none">
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" /> L'IA est en train d'écrire...
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+                    {msg.sender === 'bot' && (
+                      <Avatar className="h-8 w-8 shrink-0 border-2 border-blue-200">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                          <Bot className="h-4 w-4"/>
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div
+                      className={cn(
+                        "rounded-2xl p-4 max-w-[85%] shadow-sm",
+                        msg.sender === 'user'
+                          ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-md"
+                          : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md border border-gray-200 dark:border-gray-600"
+                      )}
+                    >
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</div>
+                    </div>
+                    {msg.sender === 'user' && (
+                      <Avatar className="h-8 w-8 shrink-0 border-2 border-gray-200">
+                        <AvatarFallback className="bg-gray-100 text-gray-600">
+                          <User className="h-4 w-4"/>
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </motion.div>
+                ))}
+                
+                {/* Indicateur de frappe avec animation */}
+                {isTyping && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-3 justify-start"
+                  >
+                    <Avatar className="h-8 w-8 shrink-0 border-2 border-blue-200">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                        <Bot className="h-4 w-4"/>
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl rounded-bl-md p-4 shadow-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                          <motion.div
+                            className="w-2 h-2 bg-blue-500 rounded-full"
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+                          />
+                          <motion.div
+                            className="w-2 h-2 bg-blue-500 rounded-full"
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                          />
+                          <motion.div
+                            className="w-2 h-2 bg-blue-500 rounded-full"
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-500">Teranga AI écrit...</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
             </ScrollArea>
 
-            {/* Suggestions de boutons */}
+            {/* Suggestions avec icônes */}
             {currentSuggestions.length > 0 && (
-              <div className="p-4 border-t flex flex-wrap gap-2 justify-center">
-                {currentSuggestions.map((suggestion, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="text-xs px-3 py-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900"
-                  >
-                    {suggestion}
-                  </Button>
-                ))}
+              <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 gap-2">
+                  {currentSuggestions.map((suggestion, index) => {
+                    const suggestionData = typeof suggestion === 'string' 
+                      ? { text: suggestion, icon: MessageCircle } 
+                      : suggestion;
+                    const Icon = suggestionData.icon || MessageCircle;
+                    
+                    return (
+                      <motion.button
+                        key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="flex items-center gap-3 p-3 text-left text-sm bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl border border-gray-200 dark:border-gray-700 transition-colors group"
+                      >
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                          <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                          {suggestionData.text}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
-            <div className="p-4 border-t flex items-center gap-2">
-              <Input
-                placeholder="Écrivez votre message..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                disabled={isTyping}
-                className="flex-1"
-              />
-              <Button size="icon" onClick={() => handleSendMessage()} disabled={isTyping}>
-                <Send className="h-4 w-4" />
-              </Button>
+            {/* Zone de saisie moderne */}
+            <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-2">
+                <Input
+                  placeholder="Écrivez votre message..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                  disabled={isTyping}
+                  className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-500"
+                />
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button 
+                    size="icon" 
+                    onClick={() => handleSendMessage()} 
+                    disabled={isTyping || !inputValue.trim()}
+                    className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 h-10 w-10"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </motion.div>
+              </div>
+              
+              {/* Footer avec logo */}
+              <div className="flex items-center justify-center mt-3 text-xs text-gray-500">
+                <span>Propulsé par </span>
+                <Sparkles className="h-3 w-3 mx-1" />
+                <span className="font-medium">Teranga AI</span>
+              </div>
             </div>
           </motion.div>
         )}
