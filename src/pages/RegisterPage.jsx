@@ -13,13 +13,7 @@ import { supabase } from '@/lib/supabaseClient';
 
 const accountTypes = [
   { value: 'Particulier', label: 'Particulier (Acheteur)', icon: UsersIcon },
-  { value: 'Vendeur', label: 'Vendeur', icon: Store },
-  { value: 'Investisseur', label: 'Investisseur', icon: Briefcase },
-  { value: 'Promoteur', label: 'Promoteur', icon: Building },
-  { value: 'Agriculteur', label: 'Agriculteur', icon: Sprout },
-  { value: 'Banque', label: 'Partenaire Bancaire', icon: Banknote },
-  { value: 'Mairie', label: 'Représentant Mairie', icon: Landmark },
-  { value: 'Notaire', label: 'Étude Notariale', icon: LandPlot },
+  { value: 'Vendeur', label: 'Vendeur', icon: Store }
 ];
 
 const RegisterPage = () => {

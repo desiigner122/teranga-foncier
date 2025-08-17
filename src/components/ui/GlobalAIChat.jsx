@@ -132,7 +132,7 @@ Comment puis-je vous aider ?`;
             initial={{ opacity: 0, scale: 0.8, x: 100 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: 100 }}
-            className="fixed bottom-24 right-6 z-40 w-96 h-[500px] bg-white border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-6 z-40 w-[450px] h-[650px] bg-white border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">

@@ -205,11 +205,29 @@ const NotairesDashboard = () => {
       authenticated,
       inProgress,
       compliant,
-      pendingTrend: Math.floor(Math.random() * 10) - 5, // Simulation pour le moment
+      pendingTrend: calculateTrend(dossiersData, 'pending_notary', lastMonth, endOfLastMonth, startOfMonth),
       authenticatedTrend: authenticated - lastMonthAuthenticated,
-      inProgressTrend: Math.floor(Math.random() * 8) - 4,
-      compliantTrend: Math.floor(Math.random() * 6) - 3
+      inProgressTrend: calculateTrend(dossiersData, 'in_progress', lastMonth, endOfLastMonth, startOfMonth),
+      compliantTrend: calculateTrend(dossiersData, 'verified', lastMonth, endOfLastMonth, startOfMonth)
     };
+  };
+
+  // Fonction helper pour calculer les tendances réelles
+  const calculateTrend = (data, status, lastMonthStart, lastMonthEnd, currentMonthStart) => {
+    const currentMonth = data.filter(d => 
+      (d.status === status || 
+       (status === 'pending_notary' && ['pending_notary', 'awaiting_verification', 'pending'].includes(d.status))) &&
+      new Date(d.updated_at) >= currentMonthStart
+    ).length;
+    
+    const lastMonth = data.filter(d => 
+      (d.status === status || 
+       (status === 'pending_notary' && ['pending_notary', 'awaiting_verification', 'pending'].includes(d.status))) &&
+      new Date(d.updated_at) >= lastMonthStart &&
+      new Date(d.updated_at) <= lastMonthEnd
+    ).length;
+    
+    return currentMonth - lastMonth;
   };
 
   // Générer des insights IA basés sur les données du notaire
@@ -235,27 +253,79 @@ const NotairesDashboard = () => {
     try {
       setDocumentAnalysis({ loading: true, dossierId: dossier.id });
       
-      const query = `Analyse ce dossier notarial et détecte les potentiels problèmes: Type: ${dossier.type}, Valeur: ${dossier.valuation}, Statut: ${dossier.status}. Donne un score de risque et des recommandations.`;
+      // Analyse réelle basée sur les données du dossier
+      const documentContent = {
+        reference: dossier.reference || dossier.id,
+        type: dossier.type,
+        valuation: dossier.valuation,
+        status: dossier.status,
+        buyerInfo: dossier.users?.full_name,
+        parcelInfo: dossier.parcels?.reference,
+        createdAt: dossier.created_at,
+        updatedAt: dossier.updated_at
+      };
+
+      const query = `Analyse approfondie du dossier notarial ${documentContent.reference}:
+      
+Type: ${documentContent.type}
+Valeur: ${documentContent.valuation ? documentContent.valuation.toLocaleString() + ' XOF' : 'Non définie'}
+Statut: ${documentContent.status}
+Client: ${documentContent.buyerInfo || 'Non renseigné'}
+Parcelle: ${documentContent.parcelInfo || 'Non référencée'}
+Date création: ${new Date(documentContent.createdAt).toLocaleDateString('fr-FR')}
+
+En tant qu'expert notaire, effectue une analyse complète:
+1. Vérification de la cohérence des informations
+2. Identification des risques potentiels
+3. Conformité légale et réglementaire
+4. Recommandations d'actions prioritaires
+5. Score de risque (0-100)
+
+Fournis une réponse structurée avec score et recommandations.`;
       
       const response = await hybridAI.generateResponse(query, [], { 
         role: 'notaire', 
-        domain: 'document_analysis',
-        documentType: dossier.type
+        domain: 'legal_document_analysis',
+        documentType: dossier.type,
+        analysisMode: 'detailed'
       });
+
+      // Calcul du score de risque basé sur des critères réels
+      let riskScore = 0;
       
+      // Facteurs de risque
+      if (!dossier.valuation || dossier.valuation === 0) riskScore += 25;
+      if (dossier.status === 'pending' || dossier.status === 'pending_notary') riskScore += 20;
+      if (!dossier.parcels?.reference) riskScore += 15;
+      if (!dossier.users?.full_name) riskScore += 10;
+      
+      // Ancienneté du dossier
+      const daysOld = Math.floor((new Date() - new Date(dossier.created_at)) / (1000 * 60 * 60 * 24));
+      if (daysOld > 30) riskScore += Math.min(20, daysOld - 30);
+      
+      // Dernière mise à jour
+      const daysSinceUpdate = Math.floor((new Date() - new Date(dossier.updated_at)) / (1000 * 60 * 60 * 24));
+      if (daysSinceUpdate > 7) riskScore += Math.min(10, daysSinceUpdate - 7);
+
       setDocumentAnalysis({
         loading: false,
         dossierId: dossier.id,
         result: response,
-        riskScore: Math.random() * 100,
-        timestamp: new Date()
+        riskScore: Math.min(100, riskScore), // Cap à 100
+        timestamp: new Date(),
+        analysisDetails: {
+          completeness: !dossier.valuation ? 'Incomplète' : 'Complète',
+          urgency: riskScore > 70 ? 'Élevée' : riskScore > 40 ? 'Moyenne' : 'Faible',
+          recommendation: riskScore > 70 ? 'Action immédiate requise' : 'Suivi standard'
+        }
       });
 
       toast({
         title: "Analyse IA terminée",
-        description: `Document ${dossier.id} analysé avec ${response.modelUsed?.toUpperCase()}`,
+        description: `Document ${dossier.reference || dossier.id} analysé - Risque: ${Math.min(100, riskScore)}%`,
       });
     } catch (error) {
+      console.error('Erreur analyse IA:', error);
       setDocumentAnalysis({ loading: false, error: error.message });
       toast({
         variant: "destructive",
