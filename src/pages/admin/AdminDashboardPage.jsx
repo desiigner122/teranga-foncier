@@ -246,6 +246,25 @@ const AdminDashboardPage = () => {
     fetchData();
   }, [fetchData]);
 
+  const handleAIAction = async (actionType, result) => {
+    switch (actionType) {
+      case 'DELETE_USER':
+        // Rafraîchir les données après suppression
+        await fetchData();
+        toast({
+          title: "Utilisateur supprimé",
+          description: `${result.deletedUser.full_name} a été supprimé du système`,
+        });
+        break;
+      case 'GENERATE_REPORT':
+        // Ouvrir un modal avec le rapport ou rediriger
+        break;
+      default:
+        // Rafraîchir les données par défaut
+        await fetchData();
+    }
+  };
+
   if (loading && reportData.totalUsers === 0) {
     return (
       <div className="flex items-center justify-center h-full min-h-[500px]">
@@ -473,25 +492,6 @@ const AdminDashboardPage = () => {
       </div>
     </motion.div>
   );
-
-  const handleAIAction = async (actionType, result) => {
-    switch (actionType) {
-      case 'DELETE_USER':
-        // Rafraîchir les données après suppression
-        await fetchData();
-        toast({
-          title: "Utilisateur supprimé",
-          description: `${result.deletedUser.full_name} a été supprimé du système`,
-        });
-        break;
-      case 'GENERATE_REPORT':
-        // Ouvrir un modal avec le rapport ou rediriger
-        break;
-      default:
-        // Rafraîchir les données par défaut
-        await fetchData();
-    }
-  };
 };
 
 export default AdminDashboardPage;

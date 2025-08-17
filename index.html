@@ -7,9 +7,38 @@
 		<title>Teranga Foncier - Votre Investissement Foncier Sécurisé</title>
 		<meta name="description" content="La plateforme n°1 pour acheter et vendre des terrains au Sénégal en toute sécurité. Vérification des documents, accompagnement notarié et accessibilité pour la diaspora." />
 		<meta name="generator" content="Teranga Foncier" />
+		
+		<!-- Prévention du FOUC (Flash of Unstyled Content) -->
+		<style>
+			html { visibility: hidden; opacity: 0; }
+			html.loaded { visibility: visible; opacity: 1; transition: opacity 0.3s ease-in-out; }
+		</style>
+		
+		<!-- Préchargement des ressources critiques -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link rel="preconnect" href="https://api.openai.com">
+		<link rel="preconnect" href="https://generativelanguage.googleapis.com">
+		<link rel="preconnect" href="https://api.anthropic.com">
+		
+		<!-- Optimisation des ressources -->
+		<meta name="theme-color" content="#3b82f6" />
+		<meta name="color-scheme" content="light dark" />
 	</head>
 	<body>
 		<div id="root"></div>
 		<script type="module" src="/src/main.jsx"></script>
+		
+		<!-- Script pour prévenir le FOUC -->
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				document.documentElement.classList.add('loaded');
+			});
+			
+			// Fallback si DOMContentLoaded ne fonctionne pas
+			setTimeout(function() {
+				document.documentElement.classList.add('loaded');
+			}, 100);
+		</script>
 	</body>
 </html>

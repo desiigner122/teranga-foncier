@@ -1,7 +1,7 @@
 // src/components/GlobalChatbot.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageSquareText, X, Send, User, Bot, Loader2, Trash2, Sparkles, MessageCircle, HelpCircle, MapPin, Search, Phone } from 'lucide-react';
+import { MessageSquareText, X, Send, User, Bot, Loader2, Trash2, Sparkles, MessageCircle, HelpCircle, MapPin, Search, Phone, Brain, Zap, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/ScrollArea';
 import { useAuth } from '@/context/AuthContext';
@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link } from 'react-router-dom';
 import { useChatbot } from '@/context/ChatbotContext';
+import { hybridAI } from '@/lib/hybridAI';
 
 const GlobalChatbot = () => {
   const { isAuthenticated, user } = useAuth();
@@ -26,10 +27,12 @@ const GlobalChatbot = () => {
     { text: "Je suis un acheteur, aidez-moi.", icon: Search, category: "achat" },
     { text: "Je suis un vendeur, que proposez-vous ?", icon: MapPin, category: "vente" },
     { text: "Je suis une mairie, comment ça marche ?", icon: MessageCircle, category: "institution" },
-    { text: "J'ai une question légale sur le foncier.", icon: HelpCircle, category: "legal" },
+    { text: "J'ai une question légale sur le foncier.", icon: Shield, category: "legal" },
     { text: "Comment contacter le support ?", icon: Phone, category: "support" }
   ];
   const [currentSuggestions, setCurrentSuggestions] = useState([]);
+  const [currentModel, setCurrentModel] = useState('hybrid');
+  const [responseTime, setResponseTime] = useState(null);
 
   // Fonction pour un message de bienvenue dynamique avec emoji personnalisé
   const getWelcomeMessage = () => {
@@ -50,14 +53,17 @@ const GlobalChatbot = () => {
     
     return `${greeting}${username} ! ${emoji}
 
-Je suis **Teranga AI**, votre assistant intelligent pour tout ce qui concerne l'immobilier foncier au Sénégal. 🏡
+Je suis **Teranga AI**, votre assistant intelligent hybride qui combine Claude, ChatGPT et Gemini pour vous offrir les meilleures réponses. 🧠✨
 
 Je peux vous aider avec :
 • 🔍 Recherche de terrains et propriétés
-• 📋 Procédures administratives
-• 💼 Conseils d'investissement
-• 🏛️ Démarches légales et notariales
+• 📋 Procédures administratives et légales
+• 💼 Conseils d'investissement intelligents
+• 🏛️ Démarches notariales et juridiques
 • 📞 Mise en relation avec nos experts
+• 🛡️ Prévention et détection de fraude
+
+Mon IA hybride sélectionne automatiquement le meilleur modèle selon votre question !
 
 Comment puis-je vous assister aujourd'hui ?`;
   };
@@ -86,117 +92,53 @@ Comment puis-je vous assister aujourd'hui ?`;
     setInputValue('');
     setIsTyping(true);
     setCurrentSuggestions([]); // Efface les suggestions après l'envoi d'un message
-
-    // Instructions système pour l'IA : concision, personnalité et format de réponse JSON
-    let systemInstruction = `Tu es l'assistant virtuel de Teranga Foncier, une plateforme immobilière au Sénégal. Tu es moderne, intelligent, un assistant serviable, gentil, professionnel et capable d'humour léger.
-    Ton rôle est de fournir des informations précises, utiles et CONCISES sur l'achat, la vente, la gestion de terrains, les procédures foncières, les services de Teranga Foncier, et les spécificités du marché immobilier sénégalais.
-    Réponds de manière brève et directe, en évitant les longs paragraphes. Utilise des émojis pertinents pour rendre tes réponses plus amicales et expressives.
-    Après chaque réponse, propose 1 à 3 suggestions de questions ou d'actions pertinentes pour l'utilisateur. Ces suggestions doivent être liées au contexte de la conversation ou aux prochaines étapes logiques.
     
-    Le format de ta réponse DOIT être un objet JSON avec deux propriétés :
-    {
-      "text": "Ta réponse textuelle avec des émojis.",
-      "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"] // Tableau de chaînes de caractères
-    }
-    
-    Si une question est trop complexe ou nécessite une action spécifique sur la plateforme (ex: "créer un compte", "faire une demande"), oriente l'utilisateur vers la fonctionnalité ou le contact approprié et propose des liens pertinents si possible.
-    Si l'utilisateur n'est pas connecté et pose une question sur des fonctionnalités avancées, rappelle-lui qu'il doit se connecter ou s'inscrire pour y accéder.`;
-    
-    let prompt;
-    if (!isAuthenticated) {
-      prompt = `${systemInstruction} L'utilisateur n'est pas connecté. Sa question : "${textToSend}".`;
-    } else {
-      prompt = `${systemInstruction} L'utilisateur est connecté (Nom: ${user.full_name || user.email}, Rôle: ${user.role || user.type}). Sa question : "${textToSend}".`;
-    }
+    const startTime = Date.now();
 
     try {
-      let chatHistory = messages.map(msg => ({ role: msg.sender === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] }));
-      chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-      const payload = {
-        contents: chatHistory,
-        generationConfig: {
-          responseMimeType: "application/json", // Demande une réponse JSON
-          responseSchema: { // Définit le schéma attendu
-            type: "OBJECT",
-            properties: {
-              text: { type: "STRING" },
-              suggestions: {
-                type: "ARRAY",
-                items: { type: "STRING" }
-              }
-            },
-            required: ["text", "suggestions"]
-          }
-        }
+      // Contexte utilisateur pour l'IA hybride
+      const context = {
+        isAuthenticated,
+        userRole: user?.role || user?.type,
+        userName: user?.full_name || user?.email,
+        platform: 'teranga-foncier'
       };
 
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      // Utilise le service IA hybride
+      const response = await hybridAI.generateResponse(textToSend, messages, context);
       
-      if (!apiKey) {
-        throw new Error("Configuration manquante: API Key pour Gemini non configurée.");
+      const endTime = Date.now();
+      setResponseTime(endTime - startTime);
+      setCurrentModel(response.modelUsed || 'hybrid');
+      
+      // Ajoute la réponse avec les métadonnées
+      const botMessage = {
+        sender: 'bot',
+        text: response.text,
+        confidence: response.confidence,
+        modelUsed: response.modelUsed,
+        timestamp: response.timestamp,
+        fallback: response.fallback
+      };
+      
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
+      setCurrentSuggestions(response.suggestions || []); // Met à jour les suggestions
+      
+      // Notification si fallback utilisé
+      if (response.fallback) {
+        toast({
+          title: "Modèle de secours utilisé",
+          description: `${response.originalModel} indisponible, ${response.modelUsed} utilisé`,
+        });
       }
-
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-
-      const MAX_RETRIES = 3;
-      let retries = 0;
-      let response;
-
-      while (retries < MAX_RETRIES) {
-        try {
-          response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          if (response.status === 429) {
-            const delay = Math.pow(2, retries) * 1000;
-            retries++;
-            await new Promise(res => setTimeout(res, delay));
-            continue;
-          }
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || `Erreur HTTP: ${response.status}`);
-          }
-
-          break;
-        } catch (fetchError) {
-          if (retries === MAX_RETRIES - 1) {
-            throw fetchError;
-          }
-          retries++;
-          const delay = Math.pow(2, retries) * 1000;
-          await new Promise(res => setTimeout(res, delay));
-        }
-      }
-
-      const result = await response.json();
-
-      if (result.candidates && result.candidates.length > 0 &&
-          result.candidates[0].content && result.candidates[0].content.parts &&
-          result.candidates[0].content.parts.length > 0) {
-        const aiResponseRaw = result.candidates[0].content.parts[0].text;
-        let aiResponse;
-        try {
-          aiResponse = JSON.parse(aiResponseRaw); // Tente de parser la réponse JSON
-        } catch (parseError) {
-          console.error("Erreur de parsing JSON de la réponse IA:", parseError, "Réponse brute:", aiResponseRaw);
-          aiResponse = { text: aiResponseRaw, suggestions: [] }; // Fallback si le parsing échoue
-        }
-        
-        setMessages((prevMessages) => [...prevMessages, { sender: 'bot', text: aiResponse.text }]);
-        setCurrentSuggestions(aiResponse.suggestions || []); // Met à jour les suggestions
-      } else {
-        setMessages((prevMessages) => [...prevMessages, { sender: 'bot', text: "Désolé, je n'ai pas pu générer de réponse. Veuillez réessayer." }]);
-        setCurrentSuggestions(initialSuggestions); // Réinitialise les suggestions initiales
-      }
+      
     } catch (err) {
-      console.error("Erreur lors de l'appel à l'API Gemini:", err);
-      setMessages((prevMessages) => [...prevMessages, { sender: 'bot', text: `Une erreur est survenue: ${err.message}. Veuillez réessayer plus tard.` }]);
+      console.error("Erreur lors de l'appel à l'IA hybride:", err);
+      setMessages((prevMessages) => [...prevMessages, { 
+        sender: 'bot', 
+        text: `Une erreur est survenue: ${err.message}. Veuillez réessayer plus tard.`,
+        error: true
+      }]);
       toast({
         variant: "destructive",
         title: "Erreur de l'assistant IA",
@@ -282,7 +224,7 @@ Comment puis-je vous assister aujourd'hui ?`;
         </Button>
       </motion.div>
 
-      {/* Fenêtre du chatbot */}
+      {/* Fenêtre du chatbot avec taille responsive */}
       <AnimatePresence>
         {isChatbotOpen && (
           <motion.div
@@ -290,29 +232,42 @@ Comment puis-je vous assister aujourd'hui ?`;
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
-            className="fixed bottom-24 right-6 z-50 w-[380px] h-[600px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-6 z-50 w-[400px] max-w-[90vw] h-[700px] max-h-[80vh] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header avec gradient moderne */}
-            <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
+            {/* Header avec gradient moderne et indicateurs IA */}
+            <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-4 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <Avatar className="h-10 w-10 border-2 border-white/20">
+                    <Avatar className="h-12 w-12 border-2 border-white/20">
                       <AvatarFallback className="bg-white/20 text-white">
-                        <Bot className="h-5 w-5" />
+                        <Brain className="h-6 w-6" />
                       </AvatarFallback>
                     </Avatar>
                     <motion.div
-                      className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-400 rounded-full border-2 border-white"
+                      className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white flex items-center justify-center"
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                    />
+                    >
+                      <Zap className="h-2 w-2 text-white" />
+                    </motion.div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">Teranga AI</h3>
-                    <div className="flex items-center gap-1 text-sm text-white/80">
+                    <h3 className="font-bold text-lg">Teranga AI Hybride</h3>
+                    <div className="flex items-center gap-2 text-sm text-white/90">
+                      <div className="flex items-center gap-1">
+                        <Brain className="h-3 w-3" />
+                        <span className="text-xs font-medium">{currentModel?.toUpperCase() || 'HYBRID'}</span>
+                      </div>
+                      {responseTime && (
+                        <div className="text-xs text-white/70">
+                          • {responseTime}ms
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-white/80">
                       <Sparkles className="h-3 w-3" />
-                      <span>En ligne • Répond instantanément</span>
+                      <span>Claude • ChatGPT • Gemini</span>
                     </div>
                   </div>
                 </div>
@@ -338,15 +293,15 @@ Comment puis-je vous assister aujourd'hui ?`;
                 </div>
               </div>
               
-              {/* Effet d'onde décoratif */}
-              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r from-blue-600 to-purple-600">
+              {/* Effet d'onde décoratif amélioré */}
+              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
                 <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="h-full w-full">
-                  <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="rgba(255,255,255,0.1)"></path>
+                  <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="rgba(255,255,255,0.15)"></path>
                 </svg>
               </div>
             </div>
 
-            {/* Zone de messages */}
+            {/* Zone de messages avec scroll amélioré */}
             <ScrollArea className="flex-1 p-4 bg-gray-50 dark:bg-gray-800">
               <div className="space-y-4">
                 {messages.map((msg, index) => (
@@ -363,19 +318,44 @@ Comment puis-je vous assister aujourd'hui ?`;
                     {msg.sender === 'bot' && (
                       <Avatar className="h-8 w-8 shrink-0 border-2 border-blue-200">
                         <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                          <Bot className="h-4 w-4"/>
+                          <Brain className="h-4 w-4"/>
                         </AvatarFallback>
                       </Avatar>
                     )}
-                    <div
-                      className={cn(
-                        "rounded-2xl p-4 max-w-[85%] shadow-sm",
-                        msg.sender === 'user'
-                          ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-md"
-                          : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md border border-gray-200 dark:border-gray-600"
-                      )}
-                    >
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</div>
+                    <div className="flex flex-col max-w-[85%]">
+                      <div
+                        className={cn(
+                          "rounded-2xl p-4 shadow-sm",
+                          msg.sender === 'user'
+                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-md"
+                            : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md border border-gray-200 dark:border-gray-600"
+                        )}
+                      >
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</div>
+                        
+                        {/* Métadonnées pour les messages IA */}
+                        {msg.sender === 'bot' && (msg.modelUsed || msg.confidence) && (
+                          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            {msg.modelUsed && (
+                              <div className="flex items-center gap-1">
+                                <Brain className="h-3 w-3" />
+                                <span className="font-medium">{msg.modelUsed?.toUpperCase()}</span>
+                                {msg.fallback && <span className="text-orange-500">(secours)</span>}
+                              </div>
+                            )}
+                            {msg.confidence && (
+                              <div className="flex items-center gap-1">
+                                <div className={cn(
+                                  "w-2 h-2 rounded-full",
+                                  msg.confidence > 0.8 ? "bg-green-500" :
+                                  msg.confidence > 0.6 ? "bg-yellow-500" : "bg-red-500"
+                                )} />
+                                <span>{Math.round(msg.confidence * 100)}%</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     {msg.sender === 'user' && (
                       <Avatar className="h-8 w-8 shrink-0 border-2 border-gray-200">
@@ -387,7 +367,7 @@ Comment puis-je vous assister aujourd'hui ?`;
                   </motion.div>
                 ))}
                 
-                {/* Indicateur de frappe avec animation */}
+                {/* Indicateur de frappe avec animation améliorée */}
                 {isTyping && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -396,29 +376,29 @@ Comment puis-je vous assister aujourd'hui ?`;
                   >
                     <Avatar className="h-8 w-8 shrink-0 border-2 border-blue-200">
                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                        <Bot className="h-4 w-4"/>
+                        <Brain className="h-4 w-4"/>
                       </AvatarFallback>
                     </Avatar>
                     <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl rounded-bl-md p-4 shadow-sm">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3">
                         <div className="flex space-x-1">
                           <motion.div
-                            className="w-2 h-2 bg-blue-500 rounded-full"
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                            className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
                             transition={{ duration: 1, repeat: Infinity, delay: 0 }}
                           />
                           <motion.div
-                            className="w-2 h-2 bg-blue-500 rounded-full"
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                            className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
                             transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
                           />
                           <motion.div
-                            className="w-2 h-2 bg-blue-500 rounded-full"
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                            className="w-2 h-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full"
+                            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
                             transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
                           />
                         </div>
-                        <span className="text-sm text-gray-500">Teranga AI écrit...</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">L'IA hybride analyse...</span>
                       </div>
                     </div>
                   </motion.div>
@@ -427,9 +407,13 @@ Comment puis-je vous assister aujourd'hui ?`;
               </div>
             </ScrollArea>
 
-            {/* Suggestions avec icônes */}
+            {/* Suggestions avec icônes et design amélioré */}
             {currentSuggestions.length > 0 && (
               <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggestions intelligentes</span>
+                </div>
                 <div className="grid grid-cols-1 gap-2">
                   {currentSuggestions.map((suggestion, index) => {
                     const suggestionData = typeof suggestion === 'string' 
@@ -444,14 +428,17 @@ Comment puis-je vous assister aujourd'hui ?`;
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="flex items-center gap-3 p-3 text-left text-sm bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl border border-gray-200 dark:border-gray-700 transition-colors group"
+                        className="flex items-center gap-3 p-3 text-left text-sm bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-200 group hover:shadow-md"
                       >
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                        <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg group-hover:from-blue-200 group-hover:to-purple-200 dark:group-hover:from-blue-800 dark:group-hover:to-purple-800 transition-all duration-200">
                           <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                        <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300 flex-1">
                           {suggestionData.text}
                         </span>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Send className="h-3 w-3 text-blue-500" />
+                        </div>
                       </motion.button>
                     );
                   })}

@@ -6,6 +6,8 @@
 @import 'react-big-calendar/lib/css/react-big-calendar.css';
 /* Import driver.js CSS */
 @import 'driver.js/dist/driver.css';
+/* Import AI enhancements CSS */
+@import './styles/ai-enhancements.css';
 
 @layer base {
   :root {
