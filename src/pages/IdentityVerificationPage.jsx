@@ -129,7 +129,7 @@ const IdentityVerificationPage = () => {
 
       // Mettre à jour le profil utilisateur
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from('users')
         .update({
           identity_verification_status: 'pending',
           identity_document_recto: rectoPath,
@@ -163,7 +163,7 @@ const IdentityVerificationPage = () => {
     if (window.confirm('Êtes-vous sûr de vouloir passer cette étape ? Vous devrez la compléter plus tard.')) {
       try {
         const { error } = await supabase
-          .from('profiles')
+          .from('users')
           .update({
             identity_verification_status: 'skipped'
           })

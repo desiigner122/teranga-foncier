@@ -55,7 +55,7 @@ const AdminUsersPageWithAI = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -132,7 +132,7 @@ const AdminUsersPageWithAI = () => {
 
       // Supprimer l'utilisateur (soft delete en changeant le statut)
       const { error } = await supabase
-        .from('profiles')
+        .from('users')
         .update({ 
           status: 'deleted',
           deleted_at: new Date().toISOString(),
@@ -188,19 +188,19 @@ const AdminUsersPageWithAI = () => {
       switch (action) {
         case 'activate':
           await supabase
-            .from('profiles')
+            .from('users')
             .update({ status: 'active' })
             .in('id', selectedUsers);
           break;
         case 'deactivate':
           await supabase
-            .from('profiles')
+            .from('users')
             .update({ status: 'inactive' })
             .in('id', selectedUsers);
           break;
         case 'delete':
           await supabase
-            .from('profiles')
+            .from('users')
             .update({ 
               status: 'deleted',
               deleted_at: new Date().toISOString(),

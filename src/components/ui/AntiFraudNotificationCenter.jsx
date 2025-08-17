@@ -166,7 +166,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
         case 'user_fraud':
           // Suspension temporaire du compte
           await supabase
-            .from('profiles')
+            .from('users')
             .update({ 
               account_status: 'suspended',
               suspension_reason: `Alerte fraude automatique: ${alertData.id}`,
@@ -213,7 +213,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
     try {
       // Créer une notification pour tous les admins
       const { data: admins } = await supabase
-        .from('profiles')
+        .from('users')
         .select('id')
         .eq('role', 'admin');
 
