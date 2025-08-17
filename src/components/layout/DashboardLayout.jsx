@@ -1,15 +1,37 @@
 // src/components/layout/DashboardLayout.jsx
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+import GlobalAIChat from '@/components/ui/GlobalAIChat';
+import DashboardAIAssistant from '@/components/ui/DashboardAIAssistant';
 
 const DashboardLayout = ({ children }) => {
   // Renommé pour plus de clarté, `false` = ouvert, `true` = réduit
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); 
+  const { profile } = useAuth();
+  const location = useLocation();
+
+  // Déterminer le rôle de l'utilisateur et le contexte du dashboard
+  const getUserRole = () => {
+    return profile?.role || profile?.type || 'user';
+  };
+
+  const getDashboardContext = () => {
+    const path = location.pathname;
+    if (path.includes('/admin')) return { role: 'admin', section: 'administration' };
+    if (path.includes('/notaire')) return { role: 'notaire', section: 'notarial' };
+    if (path.includes('/particulier')) return { role: 'particulier', section: 'personal' };
+    if (path.includes('/vendeur')) return { role: 'vendeur', section: 'sales' };
+    if (path.includes('/banque')) return { role: 'banque', section: 'banking' };
+    if (path.includes('/agent')) return { role: 'agent', section: 'agency' };
+    if (path.includes('/mairie')) return { role: 'mairie', section: 'municipal' };
+    return { role: getUserRole(), section: 'general' };
+  }; 
 
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
@@ -46,6 +68,19 @@ const DashboardLayout = ({ children }) => {
           </div>
         </main>
       </div>
+
+      {/* Assistants IA */}
+      {/* Assistant spécialisé dashboard à gauche */}
+      <DashboardAIAssistant 
+        userRole={getDashboardContext().role}
+        dashboardContext={getDashboardContext()}
+        onAction={(actionType, result) => {
+          console.log('Dashboard AI Action:', actionType, result);
+        }}
+      />
+
+      {/* Chat IA global à droite */}
+      <GlobalAIChat />
     </div>
   );
 };

@@ -67,34 +67,48 @@ const NotairesDashboard = () => {
     
     setLoading(true);
     try {
-      // Charger les dossiers notariaux
+      // Charger les dossiers/transactions pour ce notaire
       const { data: dossiersData, error: dossiersError } = await supabase
-        .from('notaire_dossiers')
+        .from('transactions')
         .select(`
           *,
-          parcels(reference, location),
-          profiles(full_name, email)
+          parcels(reference, location, title),
+          users!transactions_buyer_id_fkey(full_name, email)
         `)
-        .eq('notaire_id', profile.id)
+        .or(`notary_id.eq.${profile.id},assigned_notary.eq.${profile.id}`)
         .order('created_at', { ascending: false });
 
-      if (dossiersError) throw dossiersError;
+      if (dossiersError) {
+        console.log('Erreur dossiers:', dossiersError);
+        // Fallback: chercher dans les contrats
+        const { data: contractsData, error: contractsError } = await supabase
+          .from('contracts')
+          .select('*')
+          .eq('notary_id', profile.id)
+          .order('created_at', { ascending: false });
+        
+        if (!contractsError) {
+          setDossiers(contractsData || []);
+        }
+      } else {
+        setDossiers(dossiersData || []);
+      }
 
-      // Charger les activités récentes
+      // Charger les activités récentes depuis les notifications
       const { data: activitiesData, error: activitiesError } = await supabase
-        .from('notaire_activities')
+        .from('notifications')
         .select('*')
-        .eq('notaire_id', profile.id)
+        .eq('user_id', profile.id)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (activitiesError) throw activitiesError;
+      if (!activitiesError) {
+        setRecentActivities(activitiesData || []);
+      }
 
-      // Calculer les statistiques avec tendances
-      const dossiersStats = calculateStats(dossiersData);
+      // Calculer les statistiques avec les vraies données
+      const dossiersStats = calculateStats(dossiersData || []);
       
-      setDossiers(dossiersData || []);
-      setRecentActivities(activitiesData || []);
       setStats([
         { 
           title: "Dossiers à Vérifier", 
@@ -139,23 +153,49 @@ const NotairesDashboard = () => {
   };
 
   const calculateStats = (dossiersData) => {
+    if (!dossiersData || dossiersData.length === 0) {
+      return {
+        pending: 0,
+        authenticated: 0,
+        inProgress: 0,
+        compliant: 0,
+        pendingTrend: 0,
+        authenticatedTrend: 0,
+        inProgressTrend: 0,
+        compliantTrend: 0
+      };
+    }
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
     
-    // Statistiques actuelles
-    const pending = dossiersData.filter(d => d.status === 'En attente vérification').length;
+    // Statistiques basées sur les statuts de transactions/contrats
+    const pending = dossiersData.filter(d => 
+      d.status === 'pending_notary' || 
+      d.status === 'awaiting_verification' || 
+      d.status === 'pending'
+    ).length;
+    
     const authenticated = dossiersData.filter(d => 
-      d.status === 'Authentifié' && 
+      (d.status === 'notarized' || d.status === 'authenticated' || d.status === 'completed') && 
       new Date(d.updated_at) >= startOfMonth
     ).length;
-    const inProgress = dossiersData.filter(d => d.status === 'En cours').length;
-    const compliant = dossiersData.filter(d => d.status === 'Conforme').length;
+    
+    const inProgress = dossiersData.filter(d => 
+      d.status === 'in_progress' || 
+      d.status === 'under_review'
+    ).length;
+    
+    const compliant = dossiersData.filter(d => 
+      d.status === 'verified' || 
+      d.status === 'compliant'
+    ).length;
 
     // Statistiques du mois précédent pour calculer les tendances
     const lastMonthAuthenticated = dossiersData.filter(d => 
-      d.status === 'Authentifié' && 
+      (d.status === 'notarized' || d.status === 'authenticated' || d.status === 'completed') && 
       new Date(d.updated_at) >= lastMonth &&
       new Date(d.updated_at) <= endOfLastMonth
     ).length;
@@ -165,10 +205,10 @@ const NotairesDashboard = () => {
       authenticated,
       inProgress,
       compliant,
-      pendingTrend: Math.random() > 0.5 ? Math.floor(Math.random() * 20) - 10 : 0,
+      pendingTrend: Math.floor(Math.random() * 10) - 5, // Simulation pour le moment
       authenticatedTrend: authenticated - lastMonthAuthenticated,
-      inProgressTrend: Math.random() > 0.5 ? Math.floor(Math.random() * 10) - 5 : 0,
-      compliantTrend: Math.random() > 0.5 ? Math.floor(Math.random() * 15) - 7 : 0
+      inProgressTrend: Math.floor(Math.random() * 8) - 4,
+      compliantTrend: Math.floor(Math.random() * 6) - 3
     };
   };
 
@@ -263,17 +303,44 @@ const NotairesDashboard = () => {
   const handleDecision = async (decision) => {
     if (currentDossier) {
       try {
-        // Mise à jour en base de données
-        const { error } = await supabase
-          .from('notaire_dossiers')
+        const newStatus = decision === 'approve' ? 'notarized' : 'rejected';
+        const notes = decision === 'approve' ? 'Dossier approuvé par le notaire' : 'Dossier rejeté par le notaire';
+        
+        // Mise à jour dans la table transactions
+        const { error: transactionError } = await supabase
+          .from('transactions')
           .update({ 
-            status: decision === 'approve' ? 'Approuvé' : 'Rejeté',
+            status: newStatus,
             updated_at: new Date().toISOString(),
-            notes: decision === 'approve' ? 'Dossier approuvé par le notaire' : 'Dossier rejeté par le notaire'
+            notes: notes,
+            notary_validation_date: new Date().toISOString()
           })
           .eq('id', currentDossier.id);
 
-        if (error) throw error;
+        if (transactionError) {
+          // Fallback: essayer la table contracts
+          const { error: contractError } = await supabase
+            .from('contracts')
+            .update({ 
+              status: newStatus,
+              updated_at: new Date().toISOString(),
+              notes: notes
+            })
+            .eq('id', currentDossier.id);
+          
+          if (contractError) throw contractError;
+        }
+
+        // Créer une notification pour l'utilisateur
+        await supabase
+          .from('notifications')
+          .insert([{
+            user_id: currentDossier.buyer_id || currentDossier.user_id,
+            title: decision === 'approve' ? 'Dossier approuvé' : 'Dossier rejeté',
+            message: `Votre dossier ${currentDossier.id} a été ${decision === 'approve' ? 'approuvé' : 'rejeté'} par le notaire.`,
+            type: decision === 'approve' ? 'success' : 'warning',
+            created_at: new Date().toISOString()
+          }]);
 
         // Recharger les données
         await loadNotaireData();
@@ -309,6 +376,20 @@ const NotairesDashboard = () => {
   
   const getStatusBadge = (status) => {
     const statusConfig = {
+      // Statuts de transactions
+      'pending': { variant: 'default', color: 'bg-yellow-100 text-yellow-800' },
+      'pending_notary': { variant: 'default', color: 'bg-orange-100 text-orange-800' },
+      'awaiting_verification': { variant: 'default', color: 'bg-yellow-100 text-yellow-800' },
+      'in_progress': { variant: 'default', color: 'bg-blue-100 text-blue-800' },
+      'under_review': { variant: 'default', color: 'bg-purple-100 text-purple-800' },
+      'notarized': { variant: 'default', color: 'bg-green-100 text-green-800' },
+      'authenticated': { variant: 'default', color: 'bg-green-100 text-green-800' },
+      'completed': { variant: 'default', color: 'bg-green-100 text-green-800' },
+      'verified': { variant: 'default', color: 'bg-green-100 text-green-800' },
+      'compliant': { variant: 'default', color: 'bg-green-100 text-green-800' },
+      'rejected': { variant: 'default', color: 'bg-red-100 text-red-800' },
+      'cancelled': { variant: 'default', color: 'bg-gray-100 text-gray-800' },
+      // Anciens statuts pour compatibilité
       'En cours': { variant: 'default', color: 'bg-yellow-100 text-yellow-800' },
       'Terminé': { variant: 'default', color: 'bg-green-100 text-green-800' },
       'Nouveau': { variant: 'default', color: 'bg-blue-100 text-blue-800' },

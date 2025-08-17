@@ -72,6 +72,17 @@ const LoginPage = () => {
     }
   };
 
+  // Fonction pour la connexion rapide avec les comptes de test
+  const handleQuickLogin = (testEmail, testPassword) => {
+    setEmail(testEmail);
+    setPassword(testPassword);
+    // Auto-submit après un petit délai pour que l'utilisateur voit les champs se remplir
+    setTimeout(() => {
+      const fakeEvent = { preventDefault: () => {} };
+      handleLogin(fakeEvent);
+    }, 500);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
