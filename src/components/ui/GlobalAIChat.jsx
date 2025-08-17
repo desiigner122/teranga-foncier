@@ -33,17 +33,19 @@ const GlobalAIChat = () => {
     let greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
     const username = isAuthenticated ? ` ${user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}` : '';
     
-    return `${greeting}${username} ! 🌟
+    return `🌟 ${greeting}${username} !
 
-Je suis **Teranga AI Global**, votre assistant intelligent pour la plateforme foncière.
+🤖 Je suis **Teranga AI Global**, votre assistant intelligent pour la plateforme foncière.
 
-💬 **Chat global** - Questions générales
-🏠 Recherche de propriétés  
-📋 Procédures administratives
-💡 Conseils d'investissement
-🔍 Aide navigation
+✨ **MES SPÉCIALITÉS :**
+🏠 Recherche de propriétés personnalisée
+💰 Évaluations et conseils de prix  
+📋 Procédures et démarches administratives
+💡 Conseils d'investissement immobilier
+�️ Navigation et aide sur la plateforme
 
-Comment puis-je vous aider ?`;
+🎯 **COMMENT PUIS-JE VOUS AIDER ?**
+Posez-moi vos questions en langage naturel !`;
   };
 
   useEffect(() => {
@@ -132,7 +134,7 @@ Comment puis-je vous aider ?`;
             initial={{ opacity: 0, scale: 0.8, x: 100 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: 100 }}
-            className="fixed bottom-24 right-6 z-40 w-[450px] h-[650px] bg-white border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-6 z-40 w-[500px] h-[700px] bg-white border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
@@ -179,15 +181,15 @@ Comment puis-je vous aider ?`;
                     )}
                     <div
                       className={cn(
-                        "max-w-[80%] p-3 rounded-lg text-sm",
+                        "max-w-[85%] p-4 rounded-lg text-sm leading-relaxed",
                         msg.sender === 'user'
                           ? "bg-blue-500 text-white rounded-br-sm"
-                          : "bg-gray-100 text-gray-800 rounded-bl-sm"
+                          : "bg-gray-50 text-gray-900 rounded-bl-sm border border-gray-200"
                       )}
                     >
-                      <div className="whitespace-pre-wrap">{msg.text}</div>
+                      <div className="whitespace-pre-wrap font-medium">{msg.text}</div>
                       {msg.sender === 'bot' && msg.modelUsed && (
-                        <div className="mt-1 text-xs text-gray-500">
+                        <div className="mt-2 text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full inline-block">
                           {msg.modelUsed.toUpperCase()}
                         </div>
                       )}

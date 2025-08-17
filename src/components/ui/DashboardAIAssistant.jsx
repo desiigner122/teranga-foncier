@@ -29,51 +29,60 @@ const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' })
 
   const getWelcomeMessage = () => {
     const roleMessages = {
-      admin: "👋 Assistant IA Admin - Je vous aide à gérer la plateforme, analyser les données et superviser les opérations.",
-      notaire: "⚖️ Assistant IA Notaire - Spécialisé dans l'analyse de documents, la conformité légale et la gestion des dossiers.",
-      particulier: "🏠 Assistant IA Particulier - Je vous guide dans vos recherches de propriétés et démarches d'achat.",
-      vendeur: "💼 Assistant IA Vendeur - Optimisation de vos annonces, analyse de marché et conseils de vente.",
-      banque: "🏦 Assistant IA Banque - Évaluation de risques, analyse de garanties et gestion de portefeuille.",
-      agent: "🤝 Assistant IA Agent - Gestion clientèle, planification visites et suivi des transactions.",
-      mairie: "🏛️ Assistant IA Mairie - Gestion du foncier communal, urbanisme et démarches administratives."
+      admin: "�️ **Assistant IA Admin** - Je vous aide à gérer la plateforme, analyser les données et superviser les opérations avec expertise.",
+      notaire: "⚖️ **Assistant IA Notaire** - Spécialisé dans l'analyse de documents, la conformité légale et la gestion des dossiers complexes.",
+      particulier: "🏠 **Assistant IA Particulier** - Je vous guide dans vos recherches de propriétés et vos démarches d'acquisition avec des conseils personnalisés.",
+      vendeur: "💼 **Assistant IA Vendeur** - Optimisation de vos annonces, analyse de marché et stratégies de vente pour maximiser vos résultats.",
+      banque: "🏦 **Assistant IA Banque** - Évaluation de risques, analyse de garanties et gestion de portefeuille avec précision.",
+      agent: "🤝 **Assistant IA Agent** - Gestion clientèle, planification visites et suivi des transactions pour votre réussite.",
+      mairie: "🏛️ **Assistant IA Mairie** - Gestion du foncier communal, urbanisme et démarches administratives municipales."
     };
 
-    return roleMessages[userRole] || "🤖 Assistant IA Dashboard - Je vous aide avec votre tableau de bord.";
+    return `👋 ${roleMessages[userRole] || "🤖 **Assistant IA Dashboard** - Je vous aide avec votre tableau de bord et vos tâches spécialisées."}
+
+🎯 **MON RÔLE :**
+• Assistance spécialisée selon votre profil
+• Réponses expertes dans votre domaine  
+• Suggestions d'actions pertinentes
+• Support technique personnalisé
+
+💬 **PRÊT À VOUS AIDER !**
+Utilisez les actions rapides ou posez vos questions directement.`;
   };
 
   const getSpecializedPrompts = () => {
     const prompts = {
       admin: [
-        "Analyser les performances de la plateforme",
-        "Générer un rapport d'activité",
-        "Identifier les utilisateurs à risque",
-        "Optimiser les processus"
+        "📊 Analyser les performances",
+        "📈 Rapport d'activité mensuel", 
+        "⚠️ Identifier les risques",
+        "⚙️ Optimiser les processus"
       ],
       notaire: [
-        "Analyser ce dossier juridiquement",
-        "Vérifier la conformité des documents",
-        "Évaluer le risque de ce contrat",
-        "Proposer des clauses protectrices"
+        "⚖️ Analyser ce dossier",
+        "✅ Vérifier la conformité",
+        "🔍 Évaluer les risques",
+        "📋 Proposer des clauses"
       ],
       particulier: [
-        "Rechercher des propriétés similaires",
-        "Évaluer ce terrain",
-        "Calculer les frais d'acquisition",
-        "Conseils d'investissement"
+        "🏠 Rechercher des propriétés",
+        "💰 Évaluer ce terrain", 
+        "📊 Calculer les frais",
+        "💡 Conseils d'investissement"
       ],
       vendeur: [
-        "Optimiser le prix de vente",
-        "Analyser la concurrence",
-        "Améliorer mon annonce",
-        "Stratégie marketing"
+        "💸 Optimiser le prix",
+        "📊 Analyser la concurrence",
+        "✨ Améliorer l'annonce",
+        "📢 Stratégie marketing"
       ]
     };
 
     return prompts[userRole] || [
-      "Analyser les données",
-      "Générer des insights",
-      "Optimiser les performances",
-      "Conseils personnalisés"
+      "📊 Analyser les données",
+      "💡 Générer des insights", 
+      "⚡ Optimiser performance",
+      "🎯 Conseils personnalisés"
     ];
   };
 
@@ -169,7 +178,7 @@ const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' })
             initial={{ opacity: 0, scale: 0.8, x: -100 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: -100 }}
-            className="fixed bottom-24 left-6 z-40 w-[450px] h-[650px] bg-white border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 left-6 z-40 w-[500px] h-[700px] bg-white border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-4 text-white">
@@ -192,19 +201,19 @@ const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' })
             </div>
 
             {/* Actions rapides */}
-            <div className="p-4 border-b bg-gray-50">
-              <h4 className="text-sm font-medium mb-2">Actions rapides</h4>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="p-4 border-b bg-gradient-to-r from-purple-50 to-pink-50">
+              <h4 className="text-sm font-semibold mb-3 text-purple-700">🚀 Actions rapides</h4>
+              <div className="grid grid-cols-1 gap-2">
                 {getSpecializedPrompts().slice(0, 4).map((prompt, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     size="sm"
                     onClick={() => handleQuickAction(prompt)}
-                    className="text-xs h-8 justify-start"
+                    className="text-xs h-10 justify-start border-purple-200 hover:bg-purple-100 hover:border-purple-300 transition-all"
                   >
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    {prompt.split(' ').slice(0, 2).join(' ')}...
+                    <Sparkles className="h-3 w-3 mr-2 text-purple-500" />
+                    <span className="font-medium">{prompt}</span>
                   </Button>
                 ))}
               </div>
@@ -230,24 +239,24 @@ const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' })
                       )}
                       <div
                         className={cn(
-                          "max-w-[80%] p-3 rounded-lg text-sm",
+                          "max-w-[85%] p-4 rounded-lg text-sm leading-relaxed",
                           msg.sender === 'user'
                             ? "bg-purple-500 text-white rounded-br-sm"
-                            : "bg-gray-100 text-gray-800 rounded-bl-sm"
+                            : "bg-gray-50 text-gray-900 rounded-bl-sm border border-gray-200"
                         )}
                       >
-                        <div className="whitespace-pre-wrap">{msg.text}</div>
+                        <div className="whitespace-pre-wrap font-medium">{msg.text}</div>
                         {msg.sender === 'bot' && (
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-2 mt-3">
                             {msg.modelUsed && (
-                              <Badge variant="secondary" className="text-xs">
+                              <div className="text-xs text-purple-600 font-semibold bg-purple-50 px-2 py-1 rounded-full">
                                 {msg.modelUsed.toUpperCase()}
-                              </Badge>
+                              </div>
                             )}
                             {msg.confidence && (
-                              <Badge variant="outline" className="text-xs">
-                                {Math.round(msg.confidence * 100)}%
-                              </Badge>
+                              <div className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">
+                                {Math.round(msg.confidence * 100)}% confiance
+                              </div>
                             )}
                           </div>
                         )}
