@@ -79,6 +79,28 @@ const VerificationPage = () => {
     }
   };
 
+  // Helper upload avec gestion explicite des erreurs bucket
+  const uploadIdentityFile = async (file, type) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
+    const bucket = 'identity-documents';
+    const { data: existing, error: listError } = await supabase.storage.from(bucket).list(user.id, { limit: 1 });
+    if (listError && listError.message?.toLowerCase().includes('not found')) {
+      throw new Error("Le bucket 'identity-documents' n'existe pas dans Supabase. Créez-le dans Storage (public ou privé) puis réessayez.");
+    }
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, { upsert: false });
+    if (uploadError) {
+      if (uploadError.message?.toLowerCase().includes('bucket')) {
+        throw new Error("Erreur bucket: vérifiez le nom 'identity-documents' et les policies (INSERT pour authenticated).");
+      }
+      throw uploadError;
+    }
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    return urlData.publicUrl;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -91,24 +113,8 @@ const VerificationPage = () => {
 
       setStep(2); // Moving to upload step
 
-      const uploadAndGetUrl = async (file, type) => {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('identity-documents')
-          .upload(fileName, file);
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('identity-documents')
-          .getPublicUrl(fileName);
-
-        return urlData.publicUrl;
-      };
-
-      const frontPublicUrl = await uploadAndGetUrl(frontFile, 'front');
-      const backPublicUrl = await uploadAndGetUrl(backFile, 'back');
+  const frontPublicUrl = await uploadIdentityFile(frontFile, 'front');
+  const backPublicUrl = await uploadIdentityFile(backFile, 'back');
 
       const { error: updateError } = await supabase
         .from('users')
