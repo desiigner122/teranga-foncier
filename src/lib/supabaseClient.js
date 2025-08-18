@@ -40,11 +40,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
     global: {
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept-Profile': 'public',
+        'Prefer': 'return=representation'
       }
     },
     db: {
       schema: 'public'
+    },
+    // Ajouter une gestion des erreurs plus robuste
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
     }
   });
 }
