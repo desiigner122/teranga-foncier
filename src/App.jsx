@@ -91,7 +91,7 @@ import UrbanPlanPage from '@/pages/dashboards/mairie/UrbanPlanPage';
 import CadastrePage from '@/pages/dashboards/mairie/CadastrePage';
 import DisputesPage from '@/pages/dashboards/mairie/DisputesPage';
 import MairieRequestsPage from '@/pages/dashboards/mairie/MairieRequestsPage';
-import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage';
+import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPageTest';
 import GuaranteesPage from '@/pages/dashboards/banque/GuaranteesPage';
 import LandValuationPage from '@/pages/dashboards/banque/LandValuationPage';
 import CompliancePage from '@/pages/dashboards/banque/CompliancePage';
