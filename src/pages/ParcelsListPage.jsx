@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { sampleParcels } from '@/data/sampleData';
+import SupabaseDataService from '@/services/supabaseDataService';
 import ParcelCard from '@/components/parcels/ParcelCard';
 import ParcelFilters from '@/components/parcels/ParcelFilters';
 import ParcelListSkeleton from '@/components/parcels/ParcelListSkeleton';
@@ -45,18 +45,22 @@ const ParcelsListPage = () => {
   const [activeFilters, setActiveFilters] = useState(initialFiltersFromUrl);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    setTimeout(() => {
+    const loadParcels = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        setParcels(sampleParcels);
+        const realParcels = await SupabaseDataService.getParcels();
+        setParcels(realParcels || []);
       } catch (err) {
         console.error("Erreur de chargement des parcelles:", err);
         setError("Impossible de charger les parcelles pour le moment.");
       } finally {
         setLoading(false);
       }
-    }, 500);
+    };
+
+    loadParcels();
   }, []);
 
   useEffect(() => {

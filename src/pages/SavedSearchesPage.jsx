@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { sampleSavedSearches as initialSampleSearches } from '@/data/sampleData';
 import { useAuth } from '@/context/AuthContext';
+import SupabaseDataService from '@/services/supabaseDataService';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

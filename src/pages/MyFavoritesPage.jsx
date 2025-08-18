@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { sampleParcels, sampleFavorites as initialSampleFavorites } from '@/data/sampleData'; // Import sample data
 import { useAuth } from '@/context/AuthContext';
+import SupabaseDataService from '@/services/supabaseDataService';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,17 +21,36 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-// Simulate local storage for favorites for demo persistence
-const getLocalFavorites = () => {
-  const favs = localStorage.getItem('demoFavorites');
-  // Initialize with sample data if local storage is empty
-  return favs ? JSON.parse(favs) : initialSampleFavorites;
+// Gestion des favoris via Supabase
+const getFavorites = async (userId) => {
+  try {
+    const favorites = await SupabaseDataService.getUserFavorites(userId);
+    return favorites || [];
+  } catch (error) {
+    console.error('Erreur récupération favoris:', error);
+    return [];
+  }
 };
 
-const setLocalFavorites = (favs) => {
-  localStorage.setItem('demoFavorites', JSON.stringify(favs));
+const addToFavorites = async (userId, parcelId) => {
+  try {
+    await SupabaseDataService.addToFavorites(userId, parcelId);
+    return true;
+  } catch (error) {
+    console.error('Erreur ajout favori:', error);
+    return false;
+  }
 };
 
+const removeFromFavorites = async (userId, parcelId) => {
+  try {
+    await SupabaseDataService.removeFromFavorites(userId, parcelId);
+    return true;
+  } catch (error) {
+    console.error('Erreur suppression favori:', error);
+    return false;
+  }
+};
 
 const formatPrice = (price) => {
   if (price === null || price === undefined) return 'N/A';
@@ -135,46 +154,56 @@ const MyFavoritesPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    const loadFavorites = async () => {
+      setLoading(true);
+      setError(null);
 
-    if (!user) {
-      setError("Veuillez vous connecter pour voir vos favoris.");
-      setLoading(false);
-      return;
-    }
+      if (!user) {
+        setError("Veuillez vous connecter pour voir vos favoris.");
+        setLoading(false);
+        return;
+      }
 
-    // Simulate fetching favorite details
-    setTimeout(() => {
       try {
-        const favoriteIds = getLocalFavorites();
-        const detailedFavorites = sampleParcels.filter(parcel => favoriteIds.includes(parcel.id));
-        setFavoriteParcels(detailedFavorites);
+        // Récupérer les favoris de l'utilisateur
+        const favorites = await getFavorites(user.id);
+        
+        // Récupérer les détails des parcelles favorites
+        const favoriteDetails = [];
+        for (const favorite of favorites) {
+          const parcel = await SupabaseDataService.getParcelById(favorite.parcel_id);
+          if (parcel) {
+            favoriteDetails.push(parcel);
+          }
+        }
+        
+        setFavoriteParcels(favoriteDetails);
       } catch (err) {
-        console.error("Error loading favorite parcels:", err);
+        console.error("Erreur chargement favoris:", err);
         setError("Impossible de charger vos parcelles favorites.");
         setFavoriteParcels([]);
       } finally {
         setLoading(false);
       }
-    }, 300); // Simulate network delay
+    };
 
+    loadFavorites();
   }, [user]);
 
-  const handleRemoveFavorite = (parcelIdToRemove) => {
+  const handleRemoveFavorite = async (parcelIdToRemove) => {
      if (!user) return;
 
      try {
-        const currentFavs = getLocalFavorites();
-        const updatedFavs = currentFavs.filter(id => id !== parcelIdToRemove);
-        setLocalFavorites(updatedFavs);
-
-        // Update state locally for immediate feedback
-        setFavoriteParcels(prevParcels => prevParcels.filter(p => p.id !== parcelIdToRemove));
-        toast({ title: "Retiré des favoris", description: "La parcelle a été retirée de vos favoris." });
-
+        const success = await removeFromFavorites(user.id, parcelIdToRemove);
+        if (success) {
+          // Mettre à jour l'état local pour un feedback immédiat
+          setFavoriteParcels(prevParcels => prevParcels.filter(p => p.id !== parcelIdToRemove));
+          toast({ title: "Retiré des favoris", description: "La parcelle a été retirée de vos favoris." });
+        } else {
+          toast({ title: "Erreur", description: "Impossible de retirer la parcelle des favoris.", variant: "destructive" });
+        }
      } catch (err) {
-        console.error("Error removing favorite:", err);
+        console.error("Erreur suppression favori:", err);
         toast({ title: "Erreur", description: "Impossible de retirer la parcelle des favoris.", variant: "destructive" });
      }
   };

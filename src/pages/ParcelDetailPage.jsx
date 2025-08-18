@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { sampleParcels } from '@/data/sampleData';
+import SupabaseDataService from '@/services/supabaseDataService';
 import ParcelImageGallery from '@/components/parcel-detail/ParcelImageGallery';
 import ParcelHeaderSection from '@/components/parcel-detail/ParcelHeaderSection';
 import ParcelDescriptionCard from '@/components/parcel-detail/ParcelDescriptionCard';

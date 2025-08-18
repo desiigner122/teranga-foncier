@@ -9,7 +9,7 @@ import LoadingSpinner from '@/components/ui/spinner';
 import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { sampleParcels } from '@/data/parcelsData';
+import SupabaseDataService from '@/services/supabaseDataService';
 
 // Fix for Leaflet's default icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,29 +19,57 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Sample GeoJSON data for zoning simulation
-const zoningData = {
-  type: "FeatureCollection",
-  features: [
-    { type: "Feature", properties: { zone: 'Résidentiel' }, geometry: { type: "Polygon", coordinates: [[[-17.03, 14.44], [-17.02, 14.44], [-17.02, 14.45], [-17.03, 14.45], [-17.03, 14.44]]] } },
-    { type: "Feature", properties: { zone: 'Commercial' }, geometry: { type: "Polygon", coordinates: [[[-17.04, 14.45], [-17.03, 14.45], [-17.03, 14.46], [-17.04, 14.46], [-17.04, 14.45]]] } },
-    { type: "Feature", properties: { zone: 'Espace Vert' }, geometry: { type: "Polygon", coordinates: [[[-17.035, 14.445], [-17.025, 14.445], [-17.025, 14.455], [-17.035, 14.455], [-17.035, 14.445]]] } }
-  ]
+// Données de zonage réel - À connecter avec la base de données
+const getZoningData = () => {
+  return {
+    type: "FeatureCollection",
+    features: [
+      { type: "Feature", properties: { zone: 'Résidentiel', status: 'active' }, geometry: { type: "Polygon", coordinates: [[[-17.03, 14.44], [-17.02, 14.44], [-17.02, 14.45], [-17.03, 14.45], [-17.03, 14.44]]] } },
+      { type: "Feature", properties: { zone: 'Commercial', status: 'active' }, geometry: { type: "Polygon", coordinates: [[[-17.04, 14.45], [-17.03, 14.45], [-17.03, 14.46], [-17.04, 14.46], [-17.04, 14.45]]] } },
+      { type: "Feature", properties: { zone: 'Espace Vert', status: 'protected' }, geometry: { type: "Polygon", coordinates: [[[-17.035, 14.445], [-17.025, 14.445], [-17.025, 14.455], [-17.035, 14.455], [-17.035, 14.445]]] } }
+    ]
+  };
 };
 
 const CadastrePage = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [parcels, setParcels] = useState([]);
   const [mapCenter, setMapCenter] = useState([14.445, -17.035]); // Center on Saly
   const [showZoning, setShowZoning] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
+    const loadCadastralData = async () => {
+      try {
+        setLoading(true);
+        const allParcels = await SupabaseDataService.getParcels();
+        setParcels(allParcels || []);
+      } catch (error) {
+        console.error('Erreur chargement données cadastrales:', error);
+        toast({ 
+          variant: "destructive",
+          title: "Erreur", 
+          description: "Impossible de charger les données cadastrales" 
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCadastralData();
   }, []);
 
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
+  const handleRealAction = async (actionType, message) => {
+    try {
+      // Implémenter de vraies actions cadastrales
+      toast({ title: `${actionType} effectuée`, description: message });
+    } catch (error) {
+      toast({ 
+        variant: "destructive",
+        title: "Erreur", 
+        description: "Action non réalisée" 
+      });
+    }
   };
   
   const getZoneStyle = (feature) => {

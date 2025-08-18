@@ -6,10 +6,8 @@ import { FileSignature, Search, Filter, CheckCircle, XCircle } from 'lucide-reac
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { sampleRequests, sampleUsers } from '@/data';
+import SupabaseDataService from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
-
-const initialMairieRequests = sampleRequests.filter(r => r.recipient === 'Mairie de Saly');
 
 const MairieRequestsPage = () => {
   const { toast } = useToast();
@@ -17,15 +15,51 @@ const MairieRequestsPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setRequests(initialMairieRequests);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const loadMairieRequests = async () => {
+      try {
+        setLoading(true);
+        // Récupérer les demandes destinées à la mairie
+        const allRequests = await SupabaseDataService.getRequests();
+        const mairieRequests = allRequests.filter(r => 
+          r.recipient_type === 'Mairie' || 
+          r.category === 'municipal' ||
+          r.type === 'land_request'
+        );
+        setRequests(mairieRequests);
+      } catch (error) {
+        console.error('Erreur chargement demandes mairie:', error);
+        toast({ 
+          variant: "destructive",
+          title: "Erreur", 
+          description: "Impossible de charger les demandes" 
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMairieRequests();
   }, []);
 
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
+  const handleRequestAction = async (requestId, action, status) => {
+    try {
+      await SupabaseDataService.updateRequestStatus(requestId, status);
+      toast({ 
+        title: `Demande ${action}`, 
+        description: `La demande a été ${action.toLowerCase()}` 
+      });
+      
+      // Recharger les demandes
+      setRequests(prev => prev.map(r => 
+        r.id === requestId ? { ...r, status } : r
+      ));
+    } catch (error) {
+      toast({ 
+        variant: "destructive",
+        title: "Erreur", 
+        description: `Impossible de ${action.toLowerCase()} la demande` 
+      });
+    }
   };
 
   if (loading) {

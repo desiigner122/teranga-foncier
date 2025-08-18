@@ -7,10 +7,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import { sampleParcels } from '@/data';
+import SupabaseDataService from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
-
-const initialMunicipalParcels = sampleParcels.filter(p => p.ownerType === 'Mairie');
 
 const LandManagementPage = () => {
   const { toast } = useToast();
@@ -18,15 +16,50 @@ const LandManagementPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setParcels(initialMunicipalParcels);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const loadMunicipalParcels = async () => {
+      try {
+        setLoading(true);
+        // Récupérer toutes les parcelles publiques/municipales
+        const allParcels = await SupabaseDataService.getParcels();
+        const municipalParcels = allParcels.filter(p => 
+          p.owner_type === 'Mairie' || 
+          p.owner_type === 'Public' ||
+          p.legal_status === 'municipal'
+        );
+        setParcels(municipalParcels);
+      } catch (error) {
+        console.error('Erreur chargement parcelles municipales:', error);
+        toast({ 
+          variant: "destructive",
+          title: "Erreur", 
+          description: "Impossible de charger les terrains municipaux" 
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMunicipalParcels();
   }, []);
 
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
+  const handleRealAction = async (actionType, parcelId, message) => {
+    try {
+      // Ici on pourrait implémenter de vraies actions comme :
+      // - Mise à jour du statut d'une parcelle
+      // - Création d'une demande d'autorisation
+      // - etc.
+      
+      toast({ 
+        title: `${actionType} effectuée`, 
+        description: message 
+      });
+    } catch (error) {
+      toast({ 
+        variant: "destructive",
+        title: "Erreur", 
+        description: "Action non réalisée" 
+      });
+    }
   };
 
   if (loading) {

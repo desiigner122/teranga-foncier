@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Layers, Search, ZoomIn, ZoomOut, Home, DollarSign, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { sampleParcels } from '@/data/sampleData'; 
 import SupabaseDataService from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner'; 
 import { Card, CardContent } from '@/components/ui/card'; // Import Card and CardContent

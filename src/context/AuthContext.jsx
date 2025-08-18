@@ -137,13 +137,52 @@ export const AuthProvider = ({ children }) => {
     isPendingVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile?.verification_status === 'pending',
     signOut: async () => {
       try {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-        toast({ title: "Déconnexion réussie", description: "À bientôt !" });
+        setLoading(true);
+        
+        // Nettoyage local d'abord
         setUser(null);
         setProfile(null);
+        setSession(null);
+        
+        // Suppression du stockage local
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Déconnexion Supabase
+        const { error } = await supabase.auth.signOut({ scope: 'global' });
+        
+        if (error) {
+          console.error('Erreur lors de la déconnexion:', error);
+          // Même avec une erreur, on force la déconnexion côté client
+        }
+        
+        toast({ 
+          title: "Déconnexion réussie", 
+          description: "À bientôt !",
+          duration: 2000
+        });
+        
+        // Redirection forcée vers la page d'accueil
+        window.location.href = '/';
+        
       } catch (err) {
-        toast({ variant: "destructive", title: "Erreur de déconnexion", description: err.message });
+        console.error('Erreur signOut:', err);
+        toast({ 
+          variant: "destructive", 
+          title: "Erreur de déconnexion", 
+          description: "Déconnexion forcée effectuée",
+          duration: 3000
+        });
+        
+        // Forcer la déconnexion même en cas d'erreur
+        setUser(null);
+        setProfile(null);
+        setSession(null);
+        localStorage.clear();
+        window.location.href = '/';
+        
+      } finally {
+        setLoading(false);
       }
     },
     refreshUser: async () => {

@@ -446,6 +446,119 @@ export class SupabaseDataService {
     }
     return data;
   }
+
+  // ============== FAVORITES ==============
+  static async getUserFavorites(userId) {
+    const { data, error } = await supabase
+      .from('favorites')
+      .select(`
+        *,
+        parcels:parcel_id (*)
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Erreur lors de la récupération des favoris:', error);
+      return [];
+    }
+    return data || [];
+  }
+
+  static async addToFavorites(userId, parcelId) {
+    const { data, error } = await supabase
+      .from('favorites')
+      .insert({
+        user_id: userId,
+        parcel_id: parcelId,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erreur lors de l\'ajout aux favoris:', error);
+      throw error;
+    }
+    return data;
+  }
+
+  static async removeFromFavorites(userId, parcelId) {
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', userId)
+      .eq('parcel_id', parcelId);
+    
+    if (error) {
+      console.error('Erreur lors de la suppression des favoris:', error);
+      throw error;
+    }
+    return true;
+  }
+
+  static async isParcelFavorite(userId, parcelId) {
+    const { data, error } = await supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('parcel_id', parcelId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error('Erreur lors de la vérification des favoris:', error);
+      return false;
+    }
+    return !!data;
+  }
+
+  // ============== SAVED SEARCHES ==============
+  static async getUserSavedSearches(userId) {
+    const { data, error } = await supabase
+      .from('saved_searches')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Erreur lors de la récupération des recherches sauvegardées:', error);
+      return [];
+    }
+    return data || [];
+  }
+
+  static async saveSearch(userId, searchData) {
+    const { data, error } = await supabase
+      .from('saved_searches')
+      .insert({
+        user_id: userId,
+        name: searchData.name,
+        criteria: searchData.criteria,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erreur lors de la sauvegarde de la recherche:', error);
+      throw error;
+    }
+    return data;
+  }
+
+  static async deleteSavedSearch(userId, searchId) {
+    const { error } = await supabase
+      .from('saved_searches')
+      .delete()
+      .eq('user_id', userId)
+      .eq('id', searchId);
+    
+    if (error) {
+      console.error('Erreur lors de la suppression de la recherche:', error);
+      throw error;
+    }
+    return true;
+  }
 }
 
 // Export par défaut du service
