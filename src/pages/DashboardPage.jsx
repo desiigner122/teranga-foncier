@@ -32,14 +32,15 @@ const DashboardPage = () => {
     loading: authLoading,
     needsVerification,
     isPendingVerification,
-    isVerified 
+    isVerified,
+    isAdmin
   } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && profile) {
-      // Si l'utilisateur nécessite une vérification, on affiche le composant de vérification
-      if (needsVerification || isPendingVerification) {
+      // Si l'utilisateur nécessite une vérification (sauf admin), on affiche le composant de vérification
+      if (!isAdmin && (needsVerification || isPendingVerification)) {
         return; // Le composant VerificationRequired sera affiché
       }
 
@@ -84,7 +85,7 @@ const DashboardPage = () => {
       // Redirect to the appropriate dashboard
       navigate(dashboardPath, { replace: true });
     }
-  }, [authLoading, isAuthenticated, profile, navigate, needsVerification, isPendingVerification]);
+  }, [authLoading, isAuthenticated, profile, navigate, needsVerification, isPendingVerification, isAdmin]);
 
   // Show loading state while authentication is being determined
   if (authLoading) {
@@ -100,8 +101,8 @@ const DashboardPage = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Show verification component if user needs verification or is pending
-  if (needsVerification || isPendingVerification) {
+  // Show verification component if user needs verification or is pending (but not admin)
+  if (!isAdmin && (needsVerification || isPendingVerification)) {
     return <VerificationRequired />;
   }
 

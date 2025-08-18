@@ -31,7 +31,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
   }
   supabaseClient = createMockClient();
 } else {
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    },
+    global: {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    },
+    db: {
+      schema: 'public'
+    }
+  });
 }
 
 export const supabase = supabaseClient;

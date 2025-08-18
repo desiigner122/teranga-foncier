@@ -4,7 +4,12 @@ import { BrowserRouter as Router, Route, Routes, Outlet, Link, Navigate } from '
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import DashboardLayo                  <GlobalChatbot />
+                </MessagingNotificationProvider>
+              </ChatbotProvider>
+            </AuthProvider>
+          </DemoProvider>
+        </ComparisonProvider>om '@/components/layout/DashboardLayout';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
@@ -48,10 +53,12 @@ import CaseTrackingPage from '@/pages/CaseTrackingPage';
 import DigitalVaultPage from '@/pages/DigitalVaultPage';
 import TransactionsPage from '@/pages/TransactionsPage';
 import PaymentPage from '@/pages/PaymentPage';
+import TestPage from '@/pages/TestPage';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/context/AuthContext';
 import { ChatbotProvider } from '@/context/ChatbotContext';
 import { MessagingNotificationProvider } from '@/context/MessagingNotificationContext';
+import { DemoProvider } from '@/context/DemoContext';
 import VerificationPage from '@/pages/VerificationPage';
 import IdentityVerificationPage from '@/pages/IdentityVerificationPage';
 import VendeurDashboard from '@/pages/dashboards/VendeurDashboard';
@@ -155,9 +162,10 @@ function App() {
       <Router>
         <ComparisonProvider>
           <ScrollToTop />
-          <AuthProvider>
-            <ChatbotProvider>
-              <MessagingNotificationProvider>
+          <DemoProvider>
+            <AuthProvider>
+              <ChatbotProvider>
+                <MessagingNotificationProvider>
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<PublicLayout />}>
@@ -184,6 +192,7 @@ function App() {
                     <Route path="pricing" element={<PricingPage />} />
                     <Route path="glossary" element={<GlossaryPage />} />
                     <Route path="tax-guide" element={<TaxGuidePage />} />
+                    <Route path="test" element={<TestPage />} />
                     <Route path="*" element={<NotFoundPage />} />
                   </Route>
 

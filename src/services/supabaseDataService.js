@@ -218,8 +218,8 @@ export class SupabaseDataService {
     let query = supabase
       .from('blog_posts')
       .select('*')
-      .eq('published', true)
-      .order('created_at', { ascending: false });
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
     
     if (limit) query = query.limit(limit);
     
