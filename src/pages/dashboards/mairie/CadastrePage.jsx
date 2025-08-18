@@ -117,14 +117,15 @@ const CadastrePage = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              {sampleParcels
-                .filter(p => p.zone === 'Saly' && p.coordinates)
+              {parcels
+                .filter(p => p.location && p.location.includes('Saly') && p.coordinates)
                 .map(parcel => (
                 <Marker key={parcel.id} position={[parcel.coordinates.lat, parcel.coordinates.lng]}>
                   <Popup>
-                    <b>{parcel.name}</b><br/>
+                    <b>{parcel.title || parcel.reference}</b><br/>
                     Référence: {parcel.reference}<br/>
-                    Statut: {parcel.status}
+                    Statut: {parcel.status}<br/>
+                    Surface: {parcel.surface} m²
                   </Popup>
                 </Marker>
               ))}

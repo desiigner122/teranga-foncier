@@ -64,7 +64,7 @@ import MairiesDashboard from '@/pages/dashboards/MairiesDashboard';
 
 // Dashboard Pages
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
-import AdminUsersPage from '@/pages/admin/AdminUsersPage';
+import AdminUsersPageAdvanced from '@/pages/admin/AdminUsersPageAdvanced';
 import AdminParcelsPage from '@/pages/admin/AdminParcelsPage';
 import AdminBlogPage from '@/pages/admin/AdminBlogPage';
 import AdminAgentsPage from '@/pages/admin/AdminAgentsPage';
@@ -196,13 +196,13 @@ function App() {
                   } />
 
                   {/* Dashboard Routes - All under DashboardLayout */}
-                  <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+                  <Route element={<ProtectedRoute requireVerification={true}><DashboardLayout /></ProtectedRoute>}>
                     {/* Dashboard Dispatcher */}
                     <Route path="/dashboard" element={<DashboardPage />} />
                     
                     {/* Admin Routes */}
                     <Route path="/dashboard/admin" element={<AdminDashboardPage />} />
-                    <Route path="/dashboard/admin/users" element={<AdminUsersPage />} />
+                    <Route path="/dashboard/admin/users" element={<AdminUsersPageAdvanced />} />
                     <Route path="/dashboard/admin/parcels" element={<AdminParcelsPage />} />
                     <Route path="/dashboard/admin/blog" element={<AdminBlogPage />} />
                     <Route path="/dashboard/admin/agents" element={<AdminAgentsPage />} />
@@ -212,7 +212,6 @@ function App() {
                     <Route path="/dashboard/admin/compliance" element={<AdminCompliancePage />} />
                     <Route path="/dashboard/admin/disputes" element={<AdminDisputesPage />} />
                     <Route path="/dashboard/admin/transactions" element={<AdminTransactionsPage />} />
-                    <Route path="/dashboard/admin/disputes" element={<AdminDisputesPage />} />
                     <Route path="/dashboard/admin/ai-assistant" element={<AdminAIAssistantPage />} />
 
                     {/* Agent Routes */}

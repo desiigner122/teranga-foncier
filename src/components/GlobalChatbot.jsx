@@ -407,15 +407,15 @@ Comment puis-je vous assister aujourd'hui ?`;
               </div>
             </ScrollArea>
 
-            {/* Suggestions avec icônes et design amélioré */}
+            {/* Suggestions avec icônes et design amélioré - Positionnement amélioré */}
             {currentSuggestions.length > 0 && (
-              <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+              <div className="p-3 bg-gradient-to-b from-gray-50/90 to-white dark:from-gray-800/90 dark:to-gray-900 border-t border-gray-200 dark:border-gray-700 backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggestions intelligentes</span>
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Suggestions intelligentes</span>
                 </div>
-                <div className="grid grid-cols-1 gap-2">
-                  {currentSuggestions.map((suggestion, index) => {
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {currentSuggestions.slice(0, 3).map((suggestion, index) => {
                     const suggestionData = typeof suggestion === 'string' 
                       ? { text: suggestion, icon: MessageCircle } 
                       : suggestion;
@@ -424,19 +424,19 @@ Comment puis-je vous assister aujourd'hui ?`;
                     return (
                       <motion.button
                         key={index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="flex items-center gap-3 p-3 text-left text-sm bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-200 group hover:shadow-md"
+                        className="flex items-center gap-2 p-2 text-left text-xs bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-200 group hover:shadow-sm w-full"
                       >
-                        <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg group-hover:from-blue-200 group-hover:to-purple-200 dark:group-hover:from-blue-800 dark:group-hover:to-purple-800 transition-all duration-200">
-                          <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <div className="p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded-md group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-all duration-200 flex-shrink-0">
+                          <Icon className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300 flex-1">
+                        <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300 flex-1 truncate">
                           {suggestionData.text}
                         </span>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                           <Send className="h-3 w-3 text-blue-500" />
                         </div>
                       </motion.button>

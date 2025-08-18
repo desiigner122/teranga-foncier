@@ -103,22 +103,33 @@ const MairieRequestsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {requests.map(req => {
-                  const user = sampleUsers.find(u => u.id === req.user_id);
-                  return (
+                {requests.map(req => (
                     <tr key={req.id} className="border-b hover:bg-muted/30">
-                      <td className="p-2">{user?.name || 'N/A'}</td>
-                      <td className="p-2 capitalize">{req.request_type}</td>
-                      <td className="p-2 text-muted-foreground">{req.message.substring(0, 50)}...</td>
-                      <td className="p-2"><Badge variant={req.status === 'Nouvelle' ? 'warning' : 'secondary'}>{req.status}</Badge></td>
+                      <td className="p-2">{req.user_name || req.full_name || 'Utilisateur inconnu'}</td>
+                      <td className="p-2 capitalize">{req.request_type || req.type}</td>
+                      <td className="p-2 text-muted-foreground">{(req.message || req.description || '').substring(0, 50)}...</td>
+                      <td className="p-2">
+                        <Badge variant={
+                          req.status === 'pending' || req.status === 'Nouvelle' ? 'warning' : 
+                          req.status === 'approved' ? 'default' : 
+                          'secondary'
+                        }>
+                          {req.status}
+                        </Badge>
+                      </td>
                       <td className="p-2 text-right space-x-1">
-                        <Button variant="outline" size="sm" onClick={() => handleAction(`Instruction du dossier ${req.id}.`)}>Instruire</Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleAction(`Approbation du dossier ${req.id}.`)}><CheckCircle className="h-4 w-4 text-green-500"/></Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleAction(`Rejet du dossier ${req.id}.`)}><XCircle className="h-4 w-4 text-red-500"/></Button>
+                        <Button variant="outline" size="sm" onClick={() => handleRealAction('instruction', `Instruction du dossier ${req.id}.`)}>
+                          Instruire
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleRealAction('approval', `Approbation du dossier ${req.id}.`)}>
+                          <CheckCircle className="h-4 w-4 text-green-500"/>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleRealAction('rejection', `Rejet du dossier ${req.id}.`)}>
+                          <XCircle className="h-4 w-4 text-red-500"/>
+                        </Button>
                       </td>
                     </tr>
-                  );
-                })}
+                  ))}
               </tbody>
             </table>
           </div>

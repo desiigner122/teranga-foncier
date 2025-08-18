@@ -559,6 +559,123 @@ export class SupabaseDataService {
     }
     return true;
   }
+
+  // ============== DOCUMENTS ==============
+  static async getUserDocuments(userId) {
+    const { data, error } = await supabase
+      .from('user_documents')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Erreur lors de la récupération des documents:', error);
+      return [];
+    }
+    return data || [];
+  }
+
+  static async uploadDocument(userId, file) {
+    try {
+      // Upload du fichier vers Supabase Storage
+      const fileName = `${userId}/${Date.now()}-${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Enregistrement des métadonnées en base
+      const { data: docData, error: docError } = await supabase
+        .from('user_documents')
+        .insert({
+          user_id: userId,
+          name: file.name,
+          file_path: uploadData.path,
+          file_size: file.size,
+          mime_type: file.type,
+          category: this.getCategoryFromFileName(file.name),
+          verified: false,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (docError) throw docError;
+
+      return docData;
+    } catch (error) {
+      console.error('Erreur lors de l\'upload du document:', error);
+      throw error;
+    }
+  }
+
+  static async getDocumentDownloadUrl(documentId) {
+    try {
+      // Récupérer les infos du document
+      const { data: document, error: docError } = await supabase
+        .from('user_documents')
+        .select('file_path')
+        .eq('id', documentId)
+        .single();
+
+      if (docError) throw docError;
+
+      // Générer l'URL de téléchargement
+      const { data: urlData, error: urlError } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(document.file_path, 3600); // 1 heure
+
+      if (urlError) throw urlError;
+
+      return urlData.signedUrl;
+    } catch (error) {
+      console.error('Erreur lors de la génération de l\'URL:', error);
+      throw error;
+    }
+  }
+
+  static getCategoryFromFileName(fileName) {
+    const name = fileName.toLowerCase();
+    if (name.includes('acte') || name.includes('notaire')) return 'Actes Notariés';
+    if (name.includes('titre') || name.includes('propriete')) return 'Titres de Propriété';
+    if (name.includes('plan') || name.includes('cadastre')) return 'Plans et Documents Techniques';
+    if (name.includes('rapport') || name.includes('diligence')) return 'Rapports & Vérifications';
+    return 'Autres Documents';
+  }
+
+  // ============== ADMIN MANAGEMENT ==============
+  static async deleteUser(userId) {
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+      throw error;
+    }
+    return true;
+  }
+
+  static async updateUserRole(userId, newRole, newType) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ 
+        role: newRole,
+        type: newType,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erreur lors de la mise à jour du rôle:', error);
+      throw error;
+    }
+    return data;
+  }
 }
 
 // Export par défaut du service

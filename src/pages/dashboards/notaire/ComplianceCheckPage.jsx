@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldCheck, Search, FileText } from 'lucide-react';
+import { ShieldCheck, Search, FileText, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
 
 const ComplianceCheckPage = () => {
@@ -21,20 +22,64 @@ const ComplianceCheckPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleCheck = () => {
+  const handleCheck = async () => {
     if (!parcelId.trim()) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Veuillez entrer une référence de parcelle.' });
       return;
     }
-    // Simulation
-    setCheckResult({
-      parcelId: parcelId,
-      urbanisme: 'Conforme',
-      fiscal: 'À jour',
-      litiges: 'Aucun',
-      overall: 'Conforme',
-    });
-    toast({ title: 'Vérification terminée', description: `Résultats pour la parcelle ${parcelId} affichés.` });
+
+    try {
+      setLoading(true);
+      
+      // Rechercher la parcelle dans Supabase
+      const { data: parcel, error } = await supabase
+        .from('parcels')
+        .select('*')
+        .eq('reference', parcelId.trim())
+        .single();
+
+      if (error) {
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Parcelle non trouvée dans la base de données.' });
+        return;
+      }
+
+      // Vérifications de conformité réelles
+      const urbanismeStatus = parcel.planning_status || 'verified';
+      const fiscalStatus = parcel.tax_status || 'up_to_date';
+      const litigesStatus = parcel.dispute_status || 'none';
+
+      // Déterminer le statut global
+      let overallStatus = 'Conforme';
+      if (urbanismeStatus === 'pending' || fiscalStatus === 'pending' || litigesStatus === 'active') {
+        overallStatus = 'En cours de vérification';
+      } else if (urbanismeStatus === 'rejected' || fiscalStatus === 'overdue' || litigesStatus === 'dispute') {
+        overallStatus = 'Non conforme';
+      }
+
+      setCheckResult({
+        parcelId: parcelId,
+        parcelData: parcel,
+        urbanisme: urbanismeStatus === 'verified' ? 'Conforme' : 'À vérifier',
+        fiscal: fiscalStatus === 'up_to_date' ? 'À jour' : 'En retard',
+        litiges: litigesStatus === 'none' ? 'Aucun' : 'Litige en cours',
+        overall: overallStatus,
+      });
+
+      toast({ 
+        title: 'Vérification terminée', 
+        description: `Résultats pour la parcelle ${parcelId} affichés.` 
+      });
+
+    } catch (error) {
+      console.error('Erreur vérification conformité:', error);
+      toast({ 
+        variant: 'destructive', 
+        title: 'Erreur', 
+        description: 'Impossible de vérifier la conformité.' 
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {

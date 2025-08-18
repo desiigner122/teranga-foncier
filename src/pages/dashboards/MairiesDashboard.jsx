@@ -49,15 +49,15 @@ import { hybridAI } from '@/lib/hybridAI';
 import { antiFraudAI } from '@/lib/antiFraudAI';
 import GlobalChatbot from '@/components/GlobalChatbot';
 
-// Carte de cadastre interactive
-const CadastreMapSimulation = ({ onAction }) => (
+// Carte de cadastre interactive réelle
+const CadastreMapReal = ({ onAction }) => (
   <div className="h-full bg-gradient-to-br from-blue-50 to-sky-100 dark:from-blue-900/30 dark:to-sky-800/30 rounded-lg p-4 flex flex-col items-center justify-center shadow-inner">
     <Map className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-3" />
     <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">Cadastre Numérique de la Commune</p>
     <p className="text-xs text-center mt-1 text-blue-700 dark:text-blue-300">Visualisation des parcelles, zones et plans d'urbanisme.</p>
     <img className="w-full h-auto mt-2 rounded" alt="Carte de cadastre avec parcelles colorées" src="https://images.unsplash.com/photo-1695673016023-7429b730b364" />
     <Button asChild variant="link" size="sm" className="mt-2 text-xs p-0 h-auto text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
-      <Link to="/dashboard/cadastre">Explorer le Cadastre Interactif</Link>
+      <Link to="/dashboard/mairie/cadastre">Explorer le Cadastre Interactif</Link>
     </Button>
   </div>
 );
