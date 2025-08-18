@@ -38,22 +38,37 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated && profile) {
+    console.log('DashboardPage useEffect:', { 
+      authLoading, 
+      isAuthenticated, 
+      user: !!user, 
+      profile: !!profile,
+      profileType: profile?.type,
+      profileRole: profile?.role 
+    });
+
+    if (!authLoading && isAuthenticated) {
       // Si l'utilisateur nécessite une vérification (sauf admin), on affiche le composant de vérification
-      if (!isAdmin && (needsVerification || isPendingVerification)) {
+      if (profile && !isAdmin && (needsVerification || isPendingVerification)) {
         return; // Le composant VerificationRequired sera affiché
       }
 
       let dashboardPath = '/dashboard/particulier'; // Default fallback
 
+      // Si on a un profil, utiliser ses informations, sinon utiliser les métadonnées user
+      const userType = profile?.type || user?.user_metadata?.type || 'Particulier';
+      const userRole = profile?.role || user?.user_metadata?.role || 'user';
+
+      console.log('Determining dashboard path for:', { userType, userRole });
+
       // Determine dashboard path based on user role and type
-      if (profile.role === 'admin' || profile.type === 'Administrateur') {
+      if (userRole === 'admin' || userType === 'Administrateur') {
         dashboardPath = '/dashboard/admin';
-      } else if (profile.role === 'agent' || profile.type === 'Agent') {
+      } else if (userRole === 'agent' || userType === 'Agent') {
         dashboardPath = '/dashboard/agent';
       } else {
         // Route based on user type
-        switch (profile.type) {
+        switch (userType) {
           case 'Vendeur':
             dashboardPath = '/dashboard/vendeur';
             break;
@@ -82,10 +97,11 @@ const DashboardPage = () => {
         }
       }
 
+      console.log('Redirecting to:', dashboardPath);
       // Redirect to the appropriate dashboard
       navigate(dashboardPath, { replace: true });
     }
-  }, [authLoading, isAuthenticated, profile, navigate, needsVerification, isPendingVerification, isAdmin]);
+  }, [authLoading, isAuthenticated, user, profile, navigate, needsVerification, isPendingVerification, isAdmin]);
 
   // Show loading state while authentication is being determined
   if (authLoading) {
@@ -108,9 +124,26 @@ const DashboardPage = () => {
 
   // Show loading state while redirect is happening
   return (
-    <div className="flex items-center justify-center h-full min-h-[500px]">
+    <div className="flex flex-col items-center justify-center h-full min-h-[500px] space-y-4">
       <LoadingSpinner size="large" />
-      <p className="ml-4 text-muted-foreground">Redirection vers votre tableau de bord...</p>
+      <div className="text-center">
+        <p className="text-lg font-medium text-muted-foreground">Redirection vers votre tableau de bord...</p>
+        {user && (
+          <p className="text-sm text-muted-foreground mt-2">
+            Connecté en tant que: {user.email}
+          </p>
+        )}
+        {profile && (
+          <p className="text-sm text-muted-foreground">
+            Type: {profile.type || 'Non défini'} | Rôle: {profile.role || 'Non défini'}
+          </p>
+        )}
+        {!profile && user?.user_metadata && (
+          <p className="text-sm text-muted-foreground">
+            Utilisation des métadonnées: {user.user_metadata.type || 'Particulier'}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
