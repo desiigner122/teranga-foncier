@@ -93,7 +93,8 @@ import DisputesPage from '@/pages/dashboards/mairie/DisputesPage';
 import MairieRequestsPage from '@/pages/dashboards/mairie/MairieRequestsPage';
 import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage';
 import GuaranteesPage from '@/pages/dashboards/banque/GuaranteesPage';
-import LandValuationPage from '@/pages/dashboards/banque/LandValuationPage';
+// Use explicit relative import to avoid resolution issues during build
+import LandValuationPage from './pages/dashboards/banque/LandValuationPage.jsx';
 import CompliancePage from '@/pages/dashboards/banque/CompliancePage';
 // Notaire-specific pages
 import ArchivesPage from '@/pages/dashboards/notaire/ArchivesPage';
