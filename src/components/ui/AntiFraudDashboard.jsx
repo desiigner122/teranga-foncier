@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { antiFraudAI } from '@/lib/antiFraudAI';
 import { supabase } from '@/lib/supabaseClient';
+import { safeTableQuery } from '@/lib/tableUtils';
 
 const AntiFraudDashboard = ({ userRole, dashboardContext }) => {
   const { toast } = useToast();
@@ -30,6 +31,7 @@ const AntiFraudDashboard = ({ userRole, dashboardContext }) => {
   const [loading, setLoading] = useState(true);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [tableExists, setTableExists] = useState(false);
   const [stats, setStats] = useState({
     totalAlerts: 0,
     criticalAlerts: 0,

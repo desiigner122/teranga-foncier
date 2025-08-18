@@ -16,12 +16,27 @@ export const AuthProvider = ({ children }) => {
   const fetchUserProfile = useCallback(async (authUser) => {
     if (!authUser) return null;
     try {
-      // Essai avec plusieurs méthodes pour contourner l'erreur 406
-      const { data, error } = await supabase
+      console.log("Récupération du profil pour:", authUser.email, "ID:", authUser.id);
+      
+      // Première tentative par ID
+      let { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', authUser.id)
-        .maybeSingle(); // Utilise maybeSingle au lieu de single
+        .maybeSingle();
+      
+      // Si pas trouvé par ID, essayer par email
+      if (!data && !error) {
+        console.log("Profil non trouvé par ID, tentative par email...");
+        const result = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', authUser.email)
+          .maybeSingle();
+        
+        data = result.data;
+        error = result.error;
+      }
       
       if (error) {
         console.error("Erreur lors de la récupération du profil:", error.message);
@@ -35,7 +50,7 @@ export const AuthProvider = ({ children }) => {
             full_name: authUser.user_metadata?.full_name || authUser.email,
             type: authUser.user_metadata?.type || 'Particulier',
             role: authUser.user_metadata?.role || 'user',
-            verification_status: 'verified', // On considère comme vérifié par défaut
+            verification_status: 'verified',
             created_at: authUser.created_at,
             updated_at: new Date().toISOString()
           };
@@ -43,7 +58,23 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
       
-      return data;
+      if (data) {
+        console.log("Profil récupéré:", { email: data.email, type: data.type, role: data.role });
+        return data;
+      }
+      
+      // Si aucun profil trouvé, créer un profil de base
+      console.log("Aucun profil trouvé en base, création d'un profil par défaut");
+      return {
+        id: authUser.id,
+        email: authUser.email,
+        full_name: authUser.user_metadata?.full_name || authUser.email,
+        type: authUser.user_metadata?.type || 'Particulier',
+        role: authUser.user_metadata?.role || 'user',
+        verification_status: 'verified',
+        created_at: authUser.created_at,
+        updated_at: new Date().toISOString()
+      };
 
     } catch (err) {
       console.error("Erreur inattendue lors de la récupération du profil:", err);
