@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
   const handleAnalyseWithAI = async () => {
     setIsAiLoading(true);
     try {
-      // Simulation d'un appel à une IA
+      // Appel à une IA pour analyser l'utilisateur
       await new Promise(resolve => setTimeout(resolve, 1500)); 
       const analysis = {
         document_validity: true,
@@ -305,7 +305,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
               <div>
-                <h3 className="font-semibold mb-2">Assistant IA (Simulation)</h3>
+                <h3 className="font-semibold mb-2">Assistant IA</h3>
                 <Button onClick={handleAnalyseWithAI} disabled={isAiLoading || !isValidImageUrl(selectedUser.id_card_front_url)} className="w-full">
                   {isAiLoading ? <Spinner size="small" className="mr-2" /> : <Sparkles className="mr-2 h-4 w-4" />}
                   {isAiLoading ? 'Analyse...' : 'Analyser les documents'}

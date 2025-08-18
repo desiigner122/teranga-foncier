@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '@/components/ui/spinner';
+import VerificationRequired from '@/components/VerificationRequired';
 
 /**
  * DashboardPage Component - Dashboard Dispatcher
@@ -24,18 +25,22 @@ import LoadingSpinner from '@/components/ui/spinner';
  * - /dashboard/particulier - Individual dashboard
  */
 const DashboardPage = () => {
-  const { isAuthenticated, user, profile, loading: authLoading } = useAuth();
+  const { 
+    isAuthenticated, 
+    user, 
+    profile, 
+    loading: authLoading,
+    needsVerification,
+    isPendingVerification,
+    isVerified 
+  } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && profile) {
-      // Vérifier si l'utilisateur doit vérifier son identité
-      const requiresIdentityVerification = ['Particulier', 'Vendeur'].includes(profile.type);
-      
-      if (requiresIdentityVerification && 
-          (!profile.identity_verification_status || profile.identity_verification_status === 'not_started')) {
-        navigate('/identity-verification', { replace: true });
-        return;
+      // Si l'utilisateur nécessite une vérification, on affiche le composant de vérification
+      if (needsVerification || isPendingVerification) {
+        return; // Le composant VerificationRequired sera affiché
       }
 
       let dashboardPath = '/dashboard/particulier'; // Default fallback
@@ -79,7 +84,7 @@ const DashboardPage = () => {
       // Redirect to the appropriate dashboard
       navigate(dashboardPath, { replace: true });
     }
-  }, [authLoading, isAuthenticated, profile, navigate]);
+  }, [authLoading, isAuthenticated, profile, navigate, needsVerification, isPendingVerification]);
 
   // Show loading state while authentication is being determined
   if (authLoading) {
@@ -93,6 +98,11 @@ const DashboardPage = () => {
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Show verification component if user needs verification or is pending
+  if (needsVerification || isPendingVerification) {
+    return <VerificationRequired />;
   }
 
   // Show loading state while redirect is happening

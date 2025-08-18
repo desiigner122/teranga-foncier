@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { sampleBlogPosts } from '@/data';
+import { supabase } from '@/lib/supabaseClient';
 import { Calendar, User, Tag, ArrowLeft, Share2, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -12,7 +12,40 @@ const BlogPostPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const post = sampleBlogPosts.find(p => p.slug === slug);
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPost = async () => {
+      try {
+        const { data: blogPost, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('slug', slug)
+          .eq('status', 'published')
+          .single();
+
+        if (error) throw error;
+        setPost(blogPost);
+      } catch (error) {
+        console.error('Erreur chargement article:', error);
+        setPost(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) loadPost();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-20 text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-lg text-gray-600">Chargement de l'article...</p>
+      </div>
+    );
+  }
 
   if (!post) {
     return (

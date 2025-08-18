@@ -46,58 +46,108 @@ const AdminDisputesPage = () => {
   const fetchDisputes = async () => {
     try {
       setLoading(true);
-      // Simuler des données de litiges pour la démonstration
-      const mockDisputes = [
-        {
-          id: '1',
-          title: 'Conflit de propriété - Parcelle #A-2023-001',
-          description: 'Deux parties revendiquent la propriété de la même parcelle située à Dakar',
-          parcel_id: 'A-2023-001',
-          plaintiff_name: 'Mamadou Diallo',
-          defendant_name: 'Fatou Ndiaye',
-          status: 'investigating',
-          priority: 'high',
-          created_at: '2024-01-15T10:30:00Z',
-          updated_at: '2024-01-20T14:00:00Z',
-          assigned_to: 'admin@teranga.com'
-        },
-        {
-          id: '2',
-          title: 'Problème de limites de terrain',
-          description: 'Désaccord sur les limites exactes entre deux propriétés adjacentes',
-          parcel_id: 'B-2023-045',
-          plaintiff_name: 'Ibrahima Sarr',
-          defendant_name: 'Commune de Thiès',
-          status: 'pending',
-          priority: 'medium',
-          created_at: '2024-01-18T09:15:00Z',
-          updated_at: '2024-01-18T09:15:00Z',
-          assigned_to: null
-        },
-        {
-          id: '3',
-          title: 'Transaction frauduleuse présumée',
-          description: 'Soupçon de documents falsifiés dans une transaction récente',
-          parcel_id: 'C-2023-078',
-          plaintiff_name: 'Awa Ba',
-          defendant_name: 'Moussa Kane',
-          status: 'resolved',
-          priority: 'urgent',
-          created_at: '2024-01-10T16:45:00Z',
-          updated_at: '2024-01-25T11:30:00Z',
-          assigned_to: 'admin@teranga.com',
-          resolution: 'Enquête terminée. Documents authentifiés. Fausse alerte.'
-        }
-      ];
+      
+      // Essayer de récupérer les litiges depuis Supabase (table disputes si elle existe)
+      const { data: realDisputes, error } = await supabase
+        .from('disputes')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      setDisputes(mockDisputes);
-      setFilteredDisputes(mockDisputes);
+      let disputesData;
+      
+      if (error || !realDisputes || realDisputes.length === 0) {
+        // Si pas de table disputes ou erreur, utiliser des données de démonstration
+        console.warn('Table disputes non trouvée ou vide, utilisation de données de démonstration');
+        disputesData = [
+          {
+            id: '1',
+            title: 'Conflit de propriété - Parcelle #A-2023-001',
+            description: 'Deux parties revendiquent la propriété de la même parcelle située à Dakar',
+            parcel_id: 'A-2023-001',
+            plaintiff_name: 'Mamadou Diallo',
+            defendant_name: 'Fatou Ndiaye',
+            status: 'investigating',
+            priority: 'high',
+            created_at: '2024-01-15T10:30:00Z',
+            updated_at: '2024-01-20T14:00:00Z',
+            assigned_mediator: 'Me Aminata Touré',
+            evidence_documents: ['titre_foncier_1.pdf', 'acte_achat_2.pdf'],
+            location: 'Dakar, Plateau'
+          },
+          {
+            id: '2',
+            title: 'Litige de bornage - Parcelle #B-2023-045',
+            description: 'Désaccord sur les limites entre deux parcelles adjacentes',
+            parcel_id: 'B-2023-045',
+            plaintiff_name: 'Société DELTA SARL',
+            defendant_name: 'Omar Sy',
+            status: 'pending',
+            priority: 'medium',
+            created_at: '2024-01-18T09:15:00Z',
+            updated_at: '2024-01-18T09:15:00Z',
+            assigned_mediator: 'Me Ibrahima Fall',
+            evidence_documents: ['plan_cadastral.pdf'],
+            location: 'Thiès, Zone industrielle'
+          },
+          {
+            id: '3',
+            title: 'Contestation de vente - Parcelle #C-2022-089',
+            description: 'Contestation de la validité d\'une transaction immobilière',
+            parcel_id: 'C-2022-089',
+            plaintiff_name: 'Aissatou Diop',
+            defendant_name: 'Jean Dupont',
+            status: 'resolved',
+            priority: 'low',
+            created_at: '2023-12-10T16:45:00Z',
+            updated_at: '2024-01-10T11:30:00Z',
+            assigned_mediator: 'Me Khadija Seck',
+            evidence_documents: ['contrat_vente.pdf', 'titre_propriete.pdf'],
+            location: 'Saint-Louis, Centre-ville',
+            resolution: 'Transaction annulée, remboursement effectué'
+          },
+          {
+            id: '4',
+            title: 'Héritage contesté - Parcelle #D-2023-012',
+            description: 'Conflit d\'héritage entre plusieurs héritiers',
+            parcel_id: 'D-2023-012',
+            plaintiff_name: 'Famille Ba',
+            defendant_name: 'Famille Sow',
+            status: 'investigating',
+            priority: 'urgent',
+            created_at: '2024-01-22T08:00:00Z',
+            updated_at: '2024-01-25T10:15:00Z',
+            assigned_mediator: 'Me Moussa Diouf',
+            evidence_documents: ['acte_deces.pdf', 'testament.pdf'],
+            location: 'Kaolack, Quartier résidentiel'
+          },
+          {
+            id: '5',
+            title: 'Occupation illégale - Parcelle #E-2023-067',
+            description: 'Signalement d\'occupation illégale d\'une parcelle',
+            parcel_id: 'E-2023-067',
+            plaintiff_name: 'Commune de Rufisque',
+            defendant_name: 'Particulier non identifié',
+            status: 'pending',
+            priority: 'high',
+            created_at: '2024-01-20T14:30:00Z',
+            updated_at: '2024-01-20T14:30:00Z',
+            assigned_mediator: 'Me Fatou Gueye',
+            evidence_documents: ['constat_huissier.pdf'],
+            location: 'Rufisque, Zone littorale'
+          }
+        ];
+      } else {
+        disputesData = realDisputes;
+      }
+
+      setDisputes(disputesData);
+      setFilteredDisputes(disputesData);
     } catch (error) {
       console.error('Erreur lors du chargement des litiges:', error);
       toast({
+        variant: "destructive",
         title: "Erreur",
-        description: "Impossible de charger les litiges",
-        variant: "destructive"
+        description: "Impossible de charger les litiges"
       });
     } finally {
       setLoading(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { UserCheck, MapPin, FileText, BarChart2, CalendarDays, MessageSquare, Search, Filter, Check, X } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from '@/components/ui/badge';
-import { sampleParcels, sampleRequests } from '@/data/index.js';
+import { supabase } from '@/lib/supabaseClient';
 
 const kpiData = [
   { title: "Demandes à Traiter", value: "5", icon: FileText, trend: "+2", trendColor: "text-yellow-500", unit: "nouvelles" },
@@ -17,12 +17,46 @@ const kpiData = [
   { title: "Taux de Conversion (Mois)", value: "15%", icon: BarChart2, trend: "+2%", trendColor: "text-green-500", unit: "" },
 ];
 
-const agentParcels = sampleParcels.slice(0, 12);
-const agentRequests = sampleRequests.filter(r => r.agent_assigned === 'Bob Martin' || r.agent_assigned === null).slice(0, 5);
-
 const AgentDashboardPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('requests');
+  const [agentParcels, setAgentParcels] = useState([]);
+  const [agentRequests, setAgentRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadAgentData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Charger les parcelles assignées à l'agent
+        const { data: parcels } = await supabase
+          .from('parcels')
+          .select('*')
+          .eq('agent_assigned', user.id)
+          .limit(12);
+
+        // Charger les demandes assignées à l'agent
+        const { data: requests } = await supabase
+          .from('requests')
+          .select('*')
+          .or(`agent_assigned.eq.${user.id},agent_assigned.is.null`)
+          .limit(5);
+
+        setAgentParcels(parcels || []);
+        setAgentRequests(requests || []);
+      } catch (error) {
+        console.error('Erreur chargement données agent:', error);
+        // En cas d'erreur, utiliser des données de démonstration
+        setAgentParcels([]);
+        setAgentRequests([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAgentData();
+  }, []);
 
   const handleSimulatedAction = (message) => {
     toast({ title: "Action Simulée", description: message });

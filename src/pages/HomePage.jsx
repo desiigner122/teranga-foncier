@@ -1,5 +1,5 @@
 // src/pages/HomePage.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // Importation de Button est toujours nécessaire pour les autres usages
 import { Button } from '@/components/ui/button'; 
@@ -12,96 +12,198 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useChatbot } from '@/context/ChatbotContext';
-
-// Données mockées pour les parcelles en vedette
-const mockFeaturedParcels = [
-  {
-    id: 'fp1',
-    name: 'Parcelle Résidentielle à Diamniadio',
-    reference: 'REF-DIA-001',
-    location: 'Diamniadio, Dakar',
-    area: '300 m²',
-    price: '25 000 000 XOF',
-    image: 'https://placehold.co/400x250/0052A3/FFFFFF?text=Parcelle+Diamniadio', // Placeholder
-    status: 'Disponible'
-  },
-  {
-    id: 'fp2',
-    name: 'Terrain Agricole à Thiès',
-    reference: 'REF-THS-002',
-    location: 'Thiès, Région de Thiès',
-    area: '5000 m²',
-    price: '15 000 000 XOF',
-    image: 'https://placehold.co/400x250/00A3AD/FFFFFF?text=Terrain+Thiès', // Placeholder
-    status: 'Disponible'
-  },
-  {
-    id: 'fp3',
-    name: 'Parcelle Commerciale à Dakar',
-    reference: 'REF-DKR-003',
-    location: 'Plateau, Dakar',
-    area: '150 m²',
-    price: '45 000 000 XOF',
-    image: 'https://placehold.co/400x250/F0A800/FFFFFF?text=Parcelle+Dakar', // Placeholder
-    status: 'Réservée'
-  },
-];
-
-// Données mockées pour les articles de blog
-const mockBlogArticles = [
-  {
-    id: 'b1',
-    title: 'La numérisation du foncier : une révolution au Sénégal',
-    date: '25 Juillet 2025',
-    description: 'Découvrez comment la technologie transforme l\'accès et la gestion des terres au Sénégal...',
-    image: 'https://placehold.co/400x280/FFD700/000000?text=Article+Numerisation', // Placeholder
-    link: '/blog/article-1'
-  },
-  {
-    id: 'b2',
-    title: 'Acheter un terrain à Dakar : Le guide complet',
-    date: '18 Juillet 2025',
-    description: 'Nos experts partagent leurs conseils pour sécuriser votre investissement foncier dans la capitale...',
-    image: 'https://placehold.co/400x280/ADD8E6/000000?text=Article+Achat+Dakar', // Placeholder
-    link: '/blog/article-2'
-  },
-  {
-    id: 'b3',
-    title: 'Demande de terrain en mairie : Simplifiez vos démarches',
-    date: '10 Juillet 2025',
-    description: 'Découvrez comment notre plateforme simplifie vos démarches administratives pour l\'acquisition de terrains communaux...',
-    image: 'https://placehold.co/400x280/90EE90/000000?text=Article+Mairie', // Placeholder
-    link: '/blog/article-3'
-  },
-];
-
-// Données mockées pour les témoignages
-const mockTestimonials = [
-  {
-    id: 't1',
-    name: 'Fatou Ndiaye',
-    role: 'Particulier',
-    quote: '"Teranga Foncier a rendu l\'achat de mon terrain incroyablement simple et sécurisé. Une équipe très professionnelle et une plateforme intuitive !"',
-    avatar: 'https://placehold.co/80x80/E0F2F7/0288D1?text=FN' // Placeholder
-  },
-  {
-    id: 't2',
-    name: 'M. Diallo',
-    role: 'Banque XYZ',
-    quote: '"La plateforme a révolutionné la gestion de nos actifs fonciers. Fiabilité, transparence et efficacité au rendez-vous pour nos opérations bancaires."',
-    avatar: 'https://placehold.co/80x80/D4EDDA/155724?text=MD' // Placeholder
-  },
-  {
-    id: 't3',
-    name: 'Awa Sow',
-    role: 'Notaire',
-    quote: '"Un service client exceptionnel et des démarches simplifiées. Teranga Foncier est un partenaire indispensable pour notre étude."',
-    avatar: 'https://placehold.co/80x80/FCE5CD/E67E22?text=AS' // Placeholder
-  },
-];
+import SupabaseDataService from '@/services/supabaseDataService';
 
 const HomePage = () => {
   const { openChatbot } = useChatbot();
+  const [featuredParcels, setFeaturedParcels] = useState([]);
+  const [blogArticles, setBlogArticles] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Charger les données réelles au montage du composant
+  useEffect(() => {
+    const loadRealData = async () => {
+      try {
+        setLoading(true);
+
+        // Charger les parcelles en vedette (les plus récentes)
+        const parcels = await SupabaseDataService.getParcels(3);
+        const formattedParcels = parcels.map(parcel => ({
+          id: parcel.id,
+          name: parcel.title || `Parcelle ${parcel.reference}`,
+          reference: parcel.reference,
+          location: parcel.location || 'Localisation non spécifiée',
+          area: parcel.area_sqm ? `${parcel.area_sqm} m²` : 'Surface non spécifiée',
+          price: parcel.price ? `${new Intl.NumberFormat('fr-SN').format(parcel.price)} XOF` : 'Prix à négocier',
+          image: parcel.image_url || 'https://placehold.co/400x250/0052A3/FFFFFF?text=Parcelle',
+          status: parcel.status === 'available' ? 'Disponible' : 
+                  parcel.status === 'reserved' ? 'Réservée' : 
+                  parcel.status === 'sold' ? 'Vendue' : 'En attente'
+        }));
+        setFeaturedParcels(formattedParcels);
+
+        // Charger les articles de blog les plus récents
+        const blogs = await SupabaseDataService.getBlogPosts(3);
+        const formattedBlogs = blogs.map(blog => ({
+          id: blog.id,
+          title: blog.title,
+          date: new Date(blog.created_at).toLocaleDateString('fr-FR', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric' 
+          }),
+          description: blog.excerpt || blog.content?.substring(0, 150) + '...',
+          image: blog.featured_image_url || 'https://placehold.co/400x280/FFD700/000000?text=Article',
+          link: `/blog/${blog.id}`
+        }));
+        setBlogArticles(formattedBlogs);
+
+        // Pour les témoignages, on peut utiliser des utilisateurs récents ou créer une table testimonials
+        // Pour l'instant, on va utiliser des données de fallback si pas de témoignages réels
+        const users = await SupabaseDataService.getUsers(3);
+        const formattedTestimonials = users.length > 0 ? users.map((user, index) => ({
+          id: user.id,
+          name: user.full_name || 'Utilisateur anonyme',
+          role: user.type || 'Particulier',
+          quote: getTestimonialForRole(user.type || 'Particulier'),
+          avatar: `https://placehold.co/80x80/E0F2F7/0288D1?text=${user.full_name?.substring(0, 2).toUpperCase() || 'UN'}`
+        })) : [
+          {
+            id: 't1',
+            name: 'Fatou Ndiaye',
+            role: 'Particulier',
+            quote: '"Teranga Foncier a rendu l\'achat de mon terrain incroyablement simple et sécurisé. Une équipe très professionnelle et une plateforme intuitive !"',
+            avatar: 'https://placehold.co/80x80/E0F2F7/0288D1?text=FN'
+          },
+          {
+            id: 't2',
+            name: 'M. Diallo',
+            role: 'Banque',
+            quote: '"La plateforme a révolutionné la gestion de nos actifs fonciers. Fiabilité, transparence et efficacité au rendez-vous pour nos opérations bancaires."',
+            avatar: 'https://placehold.co/80x80/D4EDDA/155724?text=MD'
+          },
+          {
+            id: 't3',
+            name: 'Awa Sow',
+            role: 'Notaire',
+            quote: '"Un service client exceptionnel et des démarches simplifiées. Teranga Foncier est un partenaire indispensable pour notre étude."',
+            avatar: 'https://placehold.co/80x80/FCE5CD/E67E22?text=AS'
+          }
+        ];
+        setTestimonials(formattedTestimonials);
+
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        // En cas d'erreur, utiliser des données de fallback
+        setFeaturedParcels(getDefaultParcels());
+        setBlogArticles(getDefaultBlogs());
+        setTestimonials(getDefaultTestimonials());
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRealData();
+  }, []);
+
+  // Fonction utilitaire pour générer des témoignages selon le rôle
+  const getTestimonialForRole = (role) => {
+    const testimonials = {
+      'Particulier': '"Teranga Foncier a simplifié mes démarches foncières. Interface intuitive et équipe compétente !"',
+      'Vendeur': '"Excellent outil pour gérer mes annonces de terrains. Visibilité et transparence garanties."',
+      'Banque': '"Plateforme fiable pour l\'évaluation et le suivi des garanties foncières. Très professionnel."',
+      'Notaire': '"Service remarquable pour la vérification des titres fonciers. Gain de temps considérable."',
+      'Mairie': '"Solution digitale efficace pour la gestion des terrains communaux. Recommandé."',
+      'Agent': '"Outil indispensable pour accompagner mes clients dans leurs projets fonciers."'
+    };
+    return testimonials[role] || '"Excellente expérience avec Teranga Foncier. Service de qualité !"';
+  };
+
+  // Données de fallback en cas d'erreur
+  const getDefaultParcels = () => [
+    {
+      id: 'fp1',
+      name: 'Parcelle Résidentielle à Diamniadio',
+      reference: 'REF-DIA-001',
+      location: 'Diamniadio, Dakar',
+      area: '300 m²',
+      price: '25 000 000 XOF',
+      image: 'https://placehold.co/400x250/0052A3/FFFFFF?text=Parcelle+Diamniadio',
+      status: 'Disponible'
+    },
+    {
+      id: 'fp2',
+      name: 'Terrain Agricole à Thiès',
+      reference: 'REF-THS-002',
+      location: 'Thiès, Région de Thiès',
+      area: '5000 m²',
+      price: '15 000 000 XOF',
+      image: 'https://placehold.co/400x250/00A3AD/FFFFFF?text=Terrain+Thiès',
+      status: 'Disponible'
+    },
+    {
+      id: 'fp3',
+      name: 'Parcelle Commerciale à Dakar',
+      reference: 'REF-DKR-003',
+      location: 'Plateau, Dakar',
+      area: '150 m²',
+      price: '45 000 000 XOF',
+      image: 'https://placehold.co/400x250/F0A800/FFFFFF?text=Parcelle+Dakar',
+      status: 'Réservée'
+    }
+  ];
+
+  const getDefaultBlogs = () => [
+    {
+      id: 'b1',
+      title: 'La numérisation du foncier : une révolution au Sénégal',
+      date: '25 Juillet 2025',
+      description: 'Découvrez comment la technologie transforme l\'accès et la gestion des terres au Sénégal...',
+      image: 'https://placehold.co/400x280/FFD700/000000?text=Article+Numerisation',
+      link: '/blog/article-1'
+    },
+    {
+      id: 'b2',
+      title: 'Acheter un terrain à Dakar : Le guide complet',
+      date: '18 Juillet 2025',
+      description: 'Nos experts partagent leurs conseils pour sécuriser votre investissement foncier dans la capitale...',
+      image: 'https://placehold.co/400x280/ADD8E6/000000?text=Article+Achat+Dakar',
+      link: '/blog/article-2'
+    },
+    {
+      id: 'b3',
+      title: 'Demande de terrain en mairie : Simplifiez vos démarches',
+      date: '10 Juillet 2025',
+      description: 'Découvrez comment notre plateforme simplifie vos démarches administratives pour l\'acquisition de terrains communaux...',
+      image: 'https://placehold.co/400x280/90EE90/000000?text=Article+Mairie',
+      link: '/blog/article-3'
+    }
+  ];
+
+  const getDefaultTestimonials = () => [
+    {
+      id: 't1',
+      name: 'Fatou Ndiaye',
+      role: 'Particulier',
+      quote: '"Teranga Foncier a rendu l\'achat de mon terrain incroyablement simple et sécurisé. Une équipe très professionnelle et une plateforme intuitive !"',
+      avatar: 'https://placehold.co/80x80/E0F2F7/0288D1?text=FN'
+    },
+    {
+      id: 't2',
+      name: 'M. Diallo',
+      role: 'Banque XYZ',
+      quote: '"La plateforme a révolutionné la gestion de nos actifs fonciers. Fiabilité, transparence et efficacité au rendez-vous pour nos opérations bancaires."',
+      avatar: 'https://placehold.co/80x80/D4EDDA/155724?text=MD'
+    },
+    {
+      id: 't3',
+      name: 'Awa Sow',
+      role: 'Notaire',
+      quote: '"Un service client exceptionnel et des démarches simplifiées. Teranga Foncier est un partenaire indispensable pour notre étude."',
+      avatar: 'https://placehold.co/80x80/FCE5CD/E67E22?text=AS'
+    }
+  ];
 
   // Animation variants for Framer Motion
   const containerVariants = {
@@ -305,7 +407,7 @@ const HomePage = () => {
             viewport={{ once: true, amount: 0.2 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {mockFeaturedParcels.map((parcel) => (
+            {featuredParcels.map((parcel) => (
               <motion.div key={parcel.id} variants={itemVariants} whileHover={{ scale: 1.03 }} transition={{ type: "spring", stiffness: 300 }}>
                 <Card className="h-full flex flex-col rounded-xl shadow-md overflow-hidden bg-white dark:bg-card border border-gray-200 dark:border-gray-700">
                   <img src={parcel.image} alt={parcel.name} className="object-cover h-56 w-full" loading="lazy" />
@@ -491,7 +593,7 @@ const HomePage = () => {
             viewport={{ once: true, amount: 0.2 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {mockBlogArticles.map((article) => (
+            {blogArticles.map((article) => (
               <motion.div key={article.id} variants={itemVariants} whileHover={{ scale: 1.03 }} transition={{ type: "spring", stiffness: 300 }}>
                 <Card className="h-full flex flex-col shadow-md rounded-xl overflow-hidden bg-white dark:bg-card border border-gray-200 dark:border-gray-700">
                   <img src={article.image} alt={article.title} className="object-cover h-56 w-full" loading="lazy" />
@@ -559,7 +661,7 @@ const HomePage = () => {
             Ce que disent nos utilisateurs
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {mockTestimonials.map((testimonial) => (
+            {testimonials.map((testimonial) => (
               <motion.div key={testimonial.id} variants={itemVariants} whileHover={{ scale: 1.03 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.5 }}>
                 <Card className="bg-white dark:bg-card p-8 rounded-xl shadow-md flex flex-col items-center text-center border border-gray-200 dark:border-gray-700">
                   <img src={testimonial.avatar} alt={testimonial.name} className="rounded-full mb-4 border-2 border-blue-200" />

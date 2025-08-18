@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Maximize, MapPin, Trash2, CheckCircle, AlertCircle, FileText, Droplets, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { sampleParcels } from '@/data/sampleData';
+import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
 const formatPrice = (price) => {

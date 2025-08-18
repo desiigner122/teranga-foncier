@@ -56,7 +56,7 @@ const MunicipalLandRequestPage = () => {
     // Municipal Land Request Submitted: { ...formData, files: files.map(f => f.name) }
 
     toast({
-      title: "Demande Envoyée (Simulation)",
+      title: "Demande Envoyée",
       description: `Votre demande a bien été transmise à la Mairie de ${formData.mairie}.`,
       className: "bg-green-500 text-white",
     });

@@ -7,7 +7,7 @@ import { PlusCircle, Search, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { sampleAgentData } from '@/data';
+import { supabase } from '@/lib/supabaseClient';
 import { cn } from '@/lib/utils';
 import LoadingSpinner from '@/components/ui/spinner';
 
@@ -18,11 +18,26 @@ const AgentTasksPage = () => {
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTasks(sampleAgentData.tasks);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const loadTasks = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const { data: tasks } = await supabase
+          .from('agent_tasks')
+          .select('*')
+          .eq('agent_id', user.id)
+          .order('created_at', { ascending: false });
+
+        setTasks(tasks || []);
+      } catch (error) {
+        console.error('Erreur chargement tâches:', error);
+        setTasks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTasks();
   }, []);
 
   const handleAction = (message) => {

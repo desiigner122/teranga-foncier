@@ -74,6 +74,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated: !!user && !!profile, // L'utilisateur est authentifié si on a l'objet user ET le profil
     isAdmin: profile?.role === 'admin' || profile?.type === 'Administrateur', // Vérifie le rôle ou le type sur l'objet profile
+    isVerified: profile?.verification_status === 'verified',
+    needsVerification: profile && !['verified', 'pending'].includes(profile.verification_status),
+    isPendingVerification: profile?.verification_status === 'pending',
     signOut: async () => {
       try {
         const { error } = await supabase.auth.signOut();

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PlusCircle, Search, MessageSquare, Phone, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { sampleAgentData } from '@/data';
+import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
 
 const AgentClientsPage = () => {
@@ -18,11 +18,26 @@ const AgentClientsPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setClients(sampleAgentData.clients);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const loadClients = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const { data: clients } = await supabase
+          .from('users')
+          .select('*')
+          .eq('agent_assigned', user.id)
+          .order('created_at', { ascending: false });
+
+        setClients(clients || []);
+      } catch (error) {
+        console.error('Erreur chargement clients:', error);
+        setClients([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadClients();
   }, []);
 
   const handleAction = (message) => {

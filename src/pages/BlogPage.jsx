@@ -1,13 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tag, Calendar, ArrowRight, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { sampleBlogPosts } from '@/data'; 
+import { supabase } from '@/lib/supabaseClient';
 import { Helmet } from 'react-helmet-async';
 
 const BlogPage = () => {
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadBlogPosts = async () => {
+      try {
+        const { data: posts, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('status', 'published')
+          .order('published_at', { ascending: false })
+          .limit(20);
+
+        if (error) throw error;
+
+        setBlogPosts(posts || []);
+      } catch (error) {
+        console.error('Erreur chargement blog:', error);
+        // En cas d'erreur, utiliser des données de démonstration
+        setBlogPosts([
+          {
+            id: 1,
+            title: "Transformation numérique du foncier au Sénégal",
+            description: "Comment l'agenda C50 révolutionne la gestion foncière.",
+            content: "Le gouvernement sénégalais lance une initiative ambitieuse...",
+            slug: "transformation-numerique-foncier-senegal",
+            category: "Politique",
+            tag: "Transformation",
+            author: "Équipe Teranga Foncier",
+            published_at: new Date().toISOString(),
+            image_url: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0"
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBlogPosts();
+  }, []);
+
   const cardVariants = {
     initial: { opacity: 0, y: 30 },
     animate: (index) => ({
@@ -20,6 +61,17 @@ const BlogPage = () => {
       }
     })
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Chargement des articles...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -47,7 +99,7 @@ const BlogPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sampleBlogPosts.map((post, index) => (
+          {blogPosts.map((post, index) => (
             <motion.custom
               key={post.id}
               variants={cardVariants}

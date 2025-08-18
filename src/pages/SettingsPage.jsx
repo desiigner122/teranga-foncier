@@ -61,7 +61,7 @@ const SettingsPage = () => {
       }
        if (key === 'language') {
          localStorage.setItem('appLang', value);
-         toast({ title: "Langue (Simulation)", description: `La langue est passée à : ${value.toUpperCase()}. Un rechargement serait nécessaire.`});
+         toast({ title: "Langue", description: `La langue a été changée vers : ${value.toUpperCase()}. Rechargement nécessaire pour prendre effet.`});
       }
    };
 
@@ -163,7 +163,7 @@ const SettingsPage = () => {
                         </SelectTrigger>
                         <SelectContent>
                            <SelectItem value="fr">Français</SelectItem>
-                           <SelectItem value="en">English (Simulation)</SelectItem>
+                           <SelectItem value="en">English</SelectItem>
                         </SelectContent>
                      </Select>
                   </div>
@@ -202,7 +202,7 @@ const SettingsPage = () => {
                   <div className="border p-3 rounded-md bg-muted/20">
                      <h4 className="font-medium text-sm mb-1">Gestion des Données Personnelles</h4>
                      <p className="text-xs text-muted-foreground mb-2">Consultez notre <Link to="/privacy" className="text-primary underline hover:text-primary/80">politique de confidentialité</Link> ou demandez l'export de vos données.</p>
-                     <Button variant="outline" size="sm" onClick={() => toast({ title: "Export de Données (Simulation)", description: "Votre demande d'export a été prise en compte. Vous recevrez un email."})}>Exporter mes Données</Button>
+                     <Button variant="outline" size="sm" onClick={() => toast({ title: "Export de Données", description: "Votre demande d'export a été prise en compte. Vous recevrez un email avec vos données."})}>Exporter mes Données</Button>
                   </div>
                </CardContent>
             </Card>

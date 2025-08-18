@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { sampleRequests } from '@/data/sampleData';
+import { supabase } from '@/lib/supabaseClient';
+import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, Clock, FileText, Home, User, AlertCircle, Banknote, ArrowRight } from 'lucide-react';
@@ -41,15 +43,84 @@ const CaseTrackingPage = () => {
   const { id } = useParams();
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      const foundRequest = sampleRequests.find(r => r.id === id);
-      setRequest(foundRequest);
-      setLoading(false);
-    }, 500);
-  }, [id]);
+    const loadRequest = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Essayer de récupérer la demande spécifique depuis Supabase
+        const realRequest = await SupabaseDataService.getRequestById(id);
+        
+        if (realRequest) {
+          // Transformer les données pour le format attendu
+          const formattedRequest = {
+            id: realRequest.id,
+            type: realRequest.request_type || 'information',
+            status: realRequest.status === 'pending' ? 'En instruction' :
+                   realRequest.status === 'approved' ? 'Approuvée' :
+                   realRequest.status === 'completed' ? 'Traitée' :
+                   realRequest.status === 'rejected' ? 'Rejeté' : 'Nouvelle',
+            recipient: realRequest.recipient_type || 'Mairie',
+            dateSubmitted: realRequest.created_at,
+            lastUpdated: realRequest.updated_at,
+            user_name: realRequest.users ? realRequest.users.full_name : 'Utilisateur non spécifié',
+            user_email: realRequest.users ? realRequest.users.email : '',
+            details: realRequest.details || {},
+            history: generateHistoryFromStatus(realRequest.status, realRequest.created_at, realRequest.updated_at),
+            payments: [] // À implémenter si nécessaire
+          };
+          
+          setRequest(formattedRequest);
+        } else {
+          // Si pas trouvé dans Supabase, afficher un message d'erreur
+          setError('Demande non trouvée');
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement de la demande:', error);
+        // En cas d'erreur, afficher un message d'erreur
+        setError('Erreur lors du chargement de la demande');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRequest();
+  }, [id, user]);
+
+  // Fonction pour générer l'historique basé sur le statut
+  const generateHistoryFromStatus = (status, createdAt, updatedAt) => {
+    const history = [
+      {
+        date: createdAt,
+        action: 'Demande soumise',
+        description: 'Votre demande a été reçue et enregistrée dans notre système.',
+        status: 'completed'
+      }
+    ];
+
+    if (status !== 'pending') {
+      history.push({
+        date: updatedAt || createdAt,
+        action: status === 'approved' ? 'Demande approuvée' : 
+               status === 'completed' ? 'Demande traitée' :
+               status === 'rejected' ? 'Demande rejetée' : 'Demande mise à jour',
+        description: status === 'approved' ? 'Votre demande a été approuvée par les autorités compétentes.' :
+                    status === 'completed' ? 'Votre demande a été traitée avec succès.' :
+                    status === 'rejected' ? 'Votre demande a été rejetée. Veuillez consulter les détails.' :
+                    'Votre demande a été mise à jour.',
+        status: status === 'rejected' ? 'error' : 'completed'
+      });
+    }
+
+    return history;
+  };
 
   if (loading) return (
     <div className="container mx-auto py-8 px-4">

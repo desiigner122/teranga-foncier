@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Layers, Search, ZoomIn, ZoomOut, Home, DollarSign, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { sampleParcels } from '@/data/sampleData'; 
+import SupabaseDataService from '@/services/supabaseDataService';
+import LoadingSpinner from '@/components/ui/spinner'; 
 import { Card, CardContent } from '@/components/ui/card'; // Import Card and CardContent
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -65,10 +67,53 @@ const MapLegend = () => (
 );
 
 const MapPage = () => {
-  const parcels = sampleParcels;
+  const [parcels, setParcels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const defaultPosition = [14.7167, -17.4677]; // Dakar center
   const defaultZoom = 11;
   const mapRef = useRef();
+
+  useEffect(() => {
+    const loadParcels = async () => {
+      try {
+        setLoading(true);
+        const realParcels = await SupabaseDataService.getParcels();
+        
+        // Transformer les données pour le format attendu par la carte
+        const formattedParcels = realParcels.map(parcel => ({
+          id: parcel.id,
+          name: parcel.title || `Parcelle ${parcel.reference}`,
+          reference: parcel.reference,
+          location: parcel.location || 'Dakar, Sénégal',
+          status: parcel.status === 'available' ? 'Disponible' : 
+                  parcel.status === 'reserved' ? 'Réservée' : 
+                  parcel.status === 'sold' ? 'Vendue' : 'En attente',
+          price: parcel.price,
+          area: parcel.area_sqm,
+          coordinates: parcel.coordinates ? JSON.parse(parcel.coordinates) : [
+            14.7167 + (Math.random() - 0.5) * 0.1, // Position aléatoire autour de Dakar
+            -17.4677 + (Math.random() - 0.5) * 0.1
+          ],
+          description: parcel.description,
+          image: parcel.image_url || 'https://placehold.co/300x200/0052A3/FFFFFF?text=Parcelle',
+          owner: parcel.owner_name || 'Propriétaire non spécifié',
+          created_at: parcel.created_at
+        }));
+
+        setParcels(formattedParcels);
+      } catch (err) {
+        console.error('Erreur lors du chargement des parcelles:', err);
+        setError(err.message);
+        // En cas d'erreur, utiliser sampleParcels comme fallback
+        setParcels(sampleParcels || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadParcels();
+  }, []);
 
   const getIconForParcel = (status) => {
     switch (status) {
@@ -90,6 +135,30 @@ const MapPage = () => {
       if (!query) return;
       // Search query: ${query}
       alert(`Recherche pour "${query}" - L'intégration de l'API de Géocodage est nécessaire pour cette fonctionnalité.`);
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <LoadingSpinner size="large" />
+        <div className="ml-4">
+          <p className="text-lg font-medium">Chargement des parcelles...</p>
+          <p className="text-sm text-muted-foreground">Récupération des données depuis la base</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="text-center">
+          <p className="text-lg font-medium text-red-600">Erreur de chargement</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <p className="text-xs text-muted-foreground mt-2">Affichage des données de démonstration</p>
+        </div>
+      </div>
+    );
   }
 
   return (

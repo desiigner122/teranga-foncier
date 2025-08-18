@@ -5,13 +5,98 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Bell, Clock, CheckCircle, AlertTriangle, Eye, Download } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import LoadingSpinner from '@/components/ui/spinner';
 
 const TransactionTrackingPage = () => {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  const sampleTransactions = [
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        setLoading(true);
+        let userTransactions;
+        
+        if (user) {
+          // Si l'utilisateur est connecté, récupérer ses transactions
+          userTransactions = await SupabaseDataService.getTransactionsByUser(user.id);
+        } else {
+          // Sinon, récupérer toutes les transactions (pour demo)
+          userTransactions = await SupabaseDataService.getTransactions(10);
+        }
+
+        // Transformer les données pour le format attendu
+        const formattedTransactions = userTransactions.map((transaction, index) => ({
+          id: transaction.reference || `TXN-${String(index + 1).padStart(3, '0')}`,
+          parcelRef: transaction.parcel_reference || `ref-${transaction.id?.substring(0, 8)}`,
+          type: transaction.type === 'sale' ? 'Vente' : 'Achat',
+          amount: transaction.amount || 0,
+          buyer: transaction.buyer_name || (transaction.users ? transaction.users.full_name : 'Acheteur non spécifié'),
+          seller: transaction.seller_name || 'Vendeur non spécifié',
+          status: transaction.status === 'completed' ? 'Finalisé' : 
+                  transaction.status === 'pending' ? 'En cours' : 
+                  transaction.status === 'cancelled' ? 'Annulé' : 'En attente',
+          progress: transaction.status === 'completed' ? 100 : 
+                   transaction.status === 'pending' ? 50 : 25,
+          steps: generateStepsFromStatus(transaction.status),
+          nextAction: getNextActionFromStatus(transaction.status),
+          created_at: transaction.created_at
+        }));
+
+        setTransactions(formattedTransactions);
+      } catch (err) {
+        console.error('Erreur lors du chargement des transactions:', err);
+        // En cas d'erreur, utiliser des données par défaut
+        setTransactions(getDefaultTransactions());
+        toast({
+          variant: "destructive",
+          title: "Erreur de chargement",
+          description: "Impossible de charger vos transactions. Données de démonstration affichées.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTransactions();
+  }, [user, toast]);
+
+  // Fonction pour générer les étapes basées sur le statut
+  const generateStepsFromStatus = (status) => {
+    const baseSteps = [
+      { name: 'Offre acceptée', completed: true, date: '2025-01-05' },
+      { name: 'Documents vérifiés', completed: false, date: '2025-01-08' },
+      { name: 'Financement approuvé', completed: false, date: '2025-01-12' },
+      { name: 'Rendez-vous notaire', completed: false, date: '2025-01-20' },
+      { name: 'Signature finale', completed: false, date: '2025-01-25' }
+    ];
+
+    switch (status) {
+      case 'completed':
+        return baseSteps.map(step => ({ ...step, completed: true }));
+      case 'pending':
+        return baseSteps.map((step, index) => ({ ...step, completed: index < 3 }));
+      default:
+        return baseSteps.map((step, index) => ({ ...step, completed: index < 1 }));
+    }
+  };
+
+  // Fonction pour obtenir la prochaine action
+  const getNextActionFromStatus = (status) => {
+    switch (status) {
+      case 'completed': return 'Transaction terminée';
+      case 'pending': return 'Rendez-vous chez le notaire en attente';
+      case 'cancelled': return 'Transaction annulée';
+      default: return 'En attente de validation';
+    }
+  };
+
+  // Données par défaut en cas d'erreur
+  const getDefaultTransactions = () => [
     {
       id: 'TXN-001',
       parcelRef: 'dk-alm-002',
@@ -49,14 +134,6 @@ const TransactionTrackingPage = () => {
       nextAction: 'Transaction terminée'
     }
   ];
-
-  useEffect(() => {
-    // Simulation du chargement
-    setTimeout(() => {
-      setTransactions(sampleTransactions);
-      setLoading(false);
-    }, 1000);
-  }, []);
 
   const getStatusBadge = (status) => {
     const statusConfig = {

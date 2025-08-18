@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { PlusCircle, Search, Eye, Edit, CalendarPlus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { sampleAgentData } from '@/data';
+import { supabase } from '@/lib/supabaseClient';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from '@/components/ui/spinner';
 
@@ -17,11 +17,26 @@ const AgentParcelsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setParcels(sampleAgentData.parcels);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const loadParcels = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const { data: parcels } = await supabase
+          .from('parcels')
+          .select('*')
+          .eq('agent_assigned', user.id)
+          .order('created_at', { ascending: false });
+
+        setParcels(parcels || []);
+      } catch (error) {
+        console.error('Erreur chargement parcelles:', error);
+        setParcels([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadParcels();
   }, []);
 
   const handleAction = (message) => {

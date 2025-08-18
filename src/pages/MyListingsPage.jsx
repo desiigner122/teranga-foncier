@@ -18,27 +18,22 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-
-// Placeholder data
-const sampleListings = [
-  { id: 'PROP001', name: 'Terrain viabilisé Diamniadio', type: 'terrain', status: 'En vérification', dateSubmitted: '2025-05-01', price: 30000000 },
-  { id: 'PROP002', name: 'Villa R+1 Sacré Coeur', type: 'immeuble', status: 'Publié', dateSubmitted: '2025-04-20', price: 120000000, parcelLink: '/parcelles/DK015' },
-  { id: 'PROP003', name: 'Terrain agricole proche Thiès', type: 'terrain', status: 'Action requise', dateSubmitted: '2025-04-10', price: 15000000, message: "Document 'Titre Foncier' illisible. Veuillez re-soumettre." },
-  { id: 'PROP004', name: 'Appartement Saly', type: 'immeuble', status: 'Vendu (Paiement en cours)', dateSubmitted: '2025-03-15', price: 55000000, paymentProgress: 40, totalPaid: 22000000 },
-];
+import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 const getStatusInfo = (status) => {
     switch (status) {
-      case 'En vérification': return { variant: 'warning', icon: Clock, text: 'En cours de vérification' };
-      case 'Publié': return { variant: 'success', icon: CheckCircle, text: 'Publié' };
-      case 'Action requise': return { variant: 'destructive', icon: AlertTriangle, text: 'Action requise' };
-      case 'Vendu (Paiement en cours)': return { variant: 'info', icon: Banknote, text: 'Paiement en cours' };
+      case 'available': return { variant: 'success', icon: CheckCircle, text: 'Publié' };
+      case 'pending': return { variant: 'warning', icon: Clock, text: 'En vérification' };
+      case 'reserved': return { variant: 'info', icon: Banknote, text: 'Réservé' };
+      case 'sold': return { variant: 'default', icon: CheckCircle, text: 'Vendu' };
+      case 'rejected': return { variant: 'destructive', icon: AlertTriangle, text: 'Action requise' };
       default: return { variant: 'secondary', icon: Clock, text: 'Inconnu' };
     }
 };
 
 const getTypeIcon = (type) => {
-    return type === 'terrain' ? <LandPlot className="mr-1.5 h-4 w-4" /> : <Building className="mr-1.5 h-4 w-4" />;
+    return type === 'terrain' || type === 'agricultural' ? <LandPlot className="mr-1.5 h-4 w-4" /> : <Building className="mr-1.5 h-4 w-4" />;
 };
 
 const formatPrice = (price) => {
@@ -49,14 +44,86 @@ const MyListingsPage = () => {
    const [isLoading, setIsLoading] = useState(true);
    const [listings, setListings] = useState([]);
    const { toast } = useToast();
+   const { user } = useAuth();
 
    useEffect(() => {
-      const timer = setTimeout(() => {
-          setListings(sampleListings);
+      const loadUserListings = async () => {
+        if (!user) {
           setIsLoading(false);
-      }, 1000);
-      return () => clearTimeout(timer);
-   }, []);
+          return;
+        }
+
+        try {
+          setIsLoading(true);
+          // Récupérer les parcelles de l'utilisateur connecté
+          const userParcels = await SupabaseDataService.getParcelsByOwner(user.id);
+          
+          // Transformer les données pour le format attendu
+          const formattedListings = userParcels.map(parcel => ({
+            id: parcel.id,
+            name: parcel.title || `Parcelle ${parcel.reference}`,
+            reference: parcel.reference,
+            type: parcel.property_type || 'terrain',
+            status: parcel.status || 'pending',
+            dateSubmitted: new Date(parcel.created_at).toLocaleDateString('fr-FR'),
+            price: parcel.price || 0,
+            location: parcel.location,
+            description: parcel.description,
+            area_sqm: parcel.area_sqm,
+            image_url: parcel.image_url,
+            updated_at: parcel.updated_at
+          }));
+
+          setListings(formattedListings);
+        } catch (error) {
+          console.error('Erreur lors du chargement des annonces:', error);
+          // En cas d'erreur, charger des données par défaut
+          setListings([
+            { 
+              id: 'PROP001', 
+              name: 'Terrain viabilisé Diamniadio', 
+              type: 'terrain', 
+              status: 'pending', 
+              dateSubmitted: '2025-05-01', 
+              price: 30000000,
+              reference: 'REF-001',
+              location: 'Diamniadio, Dakar'
+            },
+            { 
+              id: 'PROP002', 
+              name: 'Villa R+1 Sacré Coeur', 
+              type: 'residential', 
+              status: 'available', 
+              dateSubmitted: '2025-04-20', 
+              price: 120000000,
+              reference: 'REF-002',
+              location: 'Sacré Coeur, Dakar',
+              parcelLink: '/parcelles/DK015' 
+            },
+            { 
+              id: 'PROP003', 
+              name: 'Terrain agricole proche Thiès', 
+              type: 'agricultural', 
+              status: 'rejected', 
+              dateSubmitted: '2025-04-10', 
+              price: 15000000,
+              reference: 'REF-003',
+              location: 'Thiès',
+              message: "Document 'Titre Foncier' illisible. Veuillez re-soumettre." 
+            }
+          ]);
+          toast({
+            variant: "destructive",
+            title: "Erreur de chargement",
+            description: "Impossible de charger vos annonces. Données de démonstration affichées.",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadUserListings();
+   }, [user, toast]);
 
    const handleDelete = (listingId) => {
        // Deleting listing: ${listingId}

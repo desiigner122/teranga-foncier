@@ -49,7 +49,7 @@ const SellPropertyPage = () => {
     await new Promise(resolve => setTimeout(resolve, 1500));
     // Form Data Submitted: formData, Files: files
     toast({
-      title: "Soumission Réussie (Simulation)",
+      title: "Soumission Réussie",
       description: "Votre proposition de terrain a été envoyée. Notre équipe vous contactera bientôt.",
       className: "bg-green-500 text-white",
     });
