@@ -4,12 +4,7 @@ import { BrowserRouter as Router, Route, Routes, Outlet, Link, Navigate } from '
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import DashboardLayo                  <GlobalChatbot />
-                </MessagingNotificationProvider>
-              </ChatbotProvider>
-            </AuthProvider>
-          </DemoProvider>
-        </ComparisonProvider>om '@/components/layout/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
@@ -314,9 +309,10 @@ function App() {
                 </Routes>
                 <Toaster />
                 <GlobalChatbot />
-              </MessagingNotificationProvider>
-            </ChatbotProvider>
-          </AuthProvider>
+                </MessagingNotificationProvider>
+              </ChatbotProvider>
+            </AuthProvider>
+          </DemoProvider>
         </ComparisonProvider>
       </Router>
     </HelmetProvider>
