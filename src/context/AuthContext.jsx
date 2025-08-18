@@ -3,13 +3,11 @@ import React, { createContext, useState, useEffect, useContext, useCallback } fr
 import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
 import { useToast } from "@/components/ui/use-toast";
-import { useDemo } from './DemoContext';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const { toast } = useToast();
-  const { demoMode, demoUser } = useDemo();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [session, setSession] = useState(null);
@@ -71,21 +69,16 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     session,
-    user: demoMode ? demoUser : user, // Use demo user if in demo mode
-    profile: demoMode ? demoUser?.profile : profile, // Use demo profile if in demo mode
-    loading: demoMode ? false : loading, // No loading in demo mode
-    isAuthenticated: demoMode ? true : (!!user && !!profile), // Always authenticated in demo mode
-    isAdmin: demoMode ? (demoUser?.profile?.role === 'admin' || demoUser?.profile?.type === 'Administrateur') : (profile?.role === 'admin' || profile?.type === 'Administrateur'),
+    user,
+    profile,
+    loading,
+    isAuthenticated: !!user && !!profile,
+    isAdmin: profile?.role === 'admin' || profile?.type === 'Administrateur',
     // Administrateurs exempts de vérification
-    isVerified: demoMode ? true : ((profile?.role === 'admin' || profile?.type === 'Administrateur') ? true : profile?.verification_status === 'verified'),
-    needsVerification: demoMode ? false : ((profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile && !['verified', 'pending'].includes(profile.verification_status)),
-    isPendingVerification: demoMode ? false : ((profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile?.verification_status === 'pending'),
+    isVerified: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? true : profile?.verification_status === 'verified',
+    needsVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile && !['verified', 'pending'].includes(profile.verification_status),
+    isPendingVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile?.verification_status === 'pending',
     signOut: async () => {
-      if (demoMode) {
-        // In demo mode, don't actually sign out from Supabase
-        toast({ title: "Mode Démonstration", description: "Déconnexion simulée" });
-        return;
-      }
       try {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
