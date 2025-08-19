@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ExceptionalAddUserDialog from '@/components/admin/roles/ExceptionalAddUserDialog';
+import RolesPermissionsPanel from '@/components/admin/roles/RolesPermissionsPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,9 @@ const AdminUsersPageAdvanced = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [userRolesMap, setUserRolesMap] = useState({}); // user_id -> array of role objects
+  const [availableRoles, setAvailableRoles] = useState([]); // list of all roles for assignment
+  const [assigningForUser, setAssigningForUser] = useState(null); // user object when opening multi-role dialog
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const location = useLocation();
@@ -102,8 +106,19 @@ const AdminUsersPageAdvanced = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const allUsers = await SupabaseDataService.getUsers();
+      const [allUsers, allRoles, allUserRoles] = await Promise.all([
+        SupabaseDataService.getUsers(),
+        SupabaseDataService.listRoles(),
+        SupabaseDataService.listAllUserRoles()
+      ]);
       setUsers(allUsers);
+      setAvailableRoles(allRoles);
+      const grouped = {};
+      (allUserRoles||[]).forEach(r => {
+        if (!grouped[r.user_id]) grouped[r.user_id] = [];
+        grouped[r.user_id].push(r);
+      });
+      setUserRolesMap(grouped);
     } catch (error) {
       console.error('Erreur chargement utilisateurs:', error);
       toast({
@@ -166,12 +181,42 @@ const AdminUsersPageAdvanced = () => {
   // Assigner rôle
   const handleAssignRole = async (user, newRole) => {
     try {
+      // Single legacy role update retained for backward compatibility
       await SupabaseDataService.updateUser(user.id, { role: newRole });
       setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
-      toast({ title: 'Rôle mis à jour', description: `${user.email} → ${newRole}` });
+      toast({ title: 'Rôle principal mis à jour', description: `${user.email} → ${newRole}` });
     } catch (e) {
       console.error(e);
       toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de rôle impossible' });
+    }
+  };
+
+  // Multi-role assignment handlers
+  const handleAddUserRole = async (userId, roleKey) => {
+    try {
+      await SupabaseDataService.assignRole(userId, roleKey);
+      setUserRolesMap(prev => {
+        const existing = prev[userId] ? [...prev[userId]] : [];
+        existing.push({ user_id: userId, role_key: roleKey });
+        return { ...prev, [userId]: existing };
+      });
+      toast({ title: 'Rôle assigné', description: roleKey });
+    } catch (e) {
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Assignation échouée' });
+    }
+  };
+  const handleRevokeUserRole = async (userId, roleKey) => {
+    try {
+      await SupabaseDataService.revokeRole(userId, roleKey);
+      setUserRolesMap(prev => ({
+        ...prev,
+        [userId]: (prev[userId]||[]).filter(r => r.role_key !== roleKey)
+      }));
+      toast({ title: 'Rôle révoqué', description: roleKey });
+    } catch (e) {
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Révocation échouée' });
     }
   };
 
@@ -319,6 +364,7 @@ const AdminUsersPageAdvanced = () => {
                 <TableHead>Utilisateur</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Rôle</TableHead>
+                <TableHead>Rôles multiples</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead>Date d'inscription</TableHead>
                 <TableHead>Actions</TableHead>
@@ -338,6 +384,21 @@ const AdminUsersPageAdvanced = () => {
                   </TableCell>
                   <TableCell>
                     {getRoleBadge(user.role)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {(userRolesMap[user.id]||[]).map(r => (
+                        <span key={r.role_key} className="px-2 py-0.5 rounded bg-muted text-xs flex items-center gap-1">
+                          {r.role_key}
+                          <button
+                            onClick={() => handleRevokeUserRole(user.id, r.role_key)}
+                            className="text-[10px] hover:text-red-600"
+                            aria-label={`Révoquer ${r.role_key}`}
+                          >×</button>
+                        </span>
+                      ))}
+                      <Button size="xs" variant="ghost" onClick={()=> setAssigningForUser(user)}>+</Button>
+                    </div>
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(user.verification_status)}
@@ -487,6 +548,54 @@ const AdminUsersPageAdvanced = () => {
         onOpenChange={(o)=> setIsExceptionalDialogOpen(o)}
         onCreated={(created)=> { setUsers(prev=>[created, ...prev]); }}
       />
+
+      {/* Multi-role assignment dialog */}
+      <Dialog open={!!assigningForUser} onOpenChange={(o)=>{ if(!o) setAssigningForUser(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gérer les rôles</DialogTitle>
+            <DialogDescription>
+              {assigningForUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>Rôles actuels</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {(userRolesMap[assigningForUser?.id]||[]).length === 0 && (
+                  <p className="text-xs text-muted-foreground">Aucun rôle additionnel</p>
+                )}
+                {(userRolesMap[assigningForUser?.id]||[]).map(r => (
+                  <span key={r.role_key} className="px-2 py-0.5 rounded bg-muted text-xs flex items-center gap-1">
+                    {r.role_key}
+                    <button
+                      onClick={() => handleRevokeUserRole(assigningForUser.id, r.role_key)}
+                      className="text-[10px] hover:text-red-600"
+                    >×</button>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>Ajouter un rôle</Label>
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {availableRoles.filter(r => !(userRolesMap[assigningForUser?.id]||[]).some(ur => ur.role_key === r.key)).map(r => (
+                  <Button key={r.key} size="sm" variant="outline" onClick={()=> handleAddUserRole(assigningForUser.id, r.key)}>
+                    {r.key}
+                  </Button>
+                ))}
+                {availableRoles.length === 0 && <p className="text-xs text-muted-foreground">Aucun rôle disponible</p>}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={()=> setAssigningForUser(null)}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+  {/* Roles & Permissions Panel */}
+  <RolesPermissionsPanel />
     </motion.div>
   );
 };

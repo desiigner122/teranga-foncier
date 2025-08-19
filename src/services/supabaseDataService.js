@@ -54,6 +54,20 @@ export class SupabaseDataService {
     } catch (e) { console.warn('listRoles failed:', e.message||e); return []; }
   }
 
+  static async deleteRole(roleKey) {
+    // Only allow deletion of non-system roles (expects column is_system or is_protected)
+    try {
+      const { error } = await supabase
+        .from('roles')
+        .delete()
+        .eq('key', roleKey)
+        .neq('is_system', true)
+        .neq('is_protected', true);
+      if (error) throw error;
+      return true;
+    } catch (e) { console.error('deleteRole failed:', e.message||e); throw e; }
+  }
+
   static async listUserRoles(userId) {
     // Prefer view v_user_roles if available
     try {
@@ -66,6 +80,20 @@ export class SupabaseDataService {
         if (error) throw error;
         return (data||[]).map(r => ({ user_id: userId, role_key: r.roles?.key, label: r.roles?.label, feature_flags: r.roles?.feature_flags, default_permissions: r.roles?.default_permissions }));
       } catch (err) { console.warn('listUserRoles fallback failed:', err.message||err); return []; }
+    }
+  }
+
+  static async listAllUserRoles() {
+    // Retrieve all user-role associations
+    try {
+      const { data, error } = await supabase.from('v_user_roles').select('*');
+      if (error) throw error; return data || [];
+    } catch (e) {
+      try {
+        const { data, error } = await supabase.from('user_roles').select('user_id, role_id, roles:role_id(key,label,description,feature_flags,default_permissions)');
+        if (error) throw error;
+        return (data||[]).map(r => ({ user_id: r.user_id, role_key: r.roles?.key, label: r.roles?.label, feature_flags: r.roles?.feature_flags, default_permissions: r.roles?.default_permissions }));
+      } catch (err) { console.warn('listAllUserRoles fallback failed:', err.message||err); return []; }
     }
   }
 
@@ -102,6 +130,8 @@ export class SupabaseDataService {
     let query = supabase
       .from('users')
       .select('*')
+      .eq('is_active', true)
+  .is('deleted_at', null)
       .order('created_at', { ascending: false });
     
     if (limit) query = query.limit(limit);
@@ -112,6 +142,48 @@ export class SupabaseDataService {
       return [];
     }
     return data || [];
+  }
+
+  // ============== GEO & REFERENCE DATA (NEW) ==============
+  static async listRegions() {
+    try {
+      const { data, error } = await supabase.from('regions').select('id, name, code').order('name');
+      if (error) throw error; return data || [];
+    } catch (e) { console.warn('listRegions fallback (table missing?)', e.message||e); return []; }
+  }
+  static async listDepartmentsByRegion(regionId) {
+    if (!regionId) return [];
+    try {
+      const { data, error } = await supabase.from('departments').select('id, name, code').eq('region_id', regionId).order('name');
+      if (error) throw error; return data || [];
+    } catch (e) { console.warn('listDepartmentsByRegion fallback', e.message||e); return []; }
+  }
+  static async listCommunesByDepartment(departmentId) {
+    if (!departmentId) return [];
+    try {
+      const { data, error } = await supabase.from('communes').select('id, name, code').eq('department_id', departmentId).order('name');
+      if (error) throw error; return data || [];
+    } catch (e) { console.warn('listCommunesByDepartment fallback', e.message||e); return []; }
+  }
+  static async listBanks() {
+    // Distinct institution_profiles of type Banque
+    try {
+      const { data, error } = await supabase.from('institution_profiles').select('name').eq('institution_type','Banque');
+      if (error) throw error; return Array.from(new Set((data||[]).map(r=>r.name).filter(Boolean))).sort();
+    } catch (e) { console.warn('listBanks fallback', e.message||e); return []; }
+  }
+  static async listNotaireSpecialities() {
+    // Attempt dedicated table notaire_specialities then fallback to institution_profiles metadata
+    try {
+      const { data, error } = await supabase.from('notaire_specialities').select('label');
+      if (!error && data) return data.map(r=>r.label).filter(Boolean).sort();
+    } catch {/* ignore */}
+    try {
+      const { data, error } = await supabase.from('institution_profiles').select('metadata').eq('institution_type','Notaire');
+      if (error) throw error;
+      const vals = (data||[]).map(r=> (r.metadata && (r.metadata.notaire_speciality || r.metadata.speciality)) ).filter(Boolean);
+      return Array.from(new Set(vals)).sort();
+    } catch (e) { console.warn('listNotaireSpecialities fallback', e.message||e); return []; }
   }
 
   static async getUserById(id) {
@@ -346,6 +418,28 @@ export class SupabaseDataService {
       return [];
     }
     return data || [];
+  }
+
+  static async getTransactionById(id) {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) throw error; return data;
+    } catch (e) { console.error('getTransactionById failed:', e.message||e); return null; }
+  }
+
+  static async payTransaction(transactionId, actorUserId, method) {
+    try {
+      const { data, error } = await supabase.rpc('pay_transaction', {
+        p_transaction_id: transactionId,
+        p_actor: actorUserId,
+        p_method: method
+      });
+      if (error) throw error; return data;
+    } catch (e) { console.error('payTransaction failed:', e.message||e); throw e; }
   }
 
   // ============== BLOG POSTS ==============
@@ -949,16 +1043,29 @@ export class SupabaseDataService {
 
   // ============== ADMIN MANAGEMENT ==============
   static async deleteUser(userId) {
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userId);
-    
-    if (error) {
-      console.error('Erreur lors de la suppression de l\'utilisateur:', error);
-      throw error;
+    // Prefer logical deletion: mark inactive if users table has is_active column
+    try {
+      // Try update flag first
+      const { data: updated, error: updErr } = await supabase
+        .from('users')
+        .update({ is_active: false, deleted_at: new Date().toISOString() })
+        .eq('id', userId)
+        .select('id');
+      if (!updErr && updated && updated.length) {
+        this.logEvent({ entityType:'user', entityId:userId, eventType:'user.soft_deleted', actorUserId:null, importance:1, source:'admin_ui' });
+        return true;
+      }
+    } catch {/* ignore */}
+    // Hard delete fallback (non-auth table only; Supabase auth.users cannot be deleted from client)
+    try {
+      const { error } = await supabase.from('users').delete().eq('id', userId);
+      if (error) throw error;
+      this.logEvent({ entityType:'user', entityId:userId, eventType:'user.deleted', actorUserId:null, importance:2, source:'admin_ui' });
+      return true;
+    } catch (e) {
+      console.error('deleteUser failed:', e.message||e);
+      throw e;
     }
-    return true;
   }
 
   static async updateUserRole(userId, newRole, newType) {

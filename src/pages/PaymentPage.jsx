@@ -7,17 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, Smartphone, Landmark, FileCheck2, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Smartphone, Landmark, FileCheck2, CheckCircle, Loader2, RefreshCcw } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { paymentMethods, partnerBanks } from '@/data/paymentData';
 import LoadingSpinner from '@/components/ui/spinner';
-
-const sampleTransactions = [
-  { id: 'TRN-003-2025', date: '2025-08-15', description: 'Achat de la parcelle SLY-NGP-010 (2/4)', amount: 10312500, type: 'Achat de terrain' },
-  { id: 'TRN-004-2025', date: '2025-07-25', description: 'Frais de Notaire - Dossier SLY-NGP-010', amount: 75000, type: 'Frais notariaux' },
-  { id: 'TRN-005-2025', date: '2025-07-20', description: 'Timbres fiscaux - Mairie de Saly', amount: 15000, type: 'Frais administratifs' },
-  { id: 'TRN-001-2025', date: '2025-07-15', description: 'Achat de la parcelle SLY-NGP-010 (1/4)', amount: 10312500, type: 'Achat de terrain' },
-  { id: 'TRN-002-2025', date: '2025-06-20', description: 'Frais de dossier - Demande d\'attribution Mairie de Saly', amount: 50000, type: 'Frais administratifs' },
-];
+import SupabaseDataService from '@/services/supabaseDataService';
 
 const formatPrice = (price) => new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(price);
 
@@ -25,45 +19,77 @@ const PaymentPage = () => {
   const { transactionId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [transaction, setTransaction] = useState(null);
   const [selectedMethod, setSelectedMethod] = useState('');
   const [paymentDetails, setPaymentDetails] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    const foundTransaction = sampleTransactions.find(tx => tx.id === transactionId);
-    if (foundTransaction) {
-      setTransaction(foundTransaction);
-      if (foundTransaction.amount <= 100000) {
-        setSelectedMethod('mobile');
-      } else {
-        setSelectedMethod('transfer');
+    let mounted = true;
+    (async()=>{
+      try {
+        const all = await SupabaseDataService.getTransactions();
+        const found = all.find(t=> String(t.id) === String(transactionId) || t.reference === transactionId);
+        if (!found) throw new Error('Transaction introuvable');
+        if (mounted) {
+          setTransaction(found);
+          setSelectedMethod(found.amount <= 100000 ? 'mobile' : 'transfer');
+          setCurrentStatus(found.status);
+        }
+      } catch (e) {
+        toast({ title:'Erreur', description:e.message||'Transaction non trouvée', variant:'destructive' });
+        navigate('/transactions');
       }
-    } else {
-      toast({
-        title: "Erreur",
-        description: "Transaction non trouvée.",
-        variant: "destructive",
-      });
-      navigate('/transactions');
-    }
+    })();
+    return ()=>{ mounted=false; };
   }, [transactionId, navigate, toast]);
 
-  const handlePaymentSubmit = (e) => {
+  const refreshStatus = async () => {
+    if (!transaction) return;
+    setRefreshing(true);
+    try {
+      const latest = await SupabaseDataService.getTransactionById(transaction.id);
+      if (latest) {
+        setTransaction(latest);
+        setCurrentStatus(latest.status);
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handlePaymentSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      toast({ title:'Non connecté', description:'Connectez-vous pour payer', variant:'destructive' });
+      return;
+    }
     setIsProcessing(true);
-    setTimeout(() => {
+    try {
+  const paid = await SupabaseDataService.payTransaction(transaction.id, user.id, selectedMethod);
       setIsProcessing(false);
       setIsPaid(true);
-      toast({
-        title: "Paiement Réussi !",
-        description: `Le paiement de ${formatPrice(transaction.amount)} pour ${transaction.description} a été effectué avec succès.`,
-        variant: "success",
-      });
-      setTimeout(() => navigate('/transactions'), 3000);
-    }, 2000);
+  if (paid?.status) setCurrentStatus(paid.status);
+      if (paid) {
+        toast({
+          title: 'Paiement Réussi !',
+          description: `Le paiement de ${formatPrice(paid.amount || transaction.amount)} pour ${paid.reference || transaction.reference || transaction.description} a été enregistré.`,
+          variant: 'success'
+        });
+      } else {
+        toast({ title:'Paiement', description:'Transaction marquée payée.', variant:'success' });
+      }
+      setTimeout(()=> navigate('/transactions'), 2500);
+    } catch (err) {
+      console.error(err);
+      setIsProcessing(false);
+      toast({ title:'Erreur paiement', description: err.message || 'Échec du paiement', variant:'destructive' });
+    }
   };
 
   const renderPaymentDetails = () => {
@@ -127,7 +153,7 @@ const PaymentPage = () => {
       >
         <CheckCircle className="h-24 w-24 text-green-500 mb-6" />
         <h1 className="text-3xl font-bold mb-2">Paiement Effectué !</h1>
-        <p className="text-lg text-muted-foreground mb-4">Votre transaction a été traitée avec succès.</p>
+        <p className="text-lg text-muted-foreground mb-4">Votre transaction a été traitée avec succès (statut: {currentStatus || 'paid'}).</p>
         <p className="text-sm">Vous allez être redirigé vers vos transactions...</p>
       </motion.div>
     );
@@ -156,6 +182,15 @@ const PaymentPage = () => {
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Description</span>
               <span className="font-medium text-right">{transaction.description}</span>
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-muted-foreground">Statut</span>
+              <span className="flex items-center gap-2">
+                <span className="text-xs px-2 py-1 rounded bg-muted font-medium">{currentStatus || transaction.status || 'pending'}</span>
+                <Button type="button" size="icon" variant="ghost" onClick={refreshStatus} disabled={refreshing} className="h-6 w-6">
+                  <RefreshCcw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
+                </Button>
+              </span>
             </div>
           </div>
           <div className="text-center mb-6">

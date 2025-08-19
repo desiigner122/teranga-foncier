@@ -100,7 +100,7 @@ const ProfilePage = () => {
      // This is a sensitive operation. Usually involves more steps on backend.
      // For now, simulate and inform user.
      toast({
-        title: "Suppression de Compte (Simulation)",
+  title: "Suppression de Compte",
         description: "🚧 La suppression de compte n'est pas encore entièrement fonctionnelle. Cette action sera irréversible.",
         variant: "warning",
         duration: 5000,

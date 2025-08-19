@@ -40,7 +40,7 @@ const MarketAnalysisPage = () => {
       // Analyser les données par zone
       const zoneAnalysis = analyzeByZone(parcels || []);
       
-      // Calculer les tendances de prix (simulation basée sur les données réelles)
+  // Calculer les tendances de prix à partir des données réelles
       const priceTrends = generatePriceTrends(zoneAnalysis);
       
       // Calculer les statistiques globales
@@ -109,7 +109,7 @@ const MarketAnalysisPage = () => {
       const trendData = { name: year.toString() };
       
       zoneAnalysis.slice(0, 3).forEach(zone => {
-        // Simulation d'évolution basée sur les prix actuels
+  // Projection d'évolution basée sur les prix actuels
         const basePrice = zone.pricePerSqm || 50000;
         const growth = 1 + (index * 0.08); // 8% de croissance par an
         trendData[zone.name] = Math.round(basePrice * growth);

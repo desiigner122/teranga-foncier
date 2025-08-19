@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { exceptionalRoleSchemas, defaultExceptionalTypeOrder } from './ExceptionalUserSchemas';
-import { senegalAdministrativeDivisions, senegalBanks, notaireSpecialities } from '@/data/senegalLocations';
+// Static lists removed: now fetched dynamically from Supabase reference tables
 import SupabaseDataService from '@/services/supabaseDataService';
 
 // Utility
@@ -25,16 +25,58 @@ export default function ExceptionalAddUserDialog({ open, onOpenChange, onCreated
 
   const handleChange = (key, val) => setValues(v => ({ ...v, [key]: val }));
 
-  const regionOptions = senegalAdministrativeDivisions.map(r => ({ value: r.code, label: r.name, raw: r }));
-  const departmentOptions = useMemo(() => {
-    const regionObj = senegalAdministrativeDivisions.find(r=>r.code===values.region);
-    return regionObj ? regionObj.departments.map(d=>({ value:d.code, label:d.name, raw:d })) : [];
-  }, [values.region]);
-  const communeOptions = useMemo(()=>{
-    const regionObj = senegalAdministrativeDivisions.find(r=>r.code===values.region);
-    const dept = regionObj?.departments.find(d=>d.code===values.department);
-    return dept ? dept.communes.map(c=>({ value:c.code, label:c.name, raw:c })) : [];
-  }, [values.region, values.department]);
+  const [regions, setRegions] = useState([]);
+  const [departments, setDepartments] = useState([]); // for selected region
+  const [communes, setCommunes] = useState([]); // for selected department
+  const [banks, setBanks] = useState([]);
+  const [notaireSpecs, setNotaireSpecs] = useState([]);
+
+  // Load base reference data when dialog opens
+  React.useEffect(()=>{
+    if (!open) return;
+    (async ()=>{
+      try {
+        const [r, b, ns] = await Promise.all([
+          SupabaseDataService.listRegions(),
+          SupabaseDataService.listBanks(),
+          SupabaseDataService.listNotaireSpecialities()
+        ]);
+        setRegions(r);
+        setBanks(b);
+        setNotaireSpecs(ns);
+      } catch {/* silent */}
+    })();
+  }, [open]);
+
+  // Load departments when region changes
+  React.useEffect(()=>{
+    if (!values.region) { setDepartments([]); setCommunes([]); return; }
+    (async ()=>{
+      try {
+        const regionObj = regions.find(r=> String(r.id) === String(values.region) || r.code === values.region);
+        const regionId = regionObj?.id || values.region; // allow id or code
+        const deps = await SupabaseDataService.listDepartmentsByRegion(regionId);
+        setDepartments(deps);
+      } catch {/* ignore */}
+    })();
+  }, [values.region, regions]);
+
+  // Load communes when department changes
+  React.useEffect(()=>{
+    if (!values.department) { setCommunes([]); return; }
+    (async ()=>{
+      try {
+        const depObj = departments.find(d=> String(d.id) === String(values.department) || d.code === values.department);
+        const depId = depObj?.id || values.department;
+        const cms = await SupabaseDataService.listCommunesByDepartment(depId);
+        setCommunes(cms);
+      } catch {/* ignore */}
+    })();
+  }, [values.department, departments]);
+
+  const regionOptions = regions.map(r => ({ value: r.id || r.code, label: r.name }));
+  const departmentOptions = departments.map(d => ({ value: d.id || d.code, label: d.name }));
+  const communeOptions = communes.map(c => ({ value: c.id || c.code, label: c.name }));
 
   const validate = () => {
     if (!email) return 'Email requis';
@@ -121,9 +163,9 @@ export default function ExceptionalAddUserDialog({ open, onOpenChange, onCreated
       case 'select-commune':
         return <select className="border rounded h-9 px-2 text-sm" value={values.commune||''} disabled={!values.department} onChange={e=>handleChange('commune', e.target.value)}><option value="">--</option>{communeOptions.map(o=> <option key={o.value} value={o.value}>{o.label}</option>)}</select>;
       case 'select-bank':
-        return <select className="border rounded h-9 px-2 text-sm" value={values.bank_name||''} onChange={e=>handleChange('bank_name', e.target.value)}><option value="">--</option>{senegalBanks.map(b=> <option key={b} value={b}>{b}</option>)}</select>;
+        return <select className="border rounded h-9 px-2 text-sm" value={values.bank_name||''} onChange={e=>handleChange('bank_name', e.target.value)}><option value="">--</option>{banks.map(b=> <option key={b} value={b}>{b}</option>)}</select>;
       case 'select-notaire-speciality':
-        return <select className="border rounded h-9 px-2 text-sm" value={values.notaire_speciality||''} onChange={e=>handleChange('notaire_speciality', e.target.value)}><option value="">--</option>{notaireSpecialities.map(s=> <option key={s} value={s}>{s}</option>)}</select>;
+        return <select className="border rounded h-9 px-2 text-sm" value={values.notaire_speciality||''} onChange={e=>handleChange('notaire_speciality', e.target.value)}><option value="">--</option>{notaireSpecs.map(s=> <option key={s} value={s}>{s}</option>)}</select>;
       default:
         return <Input type="text" {...common} />;
     }

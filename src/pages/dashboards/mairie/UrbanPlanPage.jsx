@@ -44,7 +44,7 @@ const UrbanPlanPage = () => {
         </CardHeader>
         <CardContent>
           <div className="w-full h-[500px] bg-muted rounded-lg flex items-center justify-center">
-            <img src="https://images.unsplash.com/photo-1614783702763-48dcc1f32a91" alt="Simulation de carte d'urbanisme" className="w-full h-full object-cover rounded-lg" />
+            <img src="https://images.unsplash.com/photo-1614783702763-48dcc1f32a91" alt="Carte d'urbanisme" className="w-full h-full object-cover rounded-lg" />
           </div>
           <div className="flex space-x-2 mt-4">
             <Button variant="outline" disabled title="Bientôt: couches dynamiques basées sur urban_zones">

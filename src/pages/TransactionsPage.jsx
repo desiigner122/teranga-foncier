@@ -8,64 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import LoadingSpinner from '@/components/ui/spinner';
-
-const sampleTransactions = [
-  {
-    id: 'TRN-003-2025',
-    date: '2025-08-15',
-    description: 'Achat de la parcelle SLY-NGP-010 (2/4)',
-    amount: 10312500,
-    totalAmount: 41250000,
-    status: 'En attente',
-    type: 'Achat de terrain',
-    paymentMethod: null,
-    parcelId: 'sly-ngp-010'
-  },
-  {
-    id: 'TRN-004-2025',
-    date: '2025-07-25',
-    description: 'Frais de Notaire - Dossier SLY-NGP-010',
-    amount: 75000,
-    totalAmount: 75000,
-    status: 'En attente',
-    type: 'Frais notariaux',
-    paymentMethod: null,
-    parcelId: 'sly-ngp-010'
-  },
-  {
-    id: 'TRN-005-2025',
-    date: '2025-07-20',
-    description: 'Timbres fiscaux - Mairie de Saly',
-    amount: 15000,
-    totalAmount: 15000,
-    status: 'En attente',
-    type: 'Frais administratifs',
-    paymentMethod: null,
-    parcelId: null
-  },
-  {
-    id: 'TRN-001-2025',
-    date: '2025-07-15',
-    description: 'Achat de la parcelle SLY-NGP-010 (1/4)',
-    amount: 10312500,
-    totalAmount: 41250000,
-    status: 'Payé',
-    type: 'Achat de terrain',
-    paymentMethod: 'Virement Bancaire',
-    parcelId: 'sly-ngp-010'
-  },
-  {
-    id: 'TRN-002-2025',
-    date: '2025-06-20',
-    description: 'Frais de dossier - Demande d\'attribution Mairie de Saly',
-    amount: 50000,
-    totalAmount: 50000,
-    status: 'Payé',
-    type: 'Frais administratifs',
-    paymentMethod: 'Wave',
-    parcelId: null
-  },
-];
+import SupabaseDataService from '@/services/supabaseDataService';
 
 const formatPrice = (price) => new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(price);
 
@@ -86,11 +29,25 @@ const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    setTimeout(() => {
-      setTransactions(sampleTransactions);
-      setLoading(false);
-    }, 500);
-  }, []);
+    let mounted = true;
+    (async ()=>{
+      try {
+        setLoading(true);
+        // Fetch real transactions for current user (buyer OR seller OR generic if admin)
+        let data;
+        if (user?.id) {
+          const all = await SupabaseDataService.getTransactions();
+            data = all.filter(t => t.buyer_id === user.id || t.seller_id === user.id || t.user_id === user.id || user.role === 'admin');
+        } else {
+          data = await SupabaseDataService.getTransactions();
+        }
+        if (mounted) setTransactions(data);
+      } catch (e) {
+        toast({ variant:'destructive', title:'Erreur', description:'Transactions indisponibles' });
+      } finally { if (mounted) setLoading(false); }
+    })();
+    return ()=>{ mounted=false; };
+  }, [user]);
 
   const handlePayment = (transactionId) => {
     navigate(`/payment/${transactionId}`);
@@ -144,20 +101,20 @@ const TransactionsPage = () => {
               <tbody>
                 {transactions.map(tx => (
                   <tr key={tx.id} className="border-b hover:bg-muted/30">
-                    <td className="py-4 px-4 text-sm">{new Date(tx.date).toLocaleDateString('fr-FR')}</td>
+                    <td className="py-4 px-4 text-sm">{new Date(tx.created_at || tx.date).toLocaleDateString('fr-FR')}</td>
                     <td className="py-4 px-4">
-                      <p className="font-medium">{tx.description}</p>
-                      {tx.parcelId && <Link to={`/parcelles/${tx.parcelId}`} className="text-xs text-primary hover:underline">Voir la parcelle</Link>}
+                      <p className="font-medium">{tx.reference || tx.description || 'Transaction'}</p>
+                      {tx.parcel_id && <Link to={`/parcelles/${tx.parcel_id}`} className="text-xs text-primary hover:underline">Voir la parcelle</Link>}
                     </td>
-                    <td className="py-4 px-4 font-mono text-sm">{formatPrice(tx.amount)}</td>
-                    <td className="py-4 px-4">{getStatusBadge(tx.status)}</td>
+                    <td className="py-4 px-4 font-mono text-sm">{formatPrice(tx.amount || tx.price || 0)}</td>
+                    <td className="py-4 px-4">{getStatusBadge(tx.status || 'En cours')}</td>
                     <td className="py-4 px-4 text-right space-x-2">
-                      {tx.status === 'En attente' && (
+                      {['En attente','pending','draft'].includes(tx.status) && (
                         <Button size="sm" onClick={() => handlePayment(tx.id)}>
-                          <Banknote className="mr-2 h-4 w-4"/> Payer maintenant
+                          <Banknote className="mr-2 h-4 w-4"/> Payer
                         </Button>
                       )}
-                      {tx.status === 'Payé' && (
+                      {['Payé','paid','completed'].includes(tx.status) && (
                         <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(tx.id)}>
                           <Download className="mr-2 h-4 w-4"/> Facture
                         </Button>

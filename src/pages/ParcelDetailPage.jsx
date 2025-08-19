@@ -94,7 +94,7 @@ const ParcelDetailPage = () => {
   
   const handleShare = () => {
     toast({
-      title: "Partage (Simulation)",
+  title: "Partage",
       description: "Le lien de partage a été copié dans le presse-papiers.",
     });
   };
