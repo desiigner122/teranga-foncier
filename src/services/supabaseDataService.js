@@ -909,6 +909,81 @@ export class SupabaseDataService {
     return data;
   }
 
+  // ============== REQUEST ROUTING METHODS ==============
+  
+  /**
+   * Récupère les utilisateurs par type (role) pour le routage des demandes
+   */
+  static async getUsersByType(userType) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, email, type, role')
+        .eq('type', userType)
+        .eq('is_active', true)
+        .order('full_name');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error('Erreur lors de la récupération des utilisateurs par type:', e);
+      return [];
+    }
+  }
+
+  /**
+   * Récupère les parcelles appartenant à un propriétaire spécifique
+   */
+  static async getParcelsByOwner(ownerId) {
+    try {
+      const { data, error } = await supabase
+        .from('parcels')
+        .select('id, parcel_number, location, area_sqm, status')
+        .eq('owner_id', ownerId)
+        .eq('status', 'disponible')
+        .order('parcel_number');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error('Erreur lors de la récupération des parcelles par propriétaire:', e);
+      return [];
+    }
+  }
+
+  /**
+   * Récupère les demandes destinées à un destinataire spécifique
+   */
+  static async getRequestsByRecipient(recipientId, recipientType) {
+    try {
+      let query = supabase
+        .from('requests')
+        .select(`
+          *,
+          users:user_id (
+            id, full_name, email, phone
+          )
+        `)
+        .eq('recipient_type', recipientType)
+        .order('created_at', { ascending: false });
+
+      // Filtrer par le champ approprié selon le type de destinataire
+      if (recipientType === 'mairie') {
+        query = query.eq('mairie_id', recipientId);
+      } else if (recipientType === 'banque') {
+        query = query.eq('banque_id', recipientId);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error('Erreur lors de la récupération des demandes par destinataire:', e);
+      return [];
+    }
+  }
+
   // ============== MUNICIPAL REQUESTS (NEW) ==============
   static _genMunicipalRef() {
     const ts = new Date();

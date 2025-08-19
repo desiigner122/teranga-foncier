@@ -8,9 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import SupabaseDataService from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MairieRequestsPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,14 +20,21 @@ const MairieRequestsPage = () => {
     const loadMairieRequests = async () => {
       try {
         setLoading(true);
-        // Récupérer les demandes destinées à la mairie
-        const allRequests = await SupabaseDataService.getRequests();
-        const mairieRequests = allRequests.filter(r => 
-          r.recipient_type === 'Mairie' || 
-          r.category === 'municipal' ||
-          r.type === 'land_request'
-        );
-        setRequests(mairieRequests);
+        
+        if (user && user.id) {
+          // Utiliser la nouvelle méthode pour récupérer les demandes destinées spécifiquement à cette mairie
+          const mairieRequests = await SupabaseDataService.getRequestsByRecipient(user.id, 'mairie');
+          setRequests(mairieRequests);
+        } else {
+          // Fallback: récupérer toutes les demandes de type mairie si pas d'utilisateur spécifique
+          const allRequests = await SupabaseDataService.getRequests();
+          const mairieRequests = allRequests.filter(r => 
+            r.recipient_type === 'Mairie' || 
+            r.category === 'municipal' ||
+            r.type === 'land_request'
+          );
+          setRequests(mairieRequests);
+        }
       } catch (error) {
         console.error('Erreur chargement demandes mairie:', error);
         toast({ 
@@ -39,7 +48,7 @@ const MairieRequestsPage = () => {
     };
 
     loadMairieRequests();
-  }, []);
+  }, [user]);
 
   const handleRequestAction = async (requestId, action, status) => {
     try {

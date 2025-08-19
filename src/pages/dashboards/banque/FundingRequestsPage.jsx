@@ -24,9 +24,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
+import SupabaseDataService from '@/services/supabaseDataService';
 
 const FundingRequestsPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,26 +40,31 @@ const FundingRequestsPage = () => {
 
   useEffect(() => {
     loadFundingRequests();
-  }, []);
+  }, [user]);
 
   const loadFundingRequests = async () => {
     try {
       setLoading(true);
       
-      // Récupérer les demandes de financement avec les informations utilisateur et parcelle
-      const { data, error } = await supabase
-        .from('requests')
-        .select(`
-          *,
-          users!inner(id, full_name, email, phone),
-          parcels!inner(id, name, reference, location_name, price, surface_area)
-        `)
-        .eq('request_type', 'funding')
-        .order('created_at', { ascending: false });
+      if (user && user.id) {
+        // Utiliser la nouvelle méthode pour récupérer les demandes destinées spécifiquement à cette banque
+        const banqueRequests = await SupabaseDataService.getRequestsByRecipient(user.id, 'banque');
+        setRequests(banqueRequests);
+      } else {
+        // Fallback: récupérer toutes les demandes de financement
+        const { data, error } = await supabase
+          .from('requests')
+          .select(`
+            *,
+            users!inner(id, full_name, email, phone),
+            parcels!inner(id, name, reference, location_name, price, surface_area)
+          `)
+          .eq('request_type', 'funding')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      setRequests(data || []);
+        if (error) throw error;
+        setRequests(data || []);
+      }
     } catch (error) {
       console.error('Erreur chargement demandes:', error);
       toast({
