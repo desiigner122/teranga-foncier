@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { sampleParcels } from '@/data';
 import ParcelCard from '@/components/parcels/ParcelCard';
-
-const featuredParcels = sampleParcels
-  .filter(p => p.is_featured || p.status === 'Disponible')
-  .slice(0, 3);
+import SupabaseDataService from '@/services/supabaseDataService';
 
 const FeaturedParcelsSection = () => {
+  const [featuredParcels, setFeaturedParcels] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        let data = await SupabaseDataService.getFeaturedParcels(6);
+        if (!data || data.length === 0) {
+          // fallback: take most recent available parcels
+            data = await SupabaseDataService.searchParcels({ status: 'available', limit: 6 });
+        }
+        setFeaturedParcels((data || []).slice(0,3));
+      } catch (e) {
+        console.error('Erreur chargement featured parcels:', e);
+        setFeaturedParcels([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
   return (
     <section className="container mx-auto px-4">
       <motion.h2
@@ -23,6 +42,12 @@ const FeaturedParcelsSection = () => {
         Nos Parcelles à la Une
       </motion.h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        {loading && (
+          <p className="col-span-full text-center text-muted-foreground">Chargement...</p>
+        )}
+        {!loading && featuredParcels.length === 0 && (
+          <p className="col-span-full text-center text-sm text-muted-foreground">Aucune parcelle disponible pour le moment.</p>
+        )}
         {featuredParcels.map((parcel, index) => (
           <motion.div
             key={parcel.id}

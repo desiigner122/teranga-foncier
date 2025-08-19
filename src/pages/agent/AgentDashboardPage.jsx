@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabaseClient';
+import SupabaseDataService from '@/services/supabaseDataService';
 
 const kpiData = [
   { title: "Demandes à Traiter", value: "5", icon: FileText, trend: "+2", trendColor: "text-yellow-500", unit: "nouvelles" },
@@ -58,8 +59,16 @@ const AgentDashboardPage = () => {
     loadAgentData();
   }, []);
 
-  const handleSimulatedAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
+  const handleUpdateRequest = async (req, newStatus) => {
+    try {
+      const updated = await SupabaseDataService.updateRequestStatus(req.id, newStatus);
+      if (updated) {
+        setAgentRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: newStatus } : r));
+        toast({ title: 'Statut mis à jour', description: `Demande ${req.id} -> ${newStatus}` });
+      }
+    } catch (e) {
+      toast({ variant:'destructive', title:'Erreur', description:'Impossible de mettre à jour.' });
+    }
   };
 
   const getStatusVariant = (status) => {
@@ -120,9 +129,8 @@ const AgentDashboardPage = () => {
                         <td className="p-2">{req.request_type}</td>
                         <td className="p-2"><Badge variant={getStatusVariant(req.status)}>{req.status}</Badge></td>
                         <td className="p-2 space-x-1">
-                          <Button variant="ghost" size="icon" title="Contacter" onClick={() => handleSimulatedAction(`Contacter ${req.user_name}`)}><MessageSquare className="h-4 w-4"/></Button>
-                          <Button variant="ghost" size="icon" title="Valider" onClick={() => handleSimulatedAction(`Valider la demande ${req.id}`)}><Check className="h-4 w-4 text-green-600"/></Button>
-                          <Button variant="ghost" size="icon" title="Rejeter" onClick={() => handleSimulatedAction(`Rejeter la demande ${req.id}`)}><X className="h-4 w-4 text-red-600"/></Button>
+                          <Button variant="ghost" size="icon" title="Valider" onClick={() => handleUpdateRequest(req,'Traitée')}><Check className="h-4 w-4 text-green-600"/></Button>
+                          <Button variant="ghost" size="icon" title="Rejeter" onClick={() => handleUpdateRequest(req,'Rejetée')}><X className="h-4 w-4 text-red-600"/></Button>
                         </td>
                       </tr>
                     ))}

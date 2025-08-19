@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Maximize, MapPin, Trash2, CheckCircle, AlertCircle, FileText, Droplets, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import SupabaseDataService from '@/services/supabaseDataService';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -28,8 +29,15 @@ const ComparisonPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const details = comparisonList.map(id => sampleParcels.find(p => p.id === id)).filter(Boolean);
-    setParcelsToCompare(details);
+    const fetchAll = async () => {
+      const results = [];
+      for (const id of comparisonList) {
+        const p = await SupabaseDataService.getParcelById(id);
+        if (p) results.push(p);
+      }
+      setParcelsToCompare(results);
+    };
+    fetchAll();
   }, [comparisonList]);
 
   const containerVariants = {

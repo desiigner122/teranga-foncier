@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { UploadCloud, MapPin, DollarSign, FileText, Send, User, Phone, Mail, Award, Check } from 'lucide-react';
+import { UploadCloud, MapPin, DollarSign, FileText, Send, User, Phone, Mail, Award, Check, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SupabaseDataService from '@/services/supabaseDataService';
 
 const SellPropertyPage = () => {
   const { toast } = useToast();
@@ -25,6 +26,8 @@ const SellPropertyPage = () => {
     contactEmail: '',
   });
   const [files, setFiles] = useState([]);
+  const [checkedDocs, setCheckedDocs] = useState({});
+  const [reference, setReference] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const nextStep = () => setStep(prev => prev + 1);
@@ -43,18 +46,50 @@ const SellPropertyPage = () => {
     setFiles(Array.from(e.target.files));
   };
 
+  // Liste des documents requis / recommandés pour anti-fraude
+  const requiredDocs = useMemo(()=>[
+    { key:'identity', label:"Pièce d'identité (CNI ou Passeport)", required:true },
+    { key:'title', label:"Titre Foncier / Bail / Délibération", required:true },
+    { key:'plan', label:"Plan cadastral ou plan de masse", required:true },
+    { key:'urbanism', label:"Certificat d'urbanisme (si disponible)", required:false },
+    { key:'fiscal', label:"Quitus fiscal / Attestation fiscale", required:false },
+    { key:'litigation', label:"Attestation d'absence de litige / mainlevée hypothèque", required:false },
+  ],[]);
+
+  const toggleDoc = (key) => {
+    setCheckedDocs(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const mandatoryComplete = requiredDocs.filter(d=>d.required).every(d=>checkedDocs[d.key]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    // Form Data Submitted: formData, Files: files
-    toast({
-      title: "Soumission Réussie",
-      description: "Votre proposition de terrain a été envoyée. Notre équipe vous contactera bientôt.",
-      className: "bg-green-500 text-white",
-    });
-    setIsSubmitting(false);
-    nextStep(); // Go to confirmation step
+    try {
+      const docsMeta = files.map(f=>({ name:f.name, size:f.size, type:f.type }));
+      const res = await SupabaseDataService.logListingSubmission({
+        userId: null, // TODO: inject current user id via auth context
+        propertyType: formData.propertyType,
+        surfaceArea: formData.surfaceArea,
+        price: formData.price,
+        description: formData.description,
+        titleDeedNumber: formData.titleDeedNumber,
+        documentsMeta: docsMeta,
+        allRequiredProvided: mandatoryComplete
+      });
+      setReference(res.reference);
+      toast({
+        title: mandatoryComplete ? 'Soumission complète' : 'Soumission partielle',
+        description: mandatoryComplete ? "Tous les documents essentiels sont fournis. Accélération de la vérification." : "Annonce reçue. Fournissez les documents manquants pour obtenir le badge de confiance.",
+        className: mandatoryComplete ? 'bg-green-600 text-white' : 'bg-amber-500 text-white'
+      });
+      nextStep();
+    } catch (err) {
+      console.error(err);
+      toast({ title:'Erreur', description:"La soumission a échoué. Réessayez.", variant:'destructive' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStep = () => {
@@ -105,6 +140,27 @@ const SellPropertyPage = () => {
              <div>
                <Label htmlFor="description">Description Détaillée</Label>
                <Textarea id="description" name="description" placeholder="Atouts, environnement, situation..." value={formData.description} onChange={handleInputChange} rows={3} />
+             </div>
+             <div className="border rounded-lg p-4 bg-muted/30">
+               <p className="font-semibold mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary"/> Vérification Anti-Fraude</p>
+               <p className="text-xs text-muted-foreground mb-3">Cochez les documents que vous êtes prêt à fournir. Les éléments obligatoires sont marqués (*).</p>
+               <ul className="space-y-2 text-sm">
+                 {requiredDocs.map(doc => (
+                   <li key={doc.key} className="flex items-start gap-2">
+                     <input type="checkbox" id={`doc-${doc.key}`} checked={!!checkedDocs[doc.key]} onChange={()=>toggleDoc(doc.key)} className="mt-1" />
+                     <label htmlFor={`doc-${doc.key}`} className="cursor-pointer select-none">
+                       {doc.label}{doc.required && <span className="text-red-500"> *</span>}
+                     </label>
+                   </li>
+                 ))}
+               </ul>
+               <div className="mt-3 text-xs">
+                 {mandatoryComplete ? (
+                   <span className="text-green-600 flex items-center gap-1"><Check className="h-4 w-4"/> Pré-requis essentiels complets – Badge éligible.</span>
+                 ) : (
+                   <span className="text-amber-600 flex items-center gap-1"><AlertTriangle className="h-4 w-4"/> Documents essentiels manquants – la vérification sera plus lente.</span>
+                 )}
+               </div>
              </div>
              <div className="flex gap-4">
                <Button onClick={prevStep} variant="outline" className="w-full" size="lg">Précédent</Button>
@@ -171,12 +227,12 @@ const SellPropertyPage = () => {
              </div>
           </motion.div>
          );
-      case 5:
+  case 5:
         return (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-4">
                 <Check className="mx-auto h-16 w-16 text-green-500 bg-green-100 rounded-full p-2" />
                 <h3 className="text-2xl font-bold">Proposition Envoyée !</h3>
-                <p className="text-muted-foreground">Merci pour votre confiance. Notre équipe va examiner votre dossier et vous contactera dans les plus brefs délais pour les prochaines étapes.</p>
+        <p className="text-muted-foreground">Merci pour votre confiance. {reference && (<><br/>Référence: <span className="font-mono font-semibold">{reference}</span></>)}<br/>{mandatoryComplete ? 'Votre dossier complet sera priorisé.' : 'Ajoutez les documents manquants pour accélérer la vérification.'}</p>
                 <div className="flex justify-center gap-4 pt-4">
                     <Button asChild variant="outline"><Link to="/my-listings">Voir Mes Annonces</Link></Button>
                     <Button asChild><Link to="/">Retour à l'Accueil</Link></Button>

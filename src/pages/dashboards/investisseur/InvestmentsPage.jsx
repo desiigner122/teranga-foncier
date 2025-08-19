@@ -29,12 +29,12 @@ const InvestmentsPage = () => {
     try {
       setLoading(true);
 
-      // Récupérer les investissements de l'utilisateur
+      // Récupérer les investissements (table 'investments' du schéma AI) rejoints sur parcels si FK (adapter selon schéma réel)
       const { data: investmentData, error } = await supabase
-        .from('user_investments')
+        .from('investments')
         .select(`
           *,
-          parcels(*)
+          parcels:parcel_id(*)
         `)
         .eq('investor_id', user.id)
         .order('created_at', { ascending: false });
@@ -45,10 +45,7 @@ const InvestmentsPage = () => {
 
       setInvestments(investmentData || []);
 
-      // Si pas de données, générer des exemples
-      if (!investmentData || investmentData.length === 0) {
-        generateSampleInvestments();
-      }
+  // Pas de génération d'exemples: on affiche simplement vide + CTA
 
     } catch (error) {
       console.error('Erreur chargement investissements:', error);
@@ -62,72 +59,7 @@ const InvestmentsPage = () => {
     }
   };
 
-  const generateSampleInvestments = () => {
-    const sampleInvestments = [
-      {
-        id: 'INV001',
-        parcel_id: 'DK-ALM-002',
-        initial_investment: 50000000, // 50M
-        current_value: 65000000, // 65M
-        investment_type: 'purchase',
-        status: 'active',
-        purchase_date: '2024-03-15',
-        target_roi: 25,
-        holding_period_months: 24,
-        investment_strategy: 'value_appreciation',
-        notes: 'Investissement dans zone en développement',
-        parcels: {
-          title: 'Villa Almadies Premium',
-          location: 'Almadies, Dakar',
-          price: 150000000,
-          surface: 500,
-          type: 'Villa'
-        }
-      },
-      {
-        id: 'INV002',
-        parcel_id: 'SLY-NGP-010',
-        initial_investment: 15000000, // 15M
-        current_value: 18500000, // 18.5M
-        investment_type: 'rental',
-        status: 'active',
-        purchase_date: '2024-08-01',
-        target_roi: 15,
-        holding_period_months: 36,
-        investment_strategy: 'rental_income',
-        notes: 'Rendement locatif touristique',
-        parcels: {
-          title: 'Appartement Saly',
-          location: 'Ngaparou, Saly',
-          price: 32000000,
-          surface: 75,
-          type: 'Appartement'
-        }
-      },
-      {
-        id: 'INV003',
-        parcel_id: 'DMN-DEV-001',
-        initial_investment: 25000000, // 25M
-        current_value: 22000000, // 22M (en cours)
-        investment_type: 'development',
-        status: 'in_progress',
-        purchase_date: '2025-01-10',
-        target_roi: 40,
-        holding_period_months: 18,
-        investment_strategy: 'development',
-        notes: 'Projet développement Diamniadio',
-        parcels: {
-          title: 'Terrain Commercial Diamniadio',
-          location: 'Diamniadio',
-          price: 80000000,
-          surface: 2000,
-          type: 'Terrain'
-        }
-      }
-    ];
-
-    setInvestments(sampleInvestments);
-  };
+  // Removed sample generation block
 
   const calculateROI = (investment) => {
     const initial = investment.initial_investment || 0;

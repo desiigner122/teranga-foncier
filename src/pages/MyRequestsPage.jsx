@@ -153,31 +153,32 @@ const MyRequestsPage = () => {
       return;
     }
 
-    setTimeout(() => {
+    (async () => {
       try {
-        const userRequests = sampleRequests.filter(req => req.user_id === 'user1'); // Use a fixed ID for demo
+        const userRequests = await SupabaseDataService.getRequestsByUser(user.id);
         setRequests(userRequests);
-
-        const parcelMap = sampleParcels.reduce((acc, parcel) => {
-          acc[parcel.id] = {
-             id: parcel.id,
-             name: parcel.name,
-             zone: parcel.zone,
-             area_sqm: parcel.area_sqm
-          };
-          return acc;
-        }, {});
-        setParcelsData(parcelMap);
-
+        // Build parcel id set
+        const parcelIds = [...new Set(userRequests.filter(r => r.parcel_id).map(r => r.parcel_id))];
+        if (parcelIds.length) {
+          // Fetch parcels individually (could be optimized with RPC if needed)
+          const map = {};
+          for (const pid of parcelIds) {
+            const p = await SupabaseDataService.getParcelById(pid);
+            if (p) map[pid] = { id: p.id, name: p.name || p.title || p.reference, zone: p.zone, area_sqm: p.area_sqm };
+          }
+          setParcelsData(map);
+        } else {
+          setParcelsData({});
+        }
       } catch (err) {
-        console.error("Error loading requests:", err);
-        setError("Impossible de charger vos demandes.");
+        console.error('Error loading requests:', err);
+        setError('Impossible de charger vos demandes.');
         setRequests([]);
         setParcelsData({});
       } finally {
         setLoading(false);
       }
-    }, 300);
+    })();
 
   }, [user]);
 

@@ -40,31 +40,39 @@ const AgentTasksPage = () => {
     loadTasks();
   }, []);
 
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
+  const handleToggleTask = async (taskId, current) => {
+    try {
+      const { data, error } = await supabase.from('agent_tasks').update({ completed: !current, updated_at: new Date().toISOString() }).eq('id', taskId).select().single();
+      if (error) throw error;
+      setTasks(tasks.map(t => t.id === taskId ? data : t));
+    } catch (e) {
+      toast({ variant:'destructive', title:'Erreur', description:'Impossible de mettre à jour la tâche.' });
+    }
   };
 
-  const handleToggleTask = (taskId) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
-  };
-
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     if (!newTaskTitle.trim()) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Le titre de la tâche ne peut pas être vide.' });
       return;
     }
-    const newTask = {
-      id: `TSK${Date.now()}`,
-      title: newTaskTitle,
-      priority: 'Moyenne',
-      dueDate: new Date().toISOString().split('T')[0],
-      completed: false,
-    };
-    setTasks([newTask, ...tasks]);
-    setNewTaskTitle('');
-    handleAction(`Nouvelle tâche "${newTaskTitle}" ajoutée.`);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const insert = {
+        agent_id: user.id,
+        title: newTaskTitle.trim(),
+        priority: 'Moyenne',
+        due_date: new Date().toISOString().split('T')[0],
+        completed: false,
+        created_at: new Date().toISOString()
+      };
+      const { data, error } = await supabase.from('agent_tasks').insert([insert]).select().single();
+      if (error) throw error;
+      setTasks([data, ...tasks]);
+      setNewTaskTitle('');
+      toast({ title: 'Tâche ajoutée', description: insert.title });
+    } catch (e) {
+      toast({ variant:'destructive', title:'Erreur', description:'Impossible d\'ajouter la tâche.' });
+    }
   };
 
   const getPriorityBadge = (priority) => {
@@ -123,7 +131,7 @@ const AgentTasksPage = () => {
             <ul className="space-y-3">
               {upcomingTasks.map(task => (
                 <li key={task.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50">
-                  <Checkbox id={`task-${task.id}`} checked={task.completed} onCheckedChange={() => handleToggleTask(task.id)} />
+                  <Checkbox id={`task-${task.id}`} checked={task.completed} onCheckedChange={() => handleToggleTask(task.id, task.completed)} />
                   <label htmlFor={`task-${task.id}`} className="flex-grow cursor-pointer">
                     <span className={cn("font-medium", task.completed && "line-through text-muted-foreground")}>{task.title}</span>
                     <div className="text-xs text-muted-foreground">
@@ -145,7 +153,7 @@ const AgentTasksPage = () => {
             <ul className="space-y-3">
               {completedTasks.map(task => (
                 <li key={task.id} className="flex items-center space-x-3 p-2 rounded-md">
-                  <Checkbox id={`task-${task.id}`} checked={task.completed} onCheckedChange={() => handleToggleTask(task.id)} />
+                  <Checkbox id={`task-${task.id}`} checked={task.completed} onCheckedChange={() => handleToggleTask(task.id, task.completed)} />
                   <label htmlFor={`task-${task.id}`} className="flex-grow cursor-pointer">
                     <span className="line-through text-muted-foreground">{task.title}</span>
                   </label>

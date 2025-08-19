@@ -7,30 +7,41 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
 
-const initialGuarantees = [
-  { id: 'GAR001', parcelId: 'DK-ALM-002', valeur: '150M XOF', risque: 'Faible', client: 'Promoteur Immo SA' },
-  { id: 'GAR002', parcelId: 'ZG-AGRI-001', valeur: '50M XOF', risque: 'Moyen', client: 'Agri-Business SA' },
-  { id: 'GAR003', parcelId: 'SLY-NGP-010', valeur: '30M XOF', risque: 'Faible', client: 'Particulier M. Ba' },
-];
+// Data source: bank_guarantees table (expected). Falls back to empty list if missing.
 
 const GuaranteesPage = () => {
   const { toast } = useToast();
   const [guarantees, setGuarantees] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setGuarantees(initialGuarantees);
+  const loadGuarantees = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bank_guarantees')
+        .select('id,parcel_id,client_name,estimated_value,risk_level')
+        .order('created_at',{ ascending:false })
+        .limit(200);
+      if (error) throw error;
+      const mapped = (data||[]).map(g => ({
+        id: g.id,
+        parcelId: g.parcel_id,
+        valeur: g.estimated_value ? new Intl.NumberFormat('fr-FR').format(g.estimated_value) + ' XOF' : '—',
+        risque: g.risk_level || '—',
+        client: g.client_name || '—'
+      }));
+      setGuarantees(mapped);
+    } catch (e) {
+      // Silent fallback, maybe table not present yet
+      if (process.env.NODE_ENV !== 'production') console.warn('Garanties non chargées', e.message || e);
+    } finally {
       setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
+    }
   };
+
+  useEffect(()=>{ loadGuarantees(); },[]);
 
   if (loading) {
     return (
@@ -57,7 +68,7 @@ const GuaranteesPage = () => {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Rechercher par parcelle, client..." className="pl-8" />
             </div>
-            <Button variant="outline" onClick={() => handleAction("Filtres de garanties appliqués.")}><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
+            <Button variant="outline" disabled><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
           </div>
         </CardHeader>
         <CardContent>

@@ -39,9 +39,6 @@ const AgentParcelsPage = () => {
     loadParcels();
   }, []);
 
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
-  };
 
   const filteredParcels = parcels.filter(parcel => 
     parcel.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,7 +62,7 @@ const AgentParcelsPage = () => {
     >
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Mes Parcelles Assignées</h1>
-        <Button onClick={() => handleAction("Ouverture du formulaire d'ajout de parcelle.")}>
+        <Button disabled title="Ajout direct désactivé (créez via interface admin ou migration)">
           <PlusCircle className="mr-2 h-4 w-4" /> Ajouter une Parcelle
         </Button>
       </div>
@@ -103,8 +100,8 @@ const AgentParcelsPage = () => {
                     <td className="p-2"><Badge>{parcel.status}</Badge></td>
                     <td className="p-2 text-right space-x-1">
                       <Button asChild variant="ghost" size="icon"><Link to={`/parcelles/${parcel.id}`}><Eye className="h-4 w-4" /></Link></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleAction(`Modification de la parcelle ${parcel.name}.`)}><Edit className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleAction(`Planification d'une visite pour ${parcel.name}.`)}><CalendarPlus className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" disabled title="Modification bientôt"><Edit className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" disabled title="Planification bientôt"><CalendarPlus className="h-4 w-4" /></Button>
                     </td>
                   </tr>
                 ))}

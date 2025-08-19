@@ -72,23 +72,20 @@ const SimilarParcels = ({ currentParcelId, currentParcelZone }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
+    const load = async () => {
+      setLoading(true);
       try {
-        const filtered = sampleParcels.filter(p =>
-          p.id !== currentParcelId &&
-          p.zone === currentParcelZone &&
-          p.status === 'Disponible' 
-        ).slice(0, 4); 
+        const zoneList = await SupabaseDataService.getParcelsByZone(currentParcelZone, 12);
+        const filtered = zoneList.filter(p => p.id !== currentParcelId && (p.status === 'Disponible' || p.status === 'available')).slice(0,4);
         setSimilarParcels(filtered);
-      } catch (err) {
-        console.error("Error finding similar parcels:", err);
+      } catch (e) {
+        console.error('Erreur chargement parcelles similaires:', e);
         setSimilarParcels([]);
       } finally {
         setLoading(false);
       }
-    }, 400); 
-
+    };
+    if (currentParcelZone) load();
   }, [currentParcelId, currentParcelZone]);
 
   if (loading) {

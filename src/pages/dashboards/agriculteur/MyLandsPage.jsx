@@ -27,9 +27,6 @@ const MyLandsPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
-  };
 
   if (loading) {
     return (
@@ -48,7 +45,7 @@ const MyLandsPage = () => {
     >
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold flex items-center"><LandPlot className="mr-3 h-8 w-8"/>Mes Parcelles Agricoles</h1>
-        <Button onClick={() => handleAction("Recherche de nouvelles parcelles agricoles.")}>
+        <Button disabled title="Recherche de parcelles à venir">
           <PlusCircle className="mr-2 h-4 w-4" /> Trouver une nouvelle parcelle
         </Button>
       </div>

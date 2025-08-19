@@ -102,10 +102,9 @@ const MapPage = () => {
 
         setParcels(formattedParcels);
       } catch (err) {
-        console.error('Erreur lors du chargement des parcelles:', err);
-        setError(err.message);
-        // En cas d'erreur, utiliser sampleParcels comme fallback
-        setParcels(sampleParcels || []);
+  console.error('Erreur lors du chargement des parcelles:', err);
+  setError(err.message || 'Erreur inconnue');
+  setParcels([]);
       } finally {
         setLoading(false);
       }

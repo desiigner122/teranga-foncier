@@ -2,6 +2,39 @@
 import { supabase } from '../lib/supabaseClient.js';
 
 export class SupabaseDataService {
+  static _eventRecentCache = new Map(); // key -> timestamp
+  static _eventWindowMs = 5000; // 5s window for identical events
+  static _eventMaxQueue = 200;
+  static _configLoaded = false;
+
+  static async _loadEventConfig() {
+    try {
+      const { data } = await supabase.from('feature_flags').select('key,audience,enabled').in('key',['events_antispam_window_ms']);
+      if (data) {
+        const row = data.find(r=>r.key==='events_antispam_window_ms' && r.enabled);
+        if (row && row.audience && row.audience.value) {
+          const v = parseInt(row.audience.value,10); if (!isNaN(v) && v>0 && v<60000) this._eventWindowMs = v;
+        } else if (row && typeof row.audience === 'object') {
+          // audience might be JSON object with value property
+          const val = row.audience.value || row.audience.VAL || row.audience.ms;
+          const v = parseInt(val,10); if(!isNaN(v) && v>0 && v<60000) this._eventWindowMs = v;
+        }
+      }
+    } catch {/* silent */}
+  }
+
+  static _canSendEvent(signature){
+    const now = Date.now();
+    const last = this._eventRecentCache.get(signature);
+    if (last && (now - last) < this._eventWindowMs) return false;
+    this._eventRecentCache.set(signature, now);
+    if (this._eventRecentCache.size > this._eventMaxQueue) {
+      // prune oldest
+      const entries = Array.from(this._eventRecentCache.entries()).sort((a,b)=>a[1]-b[1]);
+      for (let i=0;i<entries.length- this._eventMaxQueue;i++) this._eventRecentCache.delete(entries[i][0]);
+    }
+    return true;
+  }
 
   // Generic raw select helper (table: string, selectCols='*')
   static async supabaseRaw(table, selectCols='*') {
@@ -459,11 +492,12 @@ export class SupabaseDataService {
       .insert([requestData])
       .select()
       .single();
-    
     if (error) {
       console.error('Erreur lors de la création de la demande:', error);
       throw error;
     }
+    // Event instrumentation
+    this.logEvent({ entityType:'request', entityId:data.id, eventType:'request.created', actorUserId:data.user_id, data:{ type:data.request_type, status:data.status } });
     return data;
   }
 
@@ -473,12 +507,141 @@ export class SupabaseDataService {
       .insert([transactionData])
       .select()
       .single();
-    
     if (error) {
       console.error('Erreur lors de la création de la transaction:', error);
       throw error;
     }
+    this.logEvent({ entityType:'transaction', entityId:data.id, eventType:'transaction.created', actorUserId:data.user_id || null, data:{ amount:data.amount, status:data.status } });
     return data;
+  }
+
+  // ============== MUNICIPAL REQUESTS (NEW) ==============
+  static _genMunicipalRef() {
+    const ts = new Date();
+    const pad = (n)=> String(n).padStart(2,'0');
+    return `MR-${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}-${Math.random().toString(36).substring(2,7).toUpperCase()}`;
+  }
+
+  // ============== LISTING SUBMISSIONS (NEW) ==============
+  static _genListingRef() {
+    const ts = new Date();
+    const pad = (n)=> String(n).padStart(2,'0');
+    return `LS-${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}-${Math.random().toString(36).substring(2,7).toUpperCase()}`;
+  }
+
+  /**
+   * Crée une demande municipale.
+   * Assumptions: mairie_id pas encore résolu (null) – la mairie sera matchée plus tard via commune.
+   * documentsPayload: { region, department, commune, area_sqm, message, document_ids, attachments_meta }
+   */
+  static async resolveMairieProfile({ commune, department=null, region=null }) {
+    try {
+      if (!commune) return null;
+      const norm = (s)=> (s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase();
+      const communeNorm = norm(commune);
+      const communeTokens = communeNorm.split(/[^a-z0-9]+/).filter(Boolean);
+      // Tentative 1: match direct commune token
+      let { data, error } = await supabase.from('profiles')
+        .select('id, full_name, type')
+        .eq('type','mairie')
+        .ilike('full_name', `%${commune}%`)
+        .limit(1);
+      if (!error && data && data.length) return data[0].id;
+      // Tentative 2: récupérer plusieurs mairies et faire matching côté client (normalisation)
+      const { data: allMairies, error: allErr } = await supabase.from('profiles').select('id, full_name, type').eq('type','mairie').limit(200);
+      if (allErr || !allMairies) return null;
+      const scored = allMairies.map(m=>{
+        const n = norm(m.full_name);
+        let score = 0;
+        if (n.includes(communeNorm)) score += 15;
+        // token coverage
+        const coverage = communeTokens.reduce((acc,t)=> acc + (n.includes(t)?1:0),0);
+        score += coverage * 3;
+        if (department && n.includes(norm(department))) score += 3;
+        if (region && n.includes(norm(region))) score += 1;
+        // Optional Levenshtein via server RPC (if function exists). We attempt gracefully.
+        return { id:m.id, score };
+      }).map(entry=>entry)
+      .sort((a,b)=>b.score-a.score);
+      // If multiple similar, keep highest; minimal threshold
+      if (scored.length && scored[0].score >= 5) return scored[0].id;
+      // Optional: attempt remote similarity RPC if available
+      try {
+        const { data: lev } = await supabase.rpc('levenshtein_best_mairie', { target: commune });
+        if (lev && lev.id) return lev.id;
+      } catch {/* ignore */}
+      return null;
+    } catch { return null; }
+  }
+
+  static async createMunicipalRequest({ requesterId, region, department, commune, requestType, areaSqm, message, documentIds = [], rawDocumentsMeta = [], mairieId = null, autoResolveMairie=true }) {
+    try {
+      const reference = this._genMunicipalRef();
+      const documents = {
+        region,
+        department,
+        commune,
+        area_sqm: areaSqm,
+        message,
+        document_ids: documentIds,
+        attachments_meta: rawDocumentsMeta
+      };
+      let finalMairieId = mairieId;
+      if (!finalMairieId && autoResolveMairie) {
+        finalMairieId = await this.resolveMairieProfile({ commune, department, region });
+      }
+      const payload = {
+        reference,
+        requester_id: requesterId,
+        mairie_id: finalMairieId, // Peut rester null si non résolue
+        parcel_id: null,
+        request_type: requestType,
+        status: 'Soumise',
+        documents,
+        priority: 'normal',
+        estimated_processing_time: null
+      };
+      const { data, error } = await supabase
+        .from('municipal_requests')
+        .insert([payload])
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) {
+        this.logEvent({ entityType:'municipal_request', entityId:data.id, eventType:'municipal_request.created', actorUserId: requesterId, data:{ region, department, commune, request_type: requestType, mairie_id: finalMairieId } });
+        if (documentIds && documentIds.length) {
+          this.logEvent({ entityType:'municipal_request', entityId:data.id, eventType:'municipal_request.documents_uploaded', actorUserId: requesterId, importance:0, source:'ui', data:{ count: documentIds.length, document_ids: documentIds } });
+        }
+      }
+      return data;
+    } catch (e) {
+      console.error('Erreur création municipal_request:', e.message||e);
+      throw e;
+    }
+  }
+
+  /**
+   * Enregistre une soumission d'annonce (étape initiale avant création réelle de parcelle).
+   * Pour le moment, on ne dispose peut-être pas encore d'une table dédiée; on trace via events.
+   * Returns a lightweight object { reference, loggedEvent }.
+   */
+  static async logListingSubmission({ userId=null, propertyType, surfaceArea, price, description, titleDeedNumber, documentsMeta=[], allRequiredProvided }) {
+    try {
+      const reference = this._genListingRef();
+      const meta = { reference, property_type: propertyType, surface_area: surfaceArea, price, title_deed_number: titleDeedNumber, description, documents_meta: documentsMeta, all_required: allRequiredProvided };
+      const ev = await this.logEvent({ entityType:'listing_submission', entityId: reference, eventType:'listing.submitted', actorUserId:userId, importance:1, source:'ui', data: meta });
+      return { reference, loggedEvent: ev };
+    } catch (e) {
+      console.warn('logListingSubmission failed:', e.message||e);
+      return { reference: null, loggedEvent: null };
+    }
+  }
+
+  /** Log simple clic sur CTA homepage */
+  static async recordHomepageCta(label) {
+    try {
+      await this.logEvent({ entityType:'homepage', entityId:'root', eventType:'homepage.cta.click', actorUserId:null, source:'ui', importance:0, data:{ label } });
+    } catch {/* silent */}
   }
 
   // ============== UPDATE OPERATIONS ==============
@@ -500,18 +663,17 @@ export class SupabaseDataService {
   static async updateRequestStatus(id, status, details = null) {
     const updateData = { status, updated_at: new Date().toISOString() };
     if (details) updateData.details = details;
-
     const { data, error } = await supabase
       .from('requests')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
-    
     if (error) {
       console.error('Erreur lors de la mise à jour du statut de la demande:', error);
       throw error;
     }
+    if (data) this.logEvent({ entityType:'request', entityId:id, eventType:'request.status_updated', actorUserId:data.user_id, data:{ new_status:status } });
     return data;
   }
 
@@ -530,6 +692,7 @@ export class SupabaseDataService {
       console.error('Erreur lors de la mise à jour du statut de la transaction:', error);
       throw error;
     }
+    if (data) this.logEvent({ entityType:'transaction', entityId:id, eventType:'transaction.status_updated', actorUserId:data.user_id || null, data:{ new_status:status } });
     return data;
   }
 
@@ -561,11 +724,11 @@ export class SupabaseDataService {
       })
       .select()
       .single();
-    
     if (error) {
       console.error('Erreur lors de l\'ajout aux favoris:', error);
       throw error;
     }
+    this.logEvent({ entityType:'parcel', entityId:parcelId, eventType:'user.favorite_added', actorUserId:userId, data:{ favorite_id:data.id } });
     return data;
   }
 
@@ -575,11 +738,11 @@ export class SupabaseDataService {
       .delete()
       .eq('user_id', userId)
       .eq('parcel_id', parcelId);
-    
     if (error) {
       console.error('Erreur lors de la suppression des favoris:', error);
       throw error;
     }
+    this.logEvent({ entityType:'parcel', entityId:parcelId, eventType:'user.favorite_removed', actorUserId:userId });
     return true;
   }
 
@@ -689,9 +852,12 @@ export class SupabaseDataService {
 
       if (docError) throw docError;
 
+  // Log event succès
+  this.logEvent({ entityType:'document', entityId:docData.id, eventType:'document.uploaded', actorUserId:userId, source:'ui', data:{ name:file.name, size:file.size, mime:file.type } });
       return docData;
     } catch (error) {
       console.error('Erreur lors de l\'upload du document:', error);
+  this.logEvent({ entityType:'document', entityId:'pending', eventType:'document.upload.failed', actorUserId:userId, importance:0, source:'ui', data:{ name:file?.name, size:file?.size, mime:file?.type, error: error.message || String(error) } });
       throw error;
     }
   }
@@ -796,6 +962,25 @@ export class SupabaseDataService {
     return data;
   }
 
+  static async updatePromoteurProjectStatus(id, status) {
+    try {
+      const { data, error } = await supabase
+        .from('promoteur_projects')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) {
+        this.logEvent({ entityType: 'promoteur_project', entityId: id, eventType: 'project.status_updated', actorUserId: data.promoteur_id || null, data: { new_status: status } });
+      }
+      return data;
+    } catch (e) {
+      console.error('Erreur mise à jour statut projet promoteur:', e.message || e);
+      throw e;
+    }
+  }
+
   // ============== PROJECT UNITS / LOTS (NEW) ==============
   // This expects a table promoteur_project_units (see migration suggestion) with columns:
   // id, project_id (FK promoteur_projects.id), reference, status ('available'|'reserved'|'sold'), price, client_name
@@ -810,6 +995,25 @@ export class SupabaseDataService {
       return [];
     }
     return data || [];
+  }
+
+  static async updateProjectUnitStatus(id, status) {
+    try {
+      const { data, error } = await supabase
+        .from('promoteur_project_units')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) {
+        this.logEvent({ entityType: 'project_unit', entityId: id, eventType: 'project_unit.status_updated', actorUserId: null, data: { new_status: status } });
+      }
+      return data;
+    } catch (e) {
+      console.error('Erreur mise à jour statut lot projet:', e.message || e);
+      throw e;
+    }
   }
 
   static async getUnitsForPromoteur(promoteurId) {
@@ -1011,6 +1215,56 @@ export class SupabaseDataService {
       console.warn('listAuditLogs failed:', e.message || e);
       return { data: [], total:0, page, pageSize };
     }
+  }
+
+  // ============== EVENTS & TIMELINE (NEW) ==============
+  static async listEvents({ entityType=null, entityId=null, page=1, pageSize=50, eventType=null, importanceMin=null, createdAfter=null, createdBefore=null, source=null } = {}) {
+    try {
+      const from = (page-1)*pageSize; const to = from + pageSize -1;
+      let query = supabase.from('events').select('*', { count:'exact' }).order('created_at', { ascending:false }).range(from,to);
+      if (entityType) query = query.eq('entity_type', entityType);
+      if (entityId) query = query.eq('entity_id', String(entityId));
+      if (eventType) query = query.eq('event_type', eventType);
+      if (importanceMin !== null && importanceMin !== undefined) query = query.gte('importance', importanceMin);
+      if (createdAfter) query = query.gte('created_at', createdAfter);
+      if (createdBefore) query = query.lte('created_at', createdBefore);
+      if (source) query = query.eq('source', source);
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { data: data||[], total: count||0, page, pageSize };
+    } catch (e) {
+      console.warn('listEvents failed:', e.message||e); return { data:[], total:0, page, pageSize };
+    }
+  }
+
+  static async getParcelTimeline(parcelId, { page=1, pageSize=50 } = {}) {
+    try {
+      // Use view parcel_timeline if exists else fallback to events only
+      const from = (page-1)*pageSize; const to = from + pageSize -1;
+      let useView = true;
+      // naive detection: attempt view query, fallback on error
+      let { data, error, count } = await supabase.from('parcel_timeline').select('*', { count:'exact' }).eq('parcel_id', parcelId).order('created_at',{ ascending:false }).range(from,to);
+      if (error) { useView = false; }
+      if (!useView) {
+        const evRes = await this.listEvents({ entityType:'parcel', entityId:parcelId, page, pageSize });
+        return { data: evRes.data.map(e=>({ ...e, source_type:'event' })), total: evRes.total, page, pageSize };
+      }
+      return { data: data||[], total: count||0, page, pageSize };
+    } catch (e) {
+      console.warn('getParcelTimeline failed:', e.message||e);
+      return { data:[], total:0, page, pageSize };
+    }
+  }
+
+  static async logEvent({ entityType, entityId, eventType, actorUserId=null, importance=0, source='system', data={} }) {
+    try {
+      if (!this._configLoaded) { await this._loadEventConfig(); this._configLoaded=true; }
+      const signature = `${entityType}|${entityId}|${eventType}|${importance}`;
+      if (!this._canSendEvent(signature)) return null;
+      const payload = { entity_type: entityType, entity_id: String(entityId), event_type: eventType, actor_user_id: actorUserId, importance, source, data };
+      const { data: inserted, error } = await supabase.from('events').insert([payload]).select().single();
+      if (error) throw error; return inserted;
+    } catch (e) { console.warn('logEvent failed:', e.message||e); return null; }
   }
 
   // ============== CSV HELPERS (CLIENT-SIDE) ==============

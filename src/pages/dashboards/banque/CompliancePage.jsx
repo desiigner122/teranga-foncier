@@ -6,29 +6,39 @@ import { FolderCheck, Download, Filter, Search } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/spinner';
+import { supabase } from '@/lib/supabaseClient';
 
-const initialComplianceReports = [
-  { id: 'REP001', title: 'Rapport de Conformité Trimestriel Q2 2025', date: '2025-07-01', type: 'Portefeuille Global' },
-  { id: 'REP002', title: 'Audit de Conformité - Zone Diamniadio', date: '2025-06-15', type: 'Audit Spécifique' },
-  { id: 'REP003', title: 'Rapport sur les Garanties à Risque Élevé', date: '2025-06-05', type: 'Analyse de Risque' },
-];
+// We reuse documents table (category='compliance_report') as data source for compliance reports
 
 const CompliancePage = () => {
   const { toast } = useToast();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setReports(initialComplianceReports);
+  const loadReports = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('id,title,created_at,category')
+        .eq('category','compliance_report')
+        .order('created_at',{ ascending:false })
+        .limit(100);
+      if (error) throw error;
+      const mapped = (data||[]).map(d=>({
+        id: d.id,
+        title: d.title || 'Rapport',
+        type: 'Conformité',
+        date: d.created_at?.split('T')[0] || ''
+      }));
+      setReports(mapped);
+    } catch (e) {
+      toast({ variant:'destructive', title:'Erreur', description:'Chargement des rapports impossible.' });
+    } finally {
       setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
+    }
   };
+
+  useEffect(()=>{ loadReports(); },[]);
 
   if (loading) {
     return (
@@ -50,10 +60,10 @@ const CompliancePage = () => {
       <Card>
         <CardHeader>
           <CardTitle>Générer un nouveau rapport</CardTitle>
-          <CardDescription>Créez des rapports de conformité basés sur des modèles prédéfinis.</CardDescription>
+          <CardDescription>Fonctionnalité à venir (génération automatique).</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => handleAction("Génération d'un nouveau rapport de conformité.")}>Générer un Rapport</Button>
+          <Button disabled>Générer un Rapport</Button>
         </CardContent>
       </Card>
 
@@ -65,7 +75,7 @@ const CompliancePage = () => {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Rechercher un rapport..." className="pl-8" />
             </div>
-            <Button variant="outline" onClick={() => handleAction("Filtres de rapports appliqués.")}><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
+            <Button variant="outline" disabled><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -86,7 +96,7 @@ const CompliancePage = () => {
                     <td className="p-2">{report.type}</td>
                     <td className="p-2">{report.date}</td>
                     <td className="p-2 text-right">
-                      <Button variant="outline" size="sm" onClick={() => handleAction(`Téléchargement du rapport ${report.id}.`)}><Download className="mr-1 h-4 w-4" /> Télécharger</Button>
+                      <Button variant="outline" size="sm" asChild disabled><span><Download className="mr-1 h-4 w-4" /> Télécharger</span></Button>
                     </td>
                   </tr>
                 ))}

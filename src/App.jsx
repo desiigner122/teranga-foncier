@@ -78,6 +78,7 @@ import AdminTransactionsPage from '@/pages/admin/AdminTransactionsPage';
 import AdminAIAssistantPage from '@/pages/admin/AdminAIAssistantPage';
 import AdminInstitutionsPage from '@/pages/admin/AdminInstitutionsPage';
 import AdminAuditLogsPage from '@/pages/admin/AdminAuditLogsPage';
+import AdminGlobalTimelinePage from '@/pages/admin/AdminGlobalTimelinePage';
 
 // Agent Dashboard Pages
 import AgentDashboardPage from '@/pages/agent/AgentDashboardPage';
@@ -220,6 +221,7 @@ function App() {
                     <Route path="/dashboard/admin/ai-assistant" element={<AdminAIAssistantPage />} />
                     <Route path="/dashboard/admin/institutions" element={<AdminInstitutionsPage />} />
                     <Route path="/dashboard/admin/audit-logs" element={<AdminAuditLogsPage />} />
+                    <Route path="/dashboard/admin/global-timeline" element={<AdminGlobalTimelinePage />} />
 
                     {/* Agent Routes */}
                     <Route path="/dashboard/agent" element={<AgentDashboardPage />} />

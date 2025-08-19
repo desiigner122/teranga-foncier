@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
-  Search, MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, Users, FileText, DollarSign, // <-- AJOUTÉ ICI
+  Search, MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, Users, FileText, DollarSign,
   Newspaper, Map, BarChart, Lightbulb, Gavel, ClipboardCheck, Briefcase, Leaf, Store, Banknote, UserCheck,
-  ArrowRight, CheckCircle, Globe, Clock, Sparkles, Lock, Zap, Building 
+  ArrowRight, CheckCircle, Globe, Clock, Sparkles, Lock, Zap, Building, Shield, Award, AlertTriangle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useChatbot } from '@/context/ChatbotContext';
@@ -236,76 +236,86 @@ const HomePage = () => {
       variants={containerVariants}
       className="flex flex-col min-h-screen font-inter bg-gray-50 dark:bg-background"
     >
-      {/* Hero Section - Inspiré d'Eskimoz */}
+      {/* Hero Section - Réorienté: priorité demande terrain communal + confiance anti-fraude */}
       <section 
-        className="relative w-full h-[650px] md:h-[750px] bg-cover bg-center flex items-center text-white overflow-hidden" 
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1519681393784-a93987cb0f6b?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
+        className="relative w-full min-h-[700px] md:min-h-[760px] bg-cover bg-center flex items-center text-white overflow-hidden" 
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3')" }}
       >
         {/* Overlay pour assombrir l'image et améliorer la lisibilité du texte */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-blue-700/60"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/90 via-blue-800/80 to-emerald-700/60"></div>
 
         <div className="relative z-10 container mx-auto px-4 flex flex-col items-center justify-center text-center h-full">
           <motion.h1
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 100 }}
-            className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight max-w-4xl"
+            className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight max-w-5xl"
           >
-            Teranga Foncier : Le Foncier Simplifié au Sénégal
+            Accédez aux Terrains Communaux & Sécurisez Vos Transactions Foncières
           </motion.h1>
           <motion.p
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
-            className="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90"
+            className="text-lg md:text-2xl mb-10 max-w-4xl mx-auto opacity-90 font-medium"
           >
-            Sécurisez vos transactions, explorez des terrains vérifiés et accédez aux services fonciers essentiels.
+            Demandez officiellement un terrain de votre commune, vérifiez les titres et déposez vos annonces en toute transparence grâce à notre dispositif anti-fraude.
           </motion.p>
           
-          {/* Formulaire de recherche centralisé et plus grand */}
+          {/* Bloc principal d'action: Demande terrain communal */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.6, type: "spring", stiffness: 100 }}
-            className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-xl shadow-2xl p-6 md:p-8"
+            className="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 md:p-10 border border-white/40"
           >
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Trouver votre terrain idéal</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3"><Landmark className="h-8 w-8 text-blue-700"/> Demandez un Terrain Communal</h2>
+            <p className="text-gray-700 mb-6 leading-relaxed">Sélectionnez région, département et commune sur la page dédiée et suivez l'avancement de votre dossier en temps réel. Réduisez les délais et évitez les pertes de documents.</p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Input
-                type="text"
-                placeholder="Ville, quartier, référence..."
-                className="flex-grow p-3 border rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500"
-              />
-              {/* Utilisation directe du bouton sans Link ici */}
-              <Button
-                size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 px-8 py-3 rounded-lg font-bold"
-                aria-label="Rechercher un terrain"
-              >
-                <Search className="h-5 w-5" /> Rechercher
-              </Button>
+              <Link onClick={()=>SupabaseDataService.recordHomepageCta('hero_municipal_request')} to="/municipal-land-request-info" className="flex-1 inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg px-8 py-5 rounded-xl shadow-md transition-all">
+                <span className="flex items-center gap-2">Démarrer ma Demande <ArrowRight className="h-5 w-5"/></span>
+              </Link>
+              <Link onClick={()=>SupabaseDataService.recordHomepageCta('hero_explore_parcels')} to="/parcelles" className="flex-1 inline-flex items-center justify-center bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-lg px-8 py-5 rounded-xl border border-blue-200 transition-all">
+                <span className="flex items-center gap-2">Explorer les Parcelles <MapPin className="h-5 w-5"/></span>
+              </Link>
+            </div>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-start gap-2"><Shield className="h-5 w-5 text-emerald-600"/><span>Dossier horodaté & suivi transparent</span></div>
+              <div className="flex items-start gap-2"><Sparkles className="h-5 w-5 text-blue-600"/><span>Réduction des allers-retours administratifs</span></div>
+              <div className="flex items-start gap-2"><Lock className="h-5 w-5 text-indigo-600"/><span>Protection des documents fournis</span></div>
             </div>
           </motion.div>
 
-          {/* Boutons d'action sous le formulaire pour les chemins principaux */}
+          {/* Bande confiance anti-fraude */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+            className="mt-10 w-full max-w-5xl"
           >
-            {/* Correction: Appliquer les styles de bouton directement au Link */}
-            <Link to="/municipal-land-request-info" className="inline-flex items-center justify-center bg-white text-blue-700 hover:bg-gray-100 shadow-lg font-bold text-lg px-8 py-6 rounded-full transition-all duration-300 transform hover:scale-105">
-              <span className="flex items-center gap-2">
-                Demander un Terrain en Mairie <Landmark className="h-6 w-6" />
-              </span>
-            </Link>
-            {/* Correction: Appliquer les styles de bouton directement au Link */}
-            <Link to="/parcelles" className="inline-flex items-center justify-center bg-transparent border-2 border-white text-white hover:bg-white/20 shadow-lg font-bold text-lg px-8 py-6 rounded-full transition-all duration-300 transform hover:scale-105">
-              <span className="flex items-center gap-2">
-                Explorer les Terrains Vérifiés <MapPin className="h-6 w-6" />
-              </span>
-            </Link>
+            <div className="bg-white/95 backdrop-blur-md rounded-xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 shadow-xl border border-white/40">
+              <div className="flex items-start gap-3">
+                <Award className="h-8 w-8 text-amber-500"/>
+                <div>
+                  <p className="font-semibold text-gray-900">Badge Vendeur Vérifié</p>
+                  <p className="text-xs text-gray-600 mt-1">Soumettez les titres et pièces clés pour booster la visibilité de votre annonce.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-8 w-8 text-emerald-600"/>
+                <div>
+                  <p className="font-semibold text-gray-900">Anti-Fraude Intégré</p>
+                  <p className="text-xs text-gray-600 mt-1">Contrôles croisés & journalisation des actions pour réduire les risques.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-8 w-8 text-red-500"/>
+                <div>
+                  <p className="font-semibold text-gray-900">Alerte Anomalies</p>
+                  <p className="text-xs text-gray-600 mt-1">Signalement proactif des incohérences documentaires.</p>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

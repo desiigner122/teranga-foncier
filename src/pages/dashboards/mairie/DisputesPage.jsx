@@ -4,15 +4,12 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, PlusCircle, Search, Filter, Gavel } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/spinner';
 
-const initialDisputes = [
-  { id: 'LIT001', parcelId: 'DK-YOF-007', parties: 'Voisin A vs Voisin B', type: 'Limite de propriété', status: 'En médiation' },
-  { id: 'LIT002', parcelId: 'SLY-NGP-010', parties: 'Héritiers Famille Faye', type: 'Succession', status: 'Résolu' },
-  { id: 'LIT003', parcelId: 'THS-EXT-021', parties: 'Promoteur vs Association locale', type: 'Droit de passage', status: 'Nouveau' },
-];
+// Data source: land_disputes table (expected). Fallback: empty.
 
 const DisputesPage = () => {
   const { toast } = useToast();
@@ -20,16 +17,22 @@ const DisputesPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDisputes(initialDisputes);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('land_disputes')
+          .select('id,parcel_id,parties,type,status,created_at')
+          .order('created_at', { ascending: false })
+          .limit(200);
+        if (error) throw error;
+        const mapped = (data || []).map(d => ({ id: d.id, parcelId: d.parcel_id, parties: d.parties, type: d.type, status: d.status }));
+        setDisputes(mapped);
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'production') console.warn('Litiges non chargés', e.message || e);
+      } finally { setLoading(false); }
+    };
+    load();
   }, []);
-
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
-  };
 
   if (loading) {
     return (
@@ -48,7 +51,7 @@ const DisputesPage = () => {
     >
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold flex items-center"><AlertTriangle className="mr-3 h-8 w-8"/>Gestion des Litiges Fonciers</h1>
-        <Button onClick={() => handleAction("Ouverture du formulaire de déclaration de litige.")}>
+        <Button disabled title="Création à venir">
           <PlusCircle className="mr-2 h-4 w-4" /> Nouveau Litige
         </Button>
       </div>
@@ -61,7 +64,7 @@ const DisputesPage = () => {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Rechercher par parcelle, parties..." className="pl-8" />
             </div>
-            <Button variant="outline" onClick={() => handleAction("Filtres de litiges appliqués.")}><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
+        <Button variant="outline" disabled><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -84,7 +87,7 @@ const DisputesPage = () => {
                     <td className="p-2">{d.type}</td>
                     <td className="p-2"><Badge variant={d.status === 'Résolu' ? 'success' : d.status === 'Nouveau' ? 'warning' : 'secondary'}>{d.status}</Badge></td>
                     <td className="p-2 text-right">
-                      <Button variant="outline" size="sm" onClick={() => handleAction(`Ouverture du dossier de médiation pour ${d.id}.`)}><Gavel className="mr-1 h-4 w-4" />Médiation</Button>
+                        <Button variant="outline" size="sm" disabled title="Médiation à venir"><Gavel className="mr-1 h-4 w-4" />Médiation</Button>
                     </td>
                   </tr>
                 ))}

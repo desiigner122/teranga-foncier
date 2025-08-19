@@ -18,9 +18,7 @@ const UrbanPlanPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
-  };
+  // Future integration: dynamic urban zoning layers + regulation PDF download from storage
 
   if (loading) {
     return (
@@ -49,8 +47,12 @@ const UrbanPlanPage = () => {
             <img src="https://images.unsplash.com/photo-1614783702763-48dcc1f32a91" alt="Simulation de carte d'urbanisme" className="w-full h-full object-cover rounded-lg" />
           </div>
           <div className="flex space-x-2 mt-4">
-            <Button variant="outline" onClick={() => handleAction("Affichage des zones d'urbanisme.")}><Layers className="mr-2 h-4 w-4" /> Afficher les Zones</Button>
-            <Button variant="outline" onClick={() => handleAction("Téléchargement du règlement d'urbanisme.")}><Download className="mr-2 h-4 w-4" /> Télécharger le Règlement</Button>
+            <Button variant="outline" disabled title="Bientôt: couches dynamiques basées sur urban_zones">
+              <Layers className="mr-2 h-4 w-4" /> Afficher les Zones
+            </Button>
+            <Button variant="outline" disabled title="Bientôt: téléchargement PDF règlement">
+              <Download className="mr-2 h-4 w-4" /> Télécharger le Règlement
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -2,34 +2,81 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Search, Filter, Percent, Calendar, HardHat } from 'lucide-react';
+import { ClipboardList, Search, Filter, Calendar, HardHat, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from '@/components/ui/spinner';
 
-const initialProjects = [
-  { id: 'PROJ001', name: 'Résidence Les Filaos', status: 'En construction', progress: 60, nextMilestone: 'Pose des fenêtres', dueDate: '2025-08-15' },
-  { id: 'PROJ002', name: 'Saly Center', status: 'Planification', progress: 20, nextMilestone: 'Validation des plans', dueDate: '2025-07-30' },
-  { id: 'PROJ003', name: 'Logements Keur Massar', status: 'Faisabilité', progress: 10, nextMilestone: 'Étude de sol', dueDate: '2025-07-10' },
-];
+import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/context/AuthContext';
+
+// Helper to compute progress placeholder until a dedicated progress tracking table exists
+const deriveProgress = (project) => {
+  // If units_total available, approximate progress by units_sold ratio
+  if (project?.units_total && project.units_total > 0) {
+    return Math.min(100, Math.round((project.units_sold || 0) / project.units_total * 100));
+  }
+  // Map status to rough progression
+  const statusMap = {
+    'Faisabilité': 10,
+    'Planification': 25,
+    'En construction': 60,
+    'Achevé': 100
+  };
+  return statusMap[project.status] ?? 0;
+};
 
 const ConstructionTrackingPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setProjects(initialProjects);
+  const loadProjects = async () => {
+    try {
+      setRefreshing(true);
+      const data = await SupabaseDataService.getPromoteurProjects();
+      // Normalize into UI shape
+      const normalized = data.map(p => ({
+        id: p.id,
+        name: p.name,
+        status: p.status,
+        progress: deriveProgress(p),
+        nextMilestone: p.workflow_next_milestone || '—',
+        dueDate: p.estimated_completion || '—'
+      }));
+      setProjects(normalized);
+    } catch (e) {
+      toast({ title: 'Erreur', description: 'Impossible de charger les projets promoteur.' });
+    } finally {
       setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+      setRefreshing(false);
+    }
+  };
 
-  const handleAction = (message) => {
-    toast({ title: "Action Simulée", description: message });
+  useEffect(() => { loadProjects(); }, []);
+
+  const handleStatusAdvance = async (project) => {
+    // Simple linear advancement through statuses; adjust as needed
+    const order = ['Faisabilité','Planification','En construction','Achevé'];
+    const idx = order.indexOf(project.status);
+    const next = idx >=0 && idx < order.length -1 ? order[idx+1] : null;
+    if (!next) {
+      toast({ title: 'Statut', description: 'Projet déjà au dernier statut.' });
+      return;
+    }
+    try {
+      const updated = await SupabaseDataService.updatePromoteurProjectStatus(project.id, next);
+      if (updated) {
+        setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: next, progress: deriveProgress({ ...p, status: next }) } : p));
+        toast({ title: 'Statut mis à jour', description: `${project.name}: ${next}` });
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour le statut.' });
+    }
   };
   
   const getStatusBadge = (status) => {
@@ -56,7 +103,12 @@ const ConstructionTrackingPage = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6 p-4 md:p-6"
     >
-      <h1 className="text-2xl md:text-3xl font-bold flex items-center"><ClipboardList className="mr-3 h-8 w-8 text-primary"/>Suivi de Construction</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl md:text-3xl font-bold flex items-center"><ClipboardList className="mr-3 h-8 w-8 text-primary"/>Suivi de Construction</h1>
+        <Button variant="outline" size="sm" onClick={loadProjects} disabled={refreshing} className="flex items-center">
+          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Rafraîchir
+        </Button>
+      </div>
       
       <Card>
         <CardHeader>
@@ -71,6 +123,11 @@ const ConstructionTrackingPage = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {projects.length === 0 && (
+              <div className="text-sm text-muted-foreground p-4 border rounded-md">
+                Aucun projet trouvé. Créez un projet dans la base (table promoteur_projects) pour le voir ici.
+              </div>
+            )}
             {projects.map(p => (
               <Card key={p.id}>
                 <CardHeader>
@@ -91,8 +148,8 @@ const ConstructionTrackingPage = () => {
                   </div>
                   <p className="text-sm text-muted-foreground">Prochaine étape: {p.nextMilestone} (Échéance: {p.dueDate})</p>
                   <div className="flex flex-wrap space-x-2 mt-4">
-                    <Button variant="outline" size="sm" onClick={() => handleAction(`Mise à jour du statut pour ${p.name}.`)}><HardHat className="mr-1 h-4 w-4" /> Mettre à jour</Button>
-                    <Button variant="outline" size="sm" onClick={() => handleAction(`Voir le calendrier détaillé pour ${p.name}.`)}><Calendar className="mr-1 h-4 w-4" /> Calendrier</Button>
+                    <Button variant="outline" size="sm" onClick={() => handleStatusAdvance(p)}><HardHat className="mr-1 h-4 w-4" /> Avancer statut</Button>
+                    <Button variant="outline" size="sm" disabled><Calendar className="mr-1 h-4 w-4" /> Calendrier (bientôt)</Button>
                      <Button asChild variant="link" size="sm" className="p-0 h-auto"><Link to="/dashboard/sales">Voir les ventes</Link></Button>
                   </div>
                 </CardContent>

@@ -33,4 +33,9 @@ export function useFeatureFlag(key, defaultValue=false) {
   return flags[key] ?? defaultValue;
 }
 
+export function useFlagValue(key, defaultValue=null) {
+  const { flags } = useContext(FeatureFlagsContext);
+  return flags[key] ?? defaultValue;
+}
+
 export function useFeatureFlags() { return useContext(FeatureFlagsContext); }

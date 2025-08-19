@@ -13,13 +13,14 @@ import ParcelDetailSkeleton from '@/components/parcel-detail/ParcelDetailSkeleto
 import ParcelFeeCalculator from '@/components/parcel-detail/ParcelFeeCalculator';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Home, MapPin, School, ShoppingCart, Hotel as Hospital, HeartHandshake as Handshake, Shield, User, Award } from 'lucide-react';
+import { Home, MapPin, School, ShoppingCart, Hotel as Hospital, HeartHandshake as Handshake, Shield, User, Award, RefreshCw } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import { useContext } from 'react';
 import { ComparisonContext } from '@/context/ComparisonContext';
 import { Helmet } from 'react-helmet-async';
+import ParcelTimeline from '@/components/parcel-detail/ParcelTimeline';
 
 const ParcelDetailPage = () => {
   const { id } = useParams();
@@ -34,19 +35,42 @@ const ParcelDetailPage = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const isParcelInCompare = comparisonList.includes(id);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    setTimeout(() => {
-      const foundParcel = sampleParcels.find(p => p.id === id);
-      if (foundParcel) {
-        setParcel(foundParcel);
-      } else {
-        setError("Parcelle non trouvée.");
+  const loadParcel = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await SupabaseDataService.getParcelById(id);
+      if (!data) {
+        setError('Parcelle non trouvée.');
+        return;
       }
+      // Normalisation minimale si les champs diffèrent
+      const normalized = {
+        id: data.id,
+        reference: data.reference,
+        name: data.name || data.title || `Parcelle ${data.reference}`,
+        location_name: data.location_name || data.location || 'Localisation non spécifiée',
+        description: data.description || 'Description indisponible.',
+        price: data.price,
+        area: data.area_sqm || data.area || null,
+        zone: data.zone || data.location_zone || '—',
+        status: data.status,
+        documents: data.documents || [],
+        images: data.images || [],
+        coordinates: data.coordinates ? (typeof data.coordinates === 'string' ? JSON.parse(data.coordinates) : data.coordinates) : null,
+        ownerType: data.owner_type || 'Propriétaire',
+        documentStatus: data.document_status || (data.verified ? 'Vérifié' : 'En attente')
+      };
+      setParcel(normalized);
+    } catch (e) {
+      console.error('Erreur chargement parcelle:', e);
+      setError('Erreur lors du chargement de la parcelle.');
+    } finally {
       setLoading(false);
-    }, 500);
-  }, [id]);
+    }
+  };
+
+  useEffect(() => { loadParcel(); }, [id]);
 
   const handleAction = (message, details) => {
     toast({
@@ -129,6 +153,9 @@ const ParcelDetailPage = () => {
           onShare={handleShare}
           onCompareChange={handleCompareChange}
         />
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={loadParcel} className="flex items-center"><RefreshCw className="h-4 w-4 mr-2"/>Rafraîchir</Button>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           <div className="lg:col-span-2 space-y-6">
@@ -173,6 +200,7 @@ const ParcelDetailPage = () => {
             </motion.div>
 
             <ParcelLocationCard coordinates={parcel.coordinates} locationName={parcel.location_name} />
+            <ParcelTimeline parcelId={parcel.id} />
           </div>
 
           <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 self-start">
