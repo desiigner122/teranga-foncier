@@ -63,7 +63,7 @@ import BanqueDashboard from '@/pages/dashboards/BanqueDashboard';
 import NotairesDashboard from '@/pages/dashboards/NotairesDashboard';
 import MairiesDashboard from '@/pages/dashboards/MairiesDashboard';
 
-// Dashboard Pages
+// Admin Pages
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import AdminUsersPageAdvanced from '@/pages/admin/AdminUsersPageAdvanced';
 import AdminParcelsPage from '@/pages/admin/AdminParcelsPage';
@@ -79,6 +79,8 @@ import AdminAIAssistantPage from '@/pages/admin/AdminAIAssistantPage';
 import AdminInstitutionsPage from '@/pages/admin/AdminInstitutionsPage';
 import AdminAuditLogsPage from '@/pages/admin/AdminAuditLogsPage';
 import AdminGlobalTimelinePage from '@/pages/admin/AdminGlobalTimelinePage';
+import AdminTypeChangeRequestsPage from '@/pages/admin/AdminTypeChangeRequestsPage';
+import AdminParcelSubmissionsPage from '@/pages/admin/AdminParcelSubmissionsPage';
 
 // Agent Dashboard Pages
 import AgentDashboardPage from '@/pages/agent/AgentDashboardPage';
@@ -210,9 +212,11 @@ function App() {
                     <Route path="/dashboard/admin" element={<AdminDashboardPage />} />
                     <Route path="/dashboard/admin/users" element={<AdminUsersPageAdvanced />} />
                     <Route path="/dashboard/admin/parcels" element={<AdminParcelsPage />} />
+                    <Route path="/dashboard/admin/parcel-submissions" element={<AdminParcelSubmissionsPage />} />
                     <Route path="/dashboard/admin/blog" element={<AdminBlogPage />} />
                     <Route path="/dashboard/admin/agents" element={<AdminAgentsPage />} />
                     <Route path="/dashboard/admin/requests" element={<AdminRequestsPage />} />
+                    <Route path="/dashboard/admin/type-change-requests" element={<AdminTypeChangeRequestsPage />} />
                     <Route path="/dashboard/admin/reports" element={<AdminReportsPage />} />
                     <Route path="/dashboard/admin/contracts" element={<AdminContractsPage />} />
                     <Route path="/dashboard/admin/compliance" element={<AdminCompliancePage />} />

@@ -5,7 +5,7 @@ import {
     Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive,
     Handshake, Activity, LogOut,
     PieChart, Globe, Palette, Package, ShoppingCart, Calendar, FileText, BookOpen, Layers,
-    Store, Sprout, Shield, Building, DollarSign, LifeBuoy // <-- AJOUTÉ : Import de l'icône LifeBuoy
+    Store, Sprout, Shield, Building, DollarSign, LifeBuoy, UserCog, FileBadge // <-- Ajout des icônes manquantes
 } from 'lucide-react';
 
 const commonLinks = {
@@ -37,8 +37,22 @@ const adminConfig = [
             { label: 'Investisseurs', href: '/dashboard/admin/users?type=Investisseur', icon: TrendingUp, end: true },
         ],
     },
-    { label: 'Parcelles', href: '/dashboard/admin/parcels', icon: LandPlot, end: true },
-    { label: 'Demandes', href: '/dashboard/admin/requests', icon: FileSignature, end: true },
+    {
+        label: 'Parcelles',
+        icon: LandPlot,
+        subItems: [
+            { label: 'Toutes les Parcelles', href: '/dashboard/admin/parcels', icon: LandPlot, end: true },
+            { label: 'Soumissions', href: '/dashboard/admin/parcel-submissions', icon: FileBadge, end: true },
+        ],
+    },
+    {
+        label: 'Demandes',
+        icon: FileSignature,
+        subItems: [
+            { label: 'Toutes les Demandes', href: '/dashboard/admin/requests', icon: FileSignature, end: true },
+            { label: 'Changement de Type', href: '/dashboard/admin/type-change-requests', icon: UserCog, end: true },
+        ],
+    },
     { label: 'Contrats', href: '/dashboard/admin/contracts', icon: Receipt, end: true },
     { label: 'Transactions', href: '/dashboard/admin/transactions', icon: DollarSign, end: true },
     { isSeparator: true },
