@@ -115,6 +115,8 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_target ON audit_logs(target_user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata jsonb_path_ops);
 -- CREATE INDEX IF NOT EXISTS idx_audit_logs_event_metadata ON audit_logs USING GIN ((metadata -> 'event_subtype'));
+-- Composite index to optimize queries filtering by event_type then ordering by created_at
+CREATE INDEX IF NOT EXISTS idx_audit_logs_event_type_created_at ON audit_logs(event_type, created_at DESC);
 
 -- =====================
 -- RLS & POLICIES
@@ -153,6 +155,16 @@ CREATE POLICY audit_logs_select_admin ON audit_logs
 -- Inserts to audit_logs from backend service role only
 CREATE POLICY audit_logs_insert_service ON audit_logs
   FOR INSERT WITH CHECK (auth.role() = 'service_role');
+
+-- OPTIONAL: If using realtime replication, Postgres will respect RLS on publication.
+-- Ensure only admins receive realtime by keeping SELECT restricted. For extra safety you can:
+-- 1. Create a SECURITY DEFINER view exposing only necessary columns and replicate that view.
+-- 2. Or add a check on current_setting('request.jwt.claims', true)::json->>'role' = 'admin'.
+-- Example helper (uncomment if needed):
+-- CREATE OR REPLACE FUNCTION jwt_is_admin() RETURNS boolean AS $$
+--   SELECT coalesce((current_setting('request.jwt.claims', true)::json->>'role') = 'admin', false);
+-- $$ LANGUAGE sql STABLE;
+-- Then modify policy: USING (jwt_is_admin());
 
 -- =====================
 -- SAMPLE AUDIT FUNCTION (optional)

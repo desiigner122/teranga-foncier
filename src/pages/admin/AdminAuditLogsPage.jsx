@@ -89,10 +89,21 @@ export default function AdminAuditLogsPage() {
               <span>{new Date(log.created_at).toLocaleString('fr-FR')}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <div><span className="font-medium">Actor:</span> {log.actor_user_id || '—'}</div>
-              <div><span className="font-medium">Target:</span> {log.target_user_id || '—'}</div>
-              <div><span className="font-medium">Table:</span> {log.target_table || '—'}</div>
-              <div><span className="font-medium">ID:</span> {log.target_id || '—'}</div>
+              <div>
+                <span className="font-medium">Actor:</span> {log.actor_user_id || '—'}{' '}
+                {log.actor_user_id && <button className="text-[10px] underline" onClick={()=>{navigator.clipboard.writeText(log.actor_user_id);}}>Copier</button>}
+              </div>
+              <div>
+                <span className="font-medium">Target:</span> {log.target_user_id || '—'}{' '}
+                {log.target_user_id && <button className="text-[10px] underline" onClick={()=>{navigator.clipboard.writeText(log.target_user_id);}}>Copier</button>}
+              </div>
+              <div>
+                <span className="font-medium">Table:</span> {log.target_table || '—'}
+              </div>
+              <div>
+                <span className="font-medium">ID:</span> {log.target_id || '—'}{' '}
+                {log.target_id && <button className="text-[10px] underline" onClick={()=>{navigator.clipboard.writeText(log.target_id);}}>Copier</button>}
+              </div>
             </div>
             {log.metadata && (
               <details>
