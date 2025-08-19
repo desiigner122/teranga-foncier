@@ -69,11 +69,7 @@ CREATE TABLE IF NOT EXISTS institution_profiles (
   metadata JSONB DEFAULT '{}'::jsonb,
   status TEXT DEFAULT 'pending', -- pending | active | suspended
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  CONSTRAINT fk_dept_region FOREIGN KEY (department_id, region_id)
-    REFERENCES departments(id, region_id) MATCH SIMPLE DEFERRABLE INITIALLY IMMEDIATE,
-  CONSTRAINT fk_commune_dept FOREIGN KEY (commune_id, department_id)
-    REFERENCES communes(id, department_id) MATCH SIMPLE DEFERRABLE INITIALLY IMMEDIATE
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_institution_profiles_user_id ON institution_profiles(user_id);

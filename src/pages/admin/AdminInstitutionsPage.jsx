@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import SupabaseDataService from '@/services/supabaseDataService';
+import { supabase } from '@/lib/supabaseClient';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -15,6 +16,8 @@ export default function AdminInstitutionsPage() {
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [regions, setRegions] = useState([]);
+  const [updatingId, setUpdatingId] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -30,6 +33,26 @@ export default function AdminInstitutionsPage() {
 
   useEffect(()=>{ load(); }, [regionFilter, typeFilter, statusFilter]);
 
+  useEffect(()=> {
+    (async ()=>{
+      const { data, error } = await supabase.from('regions').select('id,name').order('name');
+      if (!error) setRegions(data);
+    })();
+  }, []);
+
+  const updateStatus = async (inst, newStatus) => {
+    setUpdatingId(inst.id);
+    try {
+      const { error } = await supabase.from('institution_profiles').update({ status: newStatus }).eq('id', inst.id);
+      if (error) throw error;
+      await load();
+    } catch (e) {
+      console.warn('updateStatus failed', e.message || e);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const filtered = institutions.filter(i => {
     if (!search) return true;
     const s = search.toLowerCase();
@@ -42,7 +65,10 @@ export default function AdminInstitutionsPage() {
         <h1 className="text-2xl font-semibold">Institutions</h1>
         <div className="flex gap-2 flex-wrap">
           <Input placeholder="Recherche" value={search} onChange={e=>setSearch(e.target.value)} className="w-48" />
-          <Input placeholder="Region ID" value={regionFilter} onChange={e=>setRegionFilter(e.target.value)} className="w-36" />
+          <select value={regionFilter} onChange={e=>setRegionFilter(e.target.value)} className="border rounded px-2 py-1 text-sm w-40">
+            <option value="">Région</option>
+            {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+          </select>
           <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)} className="border rounded px-2 py-1 text-sm">
             <option value="">Type</option>
             <option value="Mairie">Mairie</option>
@@ -74,6 +100,17 @@ export default function AdminInstitutionsPage() {
               <p><span className="font-medium">Département:</span> {inst.departments?.name || '—'}</p>
               <p><span className="font-medium">Commune:</span> {inst.communes?.name || '—'}</p>
               <p><span className="font-medium">Statut:</span> <Badge className="ml-1">{inst.status}</Badge></p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {inst.status !== 'active' && (
+                <Button size="xs" variant="outline" disabled={updatingId===inst.id} onClick={()=>updateStatus(inst,'active')}>{updatingId===inst.id?'...':'Activer'}</Button>
+              )}
+              {inst.status === 'active' && (
+                <Button size="xs" variant="destructive" disabled={updatingId===inst.id} onClick={()=>updateStatus(inst,'suspended')}>{updatingId===inst.id?'...':'Suspendre'}</Button>
+              )}
+              {inst.status === 'suspended' && (
+                <Button size="xs" variant="outline" disabled={updatingId===inst.id} onClick={()=>updateStatus(inst,'active')}>{updatingId===inst.id?'...':'Réactiver'}</Button>
+              )}
             </div>
             {inst.metadata && Object.keys(inst.metadata).length > 0 && (
               <details className="text-xs">
