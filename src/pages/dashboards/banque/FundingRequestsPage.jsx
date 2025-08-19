@@ -24,7 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import SupabaseDataService from '@/services/supabaseDataService';
 
 const FundingRequestsPage = () => {

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import SupabaseDataService from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 const MairieRequestsPage = () => {
   const { toast } = useToast();
