@@ -18,6 +18,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
 import { senegalAdministrativeDivisions, senegalBanks, notaireSpecialities } from '@/data/senegalLocations';
+import { nanoid } from 'nanoid';
 import SupabaseDataService from '@/services/supabaseDataService';
 
 const LoadingSpinner = React.lazy(() => import('@/components/ui/spinner').catch(() => ({
@@ -208,12 +209,18 @@ export default function AdminUsersPage() {
   };
 
   const handleCreateUser = async () => {
-    if (!newUser.email) {
-      toast({ variant: 'destructive', title: 'Email requis' });
-      return;
+    // Validation
+    if (!newUser.email) { toast({ variant:'destructive', title:'Email requis'}); return; }
+    if (!newUser.full_name) { toast({ variant:'destructive', title:'Nom requis'}); return; }
+    if (newUser.type === 'Mairie') {
+      if (!newUser.region || !newUser.department || !newUser.commune) { toast({ variant:'destructive', title:'Sélection région/département/commune requise'}); return; }
     }
+    if (newUser.type === 'Banque' && !newUser.bank_name) { toast({ variant:'destructive', title:'Choisir une banque'}); return; }
+    if (newUser.type === 'Notaire' && !newUser.notaire_speciality) { toast({ variant:'destructive', title:'Choisir une spécialité'}); return; }
     setCreating(true);
     try {
+      const slugBase = newUser.full_name.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+      const slug = `${slugBase}-${nanoid(6)}`;
       const payload = {
         email: newUser.email.trim().toLowerCase(),
         full_name: newUser.full_name || newUser.email,
@@ -227,10 +234,43 @@ export default function AdminUsersPage() {
           department: newUser.department || null,
             commune: newUser.commune || null,
             bank_name: newUser.bank_name || null,
-            notaire_speciality: newUser.notaire_speciality || null
+            notaire_speciality: newUser.notaire_speciality || null,
+            slug
         }
       };
-      await SupabaseDataService.createUser(payload);
+      const created = await SupabaseDataService.createUser(payload);
+
+      // Institution profile (si table disponible)
+      if (created && ['Mairie','Banque','Notaire'].includes(created.type)) {
+        await SupabaseDataService.createInstitutionProfile({
+          user_id: created.id,
+          type: created.type,
+          slug: payload.metadata.slug,
+          region: payload.metadata.region,
+          department: payload.metadata.department,
+          commune: payload.metadata.commune,
+          bank_name: payload.metadata.bank_name,
+          notaire_speciality: payload.metadata.notaire_speciality,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      if (sendInvite) {
+        await SupabaseDataService.sendAuthInvitation(payload.email, payload.role);
+      }
+
+      // Audit log placeholder (si table audit_logs existe)
+      try {
+        await supabase.from('audit_logs').insert({
+          id: nanoid(),
+          action: 'admin_create_user',
+          target_email: payload.email,
+          target_type: payload.type,
+          metadata: payload.metadata,
+          created_at: new Date().toISOString()
+        });
+      } catch (e) { /* ignore */ }
       if (sendInvite) {
         toast({
           title: 'Invitation différée',

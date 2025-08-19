@@ -418,6 +418,41 @@ export class SupabaseDataService {
     return data;
   }
 
+  // ============== INSTITUTION PROFILES (NEW) ==============
+  // Requires table institution_profiles (see database/institution_profiles_schema.sql)
+  static async createInstitutionProfile(profileData) {
+    try {
+      const { data, error } = await supabase
+        .from('institution_profiles')
+        .insert([profileData])
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.warn('Institution profile creation skipped/failed (table missing?)', e.message || e);
+      return null;
+    }
+  }
+
+  // Placeholder for calling an Edge Function that sends an auth invitation
+  static async sendAuthInvitation(email, role='user') {
+    try {
+      const endpoint = `${import.meta.env.VITE_EDGE_BASE_URL || ''}/invite`; // Configure in env
+      if (!endpoint) throw new Error('EDGE endpoint non configuré');
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role })
+      });
+      if (!res.ok) throw new Error('Échec envoi invitation');
+      return await res.json();
+    } catch (e) {
+      console.warn('sendAuthInvitation fallback (non bloquant):', e.message || e);
+      return null;
+    }
+  }
+
   static async createRequest(requestData) {
     const { data, error } = await supabase
       .from('requests')
