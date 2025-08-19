@@ -4,8 +4,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import ExceptionalAddUserDialog from '@/components/admin/roles/ExceptionalAddUserDialog';
-import ExceptionalAddUserDialogImproved from '@/components/admin/roles/ExceptionalAddUserDialogImproved';
+import CreateUserModal from '@/components/admin/CreateUserModal';
+import CompleteInstitutionModal from '@/components/admin/CompleteInstitutionModal';
 import RolesPermissionsPanel from '@/components/admin/roles/RolesPermissionsPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users, UserCheck, Trash2, Edit, MoreHorizontal, Shield, UserX, CheckCircle2, XCircle, Clock, 
-  User as UserIcon, FileCheck, UserCog, RefreshCw, Eye
+  User as UserIcon, FileCheck, UserCog, RefreshCw, Eye, Building2, Landmark, Plus
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
@@ -73,6 +73,7 @@ const AdminUsersPageAdvanced = () => {
   const [isChangeTypeModalOpen, setIsChangeTypeModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isExceptionalDialogOpen, setIsExceptionalDialogOpen] = useState(false);
+  const [isCompleteInstitutionModalOpen, setIsCompleteInstitutionModalOpen] = useState(false);
   const [changeStatusComment, setChangeStatusComment] = useState('');
   
   // État de filtres
@@ -395,7 +396,16 @@ const AdminUsersPageAdvanced = () => {
         </p>
         <div className="mt-3 flex gap-2">
           <Button size="sm" onClick={()=>setIsExceptionalDialogOpen(true)}>
-            + Ajout exceptionnel
+            <Plus className="h-4 w-4 mr-2" />
+            Ajout rapide
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={()=>setIsCompleteInstitutionModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Building2 className="h-4 w-4 mr-2" />
+            Créer Institution Complète
           </Button>
           <Button 
             size="sm" 
@@ -674,11 +684,21 @@ const AdminUsersPageAdvanced = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Exceptional Add Dialog - Version améliorée */}
-      <ExceptionalAddUserDialogImproved
+      {/* Create User Modal - Version complète avec sélection géographique */}
+      <CreateUserModal
         open={isExceptionalDialogOpen}
         onOpenChange={(o)=> setIsExceptionalDialogOpen(o)}
         onCreated={(created)=> { setUsers(prev=>[created, ...prev]); }}
+      />
+
+      {/* Complete Institution Modal - Création complète banques/mairies */}
+      <CompleteInstitutionModal
+        isOpen={isCompleteInstitutionModalOpen}
+        onClose={() => setIsCompleteInstitutionModalOpen(false)}
+        onUserCreated={(created) => { 
+          setUsers(prev => [created, ...prev]); 
+          loadUsers(); // Recharger pour avoir les données complètes
+        }}
       />
 
       {/* Multi-role assignment dialog */}

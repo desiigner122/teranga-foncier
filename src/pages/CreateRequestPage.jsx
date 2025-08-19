@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import SupabaseDataService from '@/services/supabaseDataService';
 import { useAuth } from '@/context/AuthContext';
+import GeographicSelector from '@/components/ui/GeographicSelector';
 
 const CreateRequestPage = () => {
   const { toast } = useToast();
@@ -41,9 +42,7 @@ const CreateRequestPage = () => {
     urgency: 'normale',
     // Terrain communal specific - ROUTE VERS MAIRIE
     mairie_id: '', // Mairie destinataire
-    commune: '',
-    department: '',
-    region: '',
+    geographic_location: { region: '', department: '', commune: '' }, // Localisation géographique
     usage_prevu: '',
     duree_souhaitee: '',
     justification: '',
@@ -322,34 +321,16 @@ const CreateRequestPage = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="region">Région</Label>
-                  <Input
-                    id="region"
-                    value={formData.region}
-                    onChange={(e) => setFormData(prev => ({ ...prev, region: e.target.value }))}
-                    placeholder="Ex: Dakar"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="department">Département</Label>
-                  <Input
-                    id="department"
-                    value={formData.department}
-                    onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                    placeholder="Ex: Dakar"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="commune">Commune</Label>
-                  <Input
-                    id="commune"
-                    value={formData.commune}
-                    onChange={(e) => setFormData(prev => ({ ...prev, commune: e.target.value }))}
-                    placeholder="Ex: Plateau"
-                  />
-                </div>
+              <div>
+                <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Localisation du terrain demandé
+                </h4>
+                <GeographicSelector
+                  value={formData.geographic_location}
+                  onChange={(location) => setFormData(prev => ({ ...prev, geographic_location: location }))}
+                  required={true}
+                />
               </div>
 
               <div>

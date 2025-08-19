@@ -803,6 +803,112 @@ export class SupabaseDataService {
   }
 
   /**
+   * Créer une institution complète (banque ou mairie) avec authentification
+   */
+  static async createInstitutionUser(institutionData) {
+    try {
+      // 1. Créer l'utilisateur dans Auth avec mot de passe
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: institutionData.email,
+        password: institutionData.password,
+        options: {
+          data: {
+            full_name: institutionData.full_name,
+            type: institutionData.type,
+            role: institutionData.role || 'institution'
+          }
+        }
+      });
+
+      if (authError) {
+        console.error('Erreur création Auth:', authError);
+        throw new Error(`Erreur d'authentification: ${authError.message}`);
+      }
+
+      // 2. Créer le profil complet dans la table users
+      const userProfile = {
+        id: authData.user.id,
+        email: institutionData.email,
+        full_name: institutionData.full_name,
+        phone: institutionData.phone,
+        type: institutionData.type,
+        role: institutionData.role || 'institution',
+        metadata: {
+          ...institutionData.metadata,
+          location: institutionData.location || {},
+          creation_method: 'admin_complete',
+          password_generated: true,
+          institution_verified: true,
+          created_by: 'admin'
+        },
+        verification_status: 'verified', // Les institutions créées par admin sont pré-vérifiées
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('users')
+        .upsert(userProfile, { onConflict: 'id' })
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Erreur création profil:', profileError);
+        // Si le profil échoue, on essaie de nettoyer l'auth user
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+        } catch (cleanupError) {
+          console.warn('Impossible de nettoyer l\'utilisateur auth:', cleanupError);
+        }
+        throw new Error(`Erreur de profil: ${profileError.message}`);
+      }
+
+      // 3. Créer une notification de bienvenue
+      try {
+        await this.createNotification({
+          user_id: authData.user.id,
+          title: `Bienvenue sur Teranga Foncier`,
+          body: `Votre compte ${institutionData.type} a été créé avec succès. Vous pouvez maintenant vous connecter et accéder à toutes les fonctionnalités.`,
+          type: 'institution_welcome',
+          data: {
+            institution_type: institutionData.type,
+            creation_source: 'admin',
+            login_email: institutionData.email
+          }
+        });
+      } catch (notifError) {
+        console.warn('Notification de bienvenue échouée:', notifError);
+        // Non bloquant
+      }
+
+      // 4. Enregistrer un événement de création d'institution
+      try {
+        await this.logEvent('institution_created', {
+          institution_id: authData.user.id,
+          institution_type: institutionData.type,
+          institution_name: institutionData.full_name,
+          location: institutionData.location,
+          created_by: 'admin',
+          services_count: institutionData.metadata.services?.length || institutionData.metadata.services_offered?.length || 0
+        });
+      } catch (eventError) {
+        console.warn('Log événement échoué:', eventError);
+        // Non bloquant
+      }
+
+      return {
+        ...profileData,
+        auth_user: authData.user,
+        temporary_password: institutionData.password // Pour affichage à l'admin
+      };
+
+    } catch (error) {
+      console.error('Erreur création institution complète:', error);
+      throw error;
+    }
+  }
+
+  /**
    * ensureUserProfile: guarantee a row exists in users table for given auth user.
    * Tries fetch by id, then upsert minimal profile if missing.
    * Returns profile object or null.
