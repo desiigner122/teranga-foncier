@@ -93,6 +93,7 @@ const particulierConfig = [
     { label: 'Dashboard', href: '/dashboard/particulier', icon: LayoutDashboard, end: true },
     { isSeparator: true },
     { isHeader: true, label: 'MES BIENS & DEMANDES' },
+    { label: 'Créer une Demande', href: '/dashboard/create-request', icon: FileText, end: true },
     { label: 'Mes Demandes', href: '/dashboard/my-requests', icon: FileSignature, end: true },
     { label: 'Mes Annonces', href: '/dashboard/my-listings', icon: UploadCloud, end: true },
     { label: 'Mes Favoris', href: '/dashboard/favorites', icon: Heart, end: true },

@@ -48,6 +48,7 @@ import CaseTrackingPage from '@/pages/CaseTrackingPage';
 import DigitalVaultPage from '@/pages/DigitalVaultPage';
 import TransactionsPage from '@/pages/TransactionsPage';
 import PaymentPage from '@/pages/PaymentPage';
+import CreateRequestPage from '@/pages/CreateRequestPage';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/context/AuthContext';
 import { ChatbotProvider } from '@/context/ChatbotContext';
@@ -284,6 +285,7 @@ function App() {
                     {/* Common Protected Routes */}
                     <Route path="/dashboard/profile" element={<ProfilePage />} />
                     <Route path="/dashboard/my-requests" element={<MyRequestsPage />} />
+                    <Route path="/dashboard/create-request" element={<CreateRequestPage />} />
                     <Route path="/dashboard/settings" element={<SettingsPage />} />
                     <Route path="/dashboard/sell-property" element={<SellPropertyPage />} />
                     <Route path="/dashboard/my-listings" element={<MyListingsPage />} />
