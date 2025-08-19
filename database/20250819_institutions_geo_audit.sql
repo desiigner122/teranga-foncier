@@ -183,3 +183,54 @@ GRANT EXECUTE ON FUNCTION log_audit_event TO authenticated;
 -- =====================
 -- DONE
 -- =====================
+
+-- =====================
+-- ADDITIONAL FOUNDATION (Feature Flags / Predictions / Heatmap Skeleton)
+-- =====================
+CREATE TABLE IF NOT EXISTS feature_flags (
+  key TEXT PRIMARY KEY,
+  description TEXT,
+  enabled BOOLEAN DEFAULT false,
+  audience JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE feature_flags ENABLE ROW LEVEL SECURITY;
+CREATE POLICY feature_flags_select ON feature_flags FOR SELECT USING (is_admin(auth.uid()));
+CREATE POLICY feature_flags_update ON feature_flags FOR UPDATE USING (is_admin(auth.uid()));
+CREATE POLICY feature_flags_insert ON feature_flags FOR INSERT WITH CHECK (is_admin(auth.uid()));
+
+CREATE OR REPLACE FUNCTION set_updated_at_feature_flags()
+RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$ LANGUAGE plpgsql;
+CREATE TRIGGER trg_feature_flags_upd BEFORE UPDATE ON feature_flags FOR EACH ROW EXECUTE PROCEDURE set_updated_at_feature_flags();
+
+-- Price prediction table
+CREATE TABLE IF NOT EXISTS parcel_price_predictions (
+  parcel_id BIGINT REFERENCES parcels(id) ON DELETE CASCADE,
+  predicted_price NUMERIC,
+  conf_low NUMERIC,
+  conf_high NUMERIC,
+  model_version TEXT,
+  computed_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY(parcel_id, model_version)
+);
+ALTER TABLE parcel_price_predictions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY ppp_select ON parcel_price_predictions FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Heatmap materialized view skeleton (assumes parcels has area_sqm & price/valuation fields)
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_parcel_price_grid AS
+SELECT
+  date_trunc('month', NOW()) as period,
+  grid_id,
+  AVG(price)::NUMERIC as avg_price,
+  COUNT(*) as parcel_count
+FROM (
+  SELECT p.*, floor((ST_X(coordinates)+180)/0.1)::int || '_' || floor((ST_Y(coordinates)+90)/0.1)::int as grid_id
+  FROM parcels p
+  WHERE coordinates IS NOT NULL
+) g
+GROUP BY grid_id;
+CREATE INDEX IF NOT EXISTS idx_mv_parcel_price_grid_grid_id ON mv_parcel_price_grid(grid_id);
+
+-- NOTE: schedule refresh via external cron / edge function
+

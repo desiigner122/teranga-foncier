@@ -52,6 +52,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/context/AuthContext';
 import { ChatbotProvider } from '@/context/ChatbotContext';
 import { MessagingNotificationProvider } from '@/context/MessagingNotificationContext';
+import { FeatureFlagsProvider } from '@/context/FeatureFlagsContext';
 import VerificationPage from '@/pages/VerificationPage';
 import IdentityVerificationPage from '@/pages/IdentityVerificationPage';
 import VendeurDashboard from '@/pages/dashboards/VendeurDashboard';
@@ -158,9 +159,10 @@ function App() {
       <Router>
         <ComparisonProvider>
           <ScrollToTop />
-          <AuthProvider>
+      <AuthProvider>
             <ChatbotProvider>
               <MessagingNotificationProvider>
+        <FeatureFlagsProvider>
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<PublicLayout />}>
@@ -309,9 +311,10 @@ function App() {
                 </Routes>
                 <Toaster />
                 <GlobalChatbot />
+                </FeatureFlagsProvider>
                 </MessagingNotificationProvider>
               </ChatbotProvider>
-            </AuthProvider>
+          </AuthProvider>
         </ComparisonProvider>
       </Router>
     </HelmetProvider>
