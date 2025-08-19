@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users, UserCheck, Trash2, Edit, MoreHorizontal, Shield, UserX, CheckCircle2, XCircle, Clock, 
-  User as UserIcon, FileCheck, UserCog, FileBadge, AlertTriangle, Eye, FileText
+  User as UserIcon, FileCheck, UserCog, FileBadge, AlertTriangle, Eye, FileText, RefreshCw
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
