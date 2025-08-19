@@ -935,7 +935,7 @@ export class SupabaseDataService {
     return this.listInstitutionsPaged({ regionId, type, status, page:1, pageSize: limit, sortBy:'created_at', sortDir:'desc' });
   }
 
-  static async listInstitutionsPaged({ regionId = null, type = null, status = null, page = 1, pageSize = 12, sortBy='created_at', sortDir='desc' } = {}) {
+  static async listInstitutionsPaged({ regionId = null, type = null, status = null, page = 1, pageSize = 12, sortBy='created_at', sortDir='desc', createdAfter=null, createdBefore=null } = {}) {
     try {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
@@ -954,9 +954,11 @@ export class SupabaseDataService {
         .order(sortBy, { ascending })
         .range(from, to);
 
-      if (regionId) query = query.eq('region_id', regionId);
-      if (type) query = query.eq('institution_type', type);
-      if (status) query = query.eq('status', status);
+  if (regionId) query = query.eq('region_id', regionId);
+  if (type) query = query.eq('institution_type', type);
+  if (status) query = query.eq('status', status);
+  if (createdAfter) query = query.gte('created_at', createdAfter);
+  if (createdBefore) query = query.lte('created_at', createdBefore);
 
       const { data, error, count } = await query;
       if (error) throw error;
@@ -967,13 +969,15 @@ export class SupabaseDataService {
     }
   }
 
-  static async getInstitutionStatusCounts({ regionId = null, type = null } = {}) {
+  static async getInstitutionStatusCounts({ regionId = null, type = null, createdAfter=null, createdBefore=null } = {}) {
     try {
       let query = supabase
         .from('institution_profiles')
         .select('status, count:id', { group: 'status' });
-      if (regionId) query = query.eq('region_id', regionId);
-      if (type) query = query.eq('institution_type', type);
+  if (regionId) query = query.eq('region_id', regionId);
+  if (type) query = query.eq('institution_type', type);
+  if (createdAfter) query = query.gte('created_at', createdAfter);
+  if (createdBefore) query = query.lte('created_at', createdBefore);
       const { data, error } = await query;
       if (error) throw error;
       const map = { pending:0, active:0, suspended:0 };
@@ -986,7 +990,7 @@ export class SupabaseDataService {
   }
 
   // ============== AUDIT LOGS (NEW) ==============
-  static async listAuditLogs({ page=1, pageSize=50, eventType=null, actorUserId=null, sortDir='desc' } = {}) {
+  static async listAuditLogs({ page=1, pageSize=50, eventType=null, actorUserId=null, targetUserId=null, sortDir='desc', createdAfter=null, createdBefore=null } = {}) {
     try {
       const from = (page-1)*pageSize;
       const to = from + pageSize -1;
@@ -995,8 +999,11 @@ export class SupabaseDataService {
         .select('id, event_type, actor_user_id, target_user_id, target_table, target_id, metadata, created_at', { count:'exact' })
         .order('created_at', { ascending: sortDir==='asc' })
         .range(from, to);
-      if (eventType) query = query.eq('event_type', eventType);
-      if (actorUserId) query = query.eq('actor_user_id', actorUserId);
+  if (eventType) query = query.eq('event_type', eventType);
+  if (actorUserId) query = query.eq('actor_user_id', actorUserId);
+  if (targetUserId) query = query.eq('target_user_id', targetUserId);
+  if (createdAfter) query = query.gte('created_at', createdAfter);
+  if (createdBefore) query = query.lte('created_at', createdBefore);
       const { data, error, count } = await query;
       if (error) throw error;
       return { data: data || [], total: count || 0, page, pageSize };
@@ -1004,6 +1011,25 @@ export class SupabaseDataService {
       console.warn('listAuditLogs failed:', e.message || e);
       return { data: [], total:0, page, pageSize };
     }
+  }
+
+  // ============== CSV HELPERS (CLIENT-SIDE) ==============
+  static toCSV(rows, columns) {
+    const header = columns.map(c=>`"${c.label}"`).join(',');
+    const lines = rows.map(r => columns.map(c => {
+      let v = c.accessor(r);
+      if (v === null || v === undefined) v = '';
+      const s = String(v).replace(/"/g,'""');
+      return `"${s}"`;
+    }).join(','));
+    return [header, ...lines].join('\n');
+  }
+  static downloadCSV(filename, csvString) {
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = filename; link.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
   }
 }
 

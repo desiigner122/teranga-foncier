@@ -24,6 +24,8 @@ export default function AdminInstitutionsPage() {
   const [sortBy, setSortBy] = useState('created_at');
   const [sortDir, setSortDir] = useState('desc');
   const [statusCounts, setStatusCounts] = useState({ pending:0, active:0, suspended:0 });
+  const [createdAfter, setCreatedAfter] = useState('');
+  const [createdBefore, setCreatedBefore] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -34,16 +36,18 @@ export default function AdminInstitutionsPage() {
       page,
       pageSize,
       sortBy,
-      sortDir
+      sortDir,
+      createdAfter: createdAfter || null,
+      createdBefore: createdBefore || null
     });
     setInstitutions(data);
     setTotal(t);
-    const counts = await SupabaseDataService.getInstitutionStatusCounts({ regionId: regionFilter || null, type: typeFilter || null });
+    const counts = await SupabaseDataService.getInstitutionStatusCounts({ regionId: regionFilter || null, type: typeFilter || null, createdAfter: createdAfter || null, createdBefore: createdBefore || null });
     setStatusCounts(counts);
     setLoading(false);
   };
 
-  useEffect(()=>{ load(); }, [regionFilter, typeFilter, statusFilter, page, pageSize, sortBy, sortDir]);
+  useEffect(()=>{ load(); }, [regionFilter, typeFilter, statusFilter, page, pageSize, sortBy, sortDir, createdAfter, createdBefore]);
 
   useEffect(()=> {
     (async ()=>{
@@ -106,7 +110,24 @@ export default function AdminInstitutionsPage() {
             <option value={12}>12</option>
             <option value={24}>24</option>
           </select>
+          <input type="date" value={createdAfter} onChange={e=>{setCreatedAfter(e.target.value); setPage(1);}} className="border rounded px-2 py-1 text-xs" />
+          <input type="date" value={createdBefore} onChange={e=>{setCreatedBefore(e.target.value); setPage(1);}} className="border rounded px-2 py-1 text-xs" />
+          <Button size="sm" variant="outline" onClick={()=>{setCreatedAfter(''); setCreatedBefore('');}}>Reset Dates</Button>
           <Button onClick={load} size="sm" disabled={loading}>{loading ? '...' : 'Rafraîchir'}</Button>
+          <Button size="sm" variant="secondary" onClick={()=>{
+            const csv = SupabaseDataService.toCSV(institutions, [
+              { label:'ID', accessor: r=>r.id },
+              { label:'Nom', accessor: r=>r.name },
+              { label:'Slug', accessor: r=>r.slug },
+              { label:'Type', accessor: r=>r.institution_type },
+              { label:'Statut', accessor: r=>r.status },
+              { label:'Region', accessor: r=>r.regions?.name || '' },
+              { label:'Departement', accessor: r=>r.departments?.name || '' },
+              { label:'Commune', accessor: r=>r.communes?.name || '' },
+              { label:'CreatedAt', accessor: r=>r.created_at }
+            ]);
+            SupabaseDataService.downloadCSV('institutions.csv', csv);
+          }}>Export CSV</Button>
         </div>
       </div>
       <div className="flex gap-4 text-xs">
@@ -142,6 +163,7 @@ export default function AdminInstitutionsPage() {
               {inst.status === 'suspended' && (
                 <Button size="xs" variant="outline" disabled={updatingId===inst.id} onClick={()=>updateStatus(inst,'active')}>{updatingId===inst.id?'...':'Réactiver'}</Button>
               )}
+              <a href={`/dashboard/admin/audit-logs?target=${inst.user_id}`} className="text-xs underline text-primary">Voir audit</a>
             </div>
             {inst.metadata && Object.keys(inst.metadata).length > 0 && (
               <details className="text-xs">
