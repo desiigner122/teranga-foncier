@@ -59,19 +59,18 @@ export const AuthProvider = ({ children }) => {
       }
       
       if (data) {
-        console.log("Profil récupéré:", { email: data.email, type: data.type, role: data.role });
+        console.log("Profil récupéré:", { email: data.email, type: data.type, role: data.role, verification_status: data.verification_status });
         return data;
       }
-      
-      // Si aucun profil trouvé, créer un profil de base
-      console.log("Aucun profil trouvé en base, création d'un profil par défaut");
+      // Aucun profil: retourner un profil par défaut NON vérifié (évite le bounce de vérification)
+      console.log("Aucun profil trouvé en base, retour profil mémoire non vérifié");
       return {
         id: authUser.id,
         email: authUser.email,
         full_name: authUser.user_metadata?.full_name || authUser.email,
         type: authUser.user_metadata?.type || 'Particulier',
         role: authUser.user_metadata?.role || 'user',
-        verification_status: 'verified',
+        verification_status: 'not_verified',
         created_at: authUser.created_at,
         updated_at: new Date().toISOString()
       };
@@ -85,7 +84,7 @@ export const AuthProvider = ({ children }) => {
         full_name: authUser.user_metadata?.full_name || authUser.email,
         type: authUser.user_metadata?.type || 'Particulier',
         role: authUser.user_metadata?.role || 'user',
-        verification_status: 'verified',
+        verification_status: 'not_verified',
         created_at: authUser.created_at,
         updated_at: new Date().toISOString()
       };
@@ -132,9 +131,9 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user, // Simplifié : on ne requiert que l'utilisateur authentifié
     isAdmin: profile?.role === 'admin' || profile?.type === 'Administrateur',
     // Administrateurs exempts de vérification
-    isVerified: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? true : profile?.verification_status === 'verified',
-    needsVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile && !['verified', 'pending'].includes(profile.verification_status),
-    isPendingVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile?.verification_status === 'pending',
+  isVerified: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? true : profile?.verification_status === 'verified',
+  needsVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : !!profile && !['verified', 'pending'].includes(profile.verification_status),
+  isPendingVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile?.verification_status === 'pending',
     signOut: async () => {
       try {
         setLoading(true);

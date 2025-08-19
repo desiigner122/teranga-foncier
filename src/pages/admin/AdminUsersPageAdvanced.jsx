@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Users, UserCheck, Trash2, Edit, MoreHorizontal, Shield, UserX
+  Users, UserCheck, Trash2, Edit, MoreHorizontal, Shield, UserX, CheckCircle2, XCircle, Clock, User as UserIcon
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
@@ -117,6 +117,30 @@ const AdminUsersPageAdvanced = () => {
   const handleDeleteUser = (user) => {
     setSelectedUser(user);
     setIsDeleteModalOpen(true);
+  };
+
+  // Changer statut vérification
+  const handleStatusChange = async (user, newStatus) => {
+    try {
+      await SupabaseDataService.updateUser(user.id, { verification_status: newStatus });
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, verification_status: newStatus } : u));
+      toast({ title: 'Statut mis à jour', description: `${user.email} → ${newStatus}` });
+    } catch (e) {
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de statut impossible' });
+    }
+  };
+
+  // Assigner rôle
+  const handleAssignRole = async (user, newRole) => {
+    try {
+      await SupabaseDataService.updateUser(user.id, { role: newRole });
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
+      toast({ title: 'Rôle mis à jour', description: `${user.email} → ${newRole}` });
+    } catch (e) {
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de rôle impossible' });
+    }
   };
 
   const confirmEditUser = async () => {
@@ -295,6 +319,25 @@ const AdminUsersPageAdvanced = () => {
                         <DropdownMenuItem onClick={() => handleEditUser(user)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStatusChange(user, 'pending')} disabled={user.verification_status === 'pending'}>
+                          <Clock className="h-4 w-4 mr-2" /> Marquer En attente
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStatusChange(user, 'verified')} disabled={user.verification_status === 'verified'}>
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" /> Vérifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStatusChange(user, 'rejected')} disabled={user.verification_status === 'rejected'}>
+                          <XCircle className="h-4 w-4 mr-2 text-red-600" /> Rejeter
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleAssignRole(user, 'admin')} disabled={user.role === 'admin'}>
+                          <Shield className="h-4 w-4 mr-2" /> Assigner Admin
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleAssignRole(user, 'agent')} disabled={user.role === 'agent'}>
+                          <UserCheck className="h-4 w-4 mr-2" /> Assigner Agent
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleAssignRole(user, 'user')} disabled={user.role === 'user'}>
+                          <UserIcon className="h-4 w-4 mr-2" /> Assigner Utilisateur
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
