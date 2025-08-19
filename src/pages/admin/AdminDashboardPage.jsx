@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabaseClient';
+import SupabaseDataService from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
 import { useToast } from "@/components/ui/use-toast";
 import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Bar } from 'recharts';
@@ -96,140 +96,19 @@ const AdminDashboardPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const [
-        usersRes,
-        parcelsRes,
-        requestsRes,
-        transactionsRes,
-        contractsRes,
-      ] = await Promise.all([
-        supabase.from('users').select('created_at, role, type, id, assigned_agent_id, full_name, email'),
-        supabase.from('parcels').select('status, area_sqm, owner_id'),
-        supabase.from('requests').select('request_type, status, user_id, recipient_type'),
-        supabase.from('transactions').select('amount, created_at, status, buyer_id, seller_id, type'),
-        supabase.from('contracts').select('status, user_id, parcel_id'),
-      ]);
-
-      if (usersRes.error) throw usersRes.error;
-      if (parcelsRes.error) throw parcelsRes.error;
-      if (requestsRes.error) throw requestsRes.error;
-      if (transactionsRes.error) throw transactionsRes.error;
-      if (contractsRes.error) throw contractsRes.error;
-
-      const users = usersRes.data || [];
-      const parcels = parcelsRes.data || [];
-      const requests = requestsRes.data || [];
-      const transactions = transactionsRes.data || [];
-      const contracts = contractsRes.data || [];
-
-      // Calculate total stats
-      const totalUsers = users.length;
-      const totalParcels = parcels.length;
-      const totalRequests = requests.length;
-      const totalSalesAmount = transactions
-        .filter(t => t.status === 'completed')
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      // User Registrations (by month)
-      const userRegistrationsMap = users.reduce((acc, user) => {
-        const month = new Date(user.created_at).toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {});
-      const userRegistrations = Object.keys(userRegistrationsMap).map(month => ({
-        name: month,
-        value: userRegistrationsMap[month],
-      })).sort((a, b) => new Date(a.name) - new Date(b.name));
-
-      // Parcel Status
-      const parcelStatusMap = parcels.reduce((acc, parcel) => {
-        acc[parcel.status] = (acc[parcel.status] || 0) + 1;
-        return acc;
-      }, {});
-      const parcelStatus = Object.keys(parcelStatusMap).map(status => ({
-        name: status,
-        value: parcelStatusMap[status],
-        unit: 'parcelles',
-      }));
-
-      // Request Types
-      const requestTypesMap = requests.reduce((acc, req) => {
-        acc[req.request_type] = (acc[req.request_type] || 0) + 1;
-        return acc;
-      }, {});
-      const requestTypes = Object.keys(requestTypesMap).map(type => ({
-        name: type,
-        value: requestTypesMap[type],
-        unit: 'demandes',
-      }));
-
-      // Monthly Sales
-      const monthlySalesMap = transactions
-        .filter(t => t.status === 'completed')
-        .reduce((acc, t) => {
-          const month = new Date(t.created_at).toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
-          acc[month] = (acc[month] || 0) + t.amount;
-          return acc;
-        }, {});
-      const monthlySales = Object.keys(monthlySalesMap).map(month => ({
-        name: month,
-        amount: monthlySalesMap[month],
-      })).sort((a, b) => new Date(a.name) - new Date(b.name));
-
-      // Upcoming Events (Simulated for now, as no 'events' table is assumed)
-      const upcomingEvents = [
-        { title: 'Réunion de conformité', date: '2025-08-05', time: '10:00' },
-        { title: 'Audit foncier annuel', date: '2025-08-15', time: '09:00' },
-      ];
-
-      // Calculate Actor Stats
-      const vendeurUsers = users.filter(u => u.type === 'Vendeur');
-      const particulierUsers = users.filter(u => u.type === 'Particulier');
-      const mairieUsers = users.filter(u => u.type === 'Mairie');
-      const banqueUsers = users.filter(u => u.type === 'Banque');
-      const notaireUsers = users.filter(u => u.type === 'Notaire');
-      const agentUsers = users.filter(u => u.role === 'agent');
-
-      const newActorStats = {
-        vendeur: {
-          parcellesListees: parcels.filter(p => p.owner_id && vendeurUsers.some(vu => vu.id === p.owner_id)).length,
-          transactionsReussies: transactions.filter(t => t.status === 'completed' && t.seller_id && vendeurUsers.some(vu => vu.id === t.seller_id)).length,
-        },
-        particulier: {
-          demandesSoumises: requests.filter(r => r.user_id && particulierUsers.some(pu => pu.id === r.user_id)).length,
-          acquisitions: transactions.filter(t => t.status === 'completed' && t.buyer_id && particulierUsers.some(pu => pu.id === t.buyer_id)).length,
-        },
-        mairie: {
-          parcellesCommunales: parcels.filter(p => p.owner_id && mairieUsers.some(mu => mu.id === p.owner_id)).length,
-          demandesTraitees: requests.filter(r => r.status === 'completed' && r.recipient_type === 'Mairie').length,
-        },
-        banque: {
-          pretsAccordes: transactions.filter(t => t.type === 'loan' && t.status === 'completed').length,
-          garantiesEvaluees: parcels.filter(p => p.status === 'evaluated_as_guarantee').length,
-        },
-        notaire: {
-          dossiersTraites: requests.filter(r => r.status === 'completed' && r.recipient_type === 'Notaire').length,
-          actesAuthentifies: contracts.filter(c => c.status === 'signed').length,
-        },
-        agent: {
-          clientsAssignes: users.filter(u => u.assigned_agent_id && agentUsers.some(au => au.id === u.assigned_agent_id)).length,
-          visitesPlanifiees: requests.filter(r => r.request_type === 'visit' && r.status === 'pending').length,
-        },
-      };
-
+      const { totals, charts, actorStats: newActorStats, upcomingEvents } = await SupabaseDataService.getAdminDashboardMetrics();
       setReportData({
-        userRegistrations,
-        parcelStatus,
-        requestTypes,
-        monthlySales,
-        totalUsers,
-        totalParcels,
-        totalRequests,
-        totalSalesAmount,
+        userRegistrations: charts.userRegistrations,
+        parcelStatus: charts.parcelStatus,
+        requestTypes: charts.requestTypes,
+        monthlySales: charts.monthlySales,
+        totalUsers: totals.totalUsers,
+        totalParcels: totals.totalParcels,
+        totalRequests: totals.totalRequests,
+        totalSalesAmount: totals.totalSalesAmount,
         upcomingEvents,
       });
       setActorStats(newActorStats);
-
     } catch (err) {
       setError(err.message);
       toast({
@@ -237,9 +116,7 @@ const AdminDashboardPage = () => {
         title: "Erreur de chargement du tableau de bord",
         description: err.message,
       });
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, [toast]);
 
   useEffect(() => {

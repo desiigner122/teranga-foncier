@@ -5,6 +5,8 @@ import { sampleUserListings } from './userData';
 
 const now = new Date();
 
+// DEPRECATED: sampleAdminDashboardData kept only for historical reference. Use live Supabase metrics instead.
+
 export const sampleAdminDashboardData = {
   stats: {
     totalParcels: sampleParcels.length,
@@ -73,6 +75,7 @@ export const sampleAdminDashboardData = {
   },
 };
 
+// DEPRECATED: sampleAgentData kept only for reference. Use live agent/user queries instead.
 export const sampleAgentData = {
   clients: [
     { id: 'CLI001', name: 'Moussa Diop', type: 'Acheteur', lastContact: '2025-07-15', status: 'Actif', assignedParcels: ['DK-ALM-002'] },

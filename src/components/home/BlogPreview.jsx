@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar } from 'lucide-react';
-import { sampleBlogPosts } from '@/data'; // Using sampleBlogPosts from data/index.js
+import SupabaseDataService from '@/services/supabaseDataService';
+import LoadingSpinner from '@/components/ui/spinner';
 
 const BlogPreview = () => {
   const sectionVariants = {
@@ -16,6 +17,25 @@ const BlogPreview = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
+
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await SupabaseDataService.getBlogPosts(6);
+        setPosts(data || []);
+      } catch (e) {
+        console.error('Erreur chargement posts:', e);
+        setPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   return (
     <section className="py-12 md:py-16 bg-muted/30">
@@ -40,11 +60,14 @@ const BlogPreview = () => {
           viewport={{ once: true, amount: 0.1 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
         >
-          {sampleBlogPosts.slice(0, 3).map((post, index) => (
+          {loading && (
+            <div className="col-span-full flex justify-center py-10"><LoadingSpinner /></div>
+          )}
+          {!loading && posts.slice(0, 3).map((post, index) => (
             <motion.div key={post.id} variants={itemVariants}>
               <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300 border rounded-xl">
                 <div className="aspect-video bg-muted relative">
-                   <img  className="w-full h-full object-cover" alt={post.title} src={`https://source.unsplash.com/random/400x300/?${post.category},senegal,${index}`} />
+                   <img  className="w-full h-full object-cover" alt={post.title} src={`https://source.unsplash.com/random/400x300/?${post.category || 'immobilier'},senegal,${index}`} />
                    <div className="absolute inset-0 bg-black/10"></div>
                 </div>
                 <CardHeader>

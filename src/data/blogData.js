@@ -2,6 +2,8 @@ import { subDays, formatISO } from 'date-fns';
 
 const now = new Date();
 
+// DEPRECATED: sampleBlogPosts is retained temporarily for reference only and should not be imported.
+// Blog content is now fetched dynamically from Supabase via SupabaseDataService.getBlogPosts.
 export const sampleBlogPosts = [
   {
     id: 'post1',

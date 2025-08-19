@@ -1,5 +1,4 @@
 import { sampleParcels } from './parcelsData';
-import { sampleBlogPosts } from './blogData';
 import { 
   sampleRequests, 
   sampleNotifications, 
@@ -10,13 +9,11 @@ import {
   sampleMessages,
   sampleUsers
 } from './userData';
-import { sampleAdminDashboardData, sampleAgentData } from './adminData';
 import { sampleMairies, sampleNotaires, sampleBanques, samplePointsOfInterest } from './actorsData';
 import { paymentMethods, partnerBanks } from './paymentData';
 
 export {
   sampleParcels,
-  sampleBlogPosts,
   sampleRequests,
   sampleNotifications,
   sampleSavedSearches,
@@ -24,8 +21,6 @@ export {
   sampleUserListings,
   sampleConversations,
   sampleMessages,
-  sampleAdminDashboardData,
-  sampleAgentData,
   sampleMairies,
   sampleNotaires,
   sampleBanques,

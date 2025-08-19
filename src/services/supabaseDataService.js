@@ -2,6 +2,16 @@
 import { supabase } from '../lib/supabaseClient.js';
 
 export class SupabaseDataService {
+
+  // Generic raw select helper (table: string, selectCols='*')
+  static async supabaseRaw(table, selectCols='*') {
+    try {
+      const { data, error } = await supabase.from(table).select(selectCols);
+      return { data, error };
+    } catch (e) {
+      return { data: null, error: e };
+    }
+  }
   
   // ============== USERS ==============
   static async getUsers(limit = null) {
@@ -90,6 +100,47 @@ export class SupabaseDataService {
       console.error('Erreur lors de la récupération des parcelles du propriétaire:', error);
       return [];
     }
+    return data || [];
+  }
+
+  // ============== PARCELS (EXTENDED HELPERS) ==============
+  static async searchParcels({ status = null, zone = null, type = null, minPrice = null, maxPrice = null, text = null, limit = 50 } = {}) {
+    try {
+      let query = supabase.from('parcels').select('*').order('created_at', { ascending: false }).limit(limit);
+      if (status) query = query.eq('status', status);
+      if (zone) query = query.ilike('zone', zone);
+      if (type) query = query.eq('type', type);
+      if (minPrice) query = query.gte('price', minPrice);
+      if (maxPrice) query = query.lte('price', maxPrice);
+      if (text) {
+        // Basic ilike OR search (adjust depending on Postgres config / extensions)
+        query = query.or(`reference.ilike.%${text}%,location_name.ilike.%${text}%,description.ilike.%${text}%`);
+      }
+      const { data, error } = await query;
+      if (error) { console.error('Erreur recherche parcelles:', error); return []; }
+      return data || [];
+    } catch (e) { console.error('Erreur inattendue recherche parcelles:', e); return []; }
+  }
+
+  static async getFeaturedParcels(limit = 6) {
+    const { data, error } = await supabase
+      .from('parcels')
+      .select('*')
+      .eq('is_featured', true)
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+    if (error) { console.error('Erreur featured parcels:', error); return []; }
+    return data || [];
+  }
+
+  static async getParcelsByZone(zone, limit = 12) {
+    const { data, error } = await supabase
+      .from('parcels')
+      .select('*')
+      .ilike('zone', zone)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) { console.error('Erreur parcels by zone:', error); return []; }
     return data || [];
   }
 
@@ -675,6 +726,172 @@ export class SupabaseDataService {
       throw error;
     }
     return data;
+  }
+
+  // ============== PROMOTEUR PROJECTS (NEW) ==============
+  // Methods to retrieve developer projects. Requires table promoteur_projects from ai_real_data_schema.sql
+  static async getPromoteurProjects({ promoteurId = null, status = null } = {}) {
+    let query = supabase
+      .from('promoteur_projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (promoteurId) query = query.eq('promoteur_id', promoteurId);
+    if (status) query = query.eq('status', status);
+
+    const { data, error } = await query;
+    if (error) {
+      // Table might not yet exist in some environments – fail gracefully
+      console.error('Erreur récupération projets promoteur:', error.message || error);
+      return [];
+    }
+    return data || [];
+  }
+
+  static async getPromoteurProjectById(id) {
+    const { data, error } = await supabase
+      .from('promoteur_projects')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) {
+      console.error('Erreur récupération projet promoteur:', error);
+      return null;
+    }
+    return data;
+  }
+
+  // ============== PROJECT UNITS / LOTS (NEW) ==============
+  // This expects a table promoteur_project_units (see migration suggestion) with columns:
+  // id, project_id (FK promoteur_projects.id), reference, status ('available'|'reserved'|'sold'), price, client_name
+  static async getProjectUnits(projectId) {
+    const { data, error } = await supabase
+      .from('promoteur_project_units')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('id');
+    if (error) {
+      console.error('Erreur récupération des lots du projet:', error.message || error);
+      return [];
+    }
+    return data || [];
+  }
+
+  static async getUnitsForPromoteur(promoteurId) {
+    // Join projects to filter by promoteur
+    const { data, error } = await supabase
+  .from('promoteur_project_units')
+  .select('*, promoteur_projects!inner(id,name,promoteur_id)')
+      .eq('promoteur_projects.promoteur_id', promoteurId);
+    if (error) {
+      console.error('Erreur récupération des lots promoteur:', error.message || error);
+      return [];
+    }
+    return data || [];
+  }
+
+  // ============== ADMIN DASHBOARD AGGREGATION (NEW) ==============
+  // Centralizes multi-table fetch + aggregation for AdminDashboardPage
+  static async getAdminDashboardMetrics() {
+    try {
+      const [ usersRes, parcelsRes, requestsRes, transactionsRes, contractsRes ] = await Promise.all([
+        supabase.from('users').select('id, created_at, role, type, assigned_agent_id, full_name, email, is_active, verification_status'),
+        supabase.from('parcels').select('id, status, area_sqm, owner_id, created_at'),
+        supabase.from('requests').select('id, request_type, status, user_id, recipient_type, created_at'),
+        supabase.from('transactions').select('id, amount, created_at, status, buyer_id, seller_id, type'),
+        supabase.from('contracts').select('id, status, user_id, parcel_id, created_at')
+      ]);
+
+      for (const r of [usersRes, parcelsRes, requestsRes, transactionsRes, contractsRes]) {
+        if (r.error) throw r.error;
+      }
+
+      const users = usersRes.data || [];
+      const parcels = parcelsRes.data || [];
+      const requests = requestsRes.data || [];
+      const transactions = transactionsRes.data || [];
+      const contracts = contractsRes.data || [];
+
+      const totalUsers = users.length;
+      const totalParcels = parcels.length;
+      const totalRequests = requests.length;
+      const totalSalesAmount = transactions.filter(t => t.status === 'completed').reduce((s, t) => s + (t.amount || 0), 0);
+
+      // Monthly aggregations helper
+      const monthKey = d => new Date(d).toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
+
+      const aggregateCountByMonth = (rows, dateField) => {
+        const m = {};
+        rows.forEach(r => { const key = monthKey(r[dateField]); m[key] = (m[key] || 0) + 1; });
+        return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a,b)=> new Date(a.name) - new Date(b.name));
+      };
+
+      const aggregateSumByMonth = (rows, dateField, amountField) => {
+        const m = {};
+        rows.forEach(r => { const key = monthKey(r[dateField]); m[key] = (m[key] || 0) + (r[amountField] || 0); });
+        return Object.entries(m).map(([name, amount]) => ({ name, amount })).sort((a,b)=> new Date(a.name) - new Date(b.name));
+      };
+
+      const userRegistrations = aggregateCountByMonth(users, 'created_at');
+      const monthlySales = aggregateSumByMonth(transactions.filter(t => t.status === 'completed'), 'created_at', 'amount');
+
+      const parcelStatusMap = parcels.reduce((acc, p) => { acc[p.status] = (acc[p.status] || 0) + 1; return acc; }, {});
+      const parcelStatus = Object.entries(parcelStatusMap).map(([name, value]) => ({ name, value, unit: 'parcelles' }));
+
+      const requestTypesMap = requests.reduce((acc, r) => { acc[r.request_type] = (acc[r.request_type] || 0) + 1; return acc; }, {});
+      const requestTypes = Object.entries(requestTypesMap).map(([name, value]) => ({ name, value, unit: 'demandes' }));
+
+      // Actor categorization
+      const vendeurUsers = users.filter(u => u.type === 'Vendeur');
+      const particulierUsers = users.filter(u => u.type === 'Particulier');
+      const mairieUsers = users.filter(u => u.type === 'Mairie');
+      const banqueUsers = users.filter(u => u.type === 'Banque');
+      const notaireUsers = users.filter(u => u.type === 'Notaire');
+      const agentUsers = users.filter(u => u.role === 'agent');
+
+      const actorStats = {
+        vendeur: {
+          parcellesListees: parcels.filter(p => p.owner_id && vendeurUsers.some(v => v.id === p.owner_id)).length,
+          transactionsReussies: transactions.filter(t => t.status === 'completed' && t.seller_id && vendeurUsers.some(v => v.id === t.seller_id)).length,
+        },
+        particulier: {
+          demandesSoumises: requests.filter(r => r.user_id && particulierUsers.some(v => v.id === r.user_id)).length,
+          acquisitions: transactions.filter(t => t.status === 'completed' && t.buyer_id && particulierUsers.some(v => v.id === t.buyer_id)).length,
+        },
+        mairie: {
+          parcellesCommunales: parcels.filter(p => p.owner_id && mairieUsers.some(v => v.id === p.owner_id)).length,
+          demandesTraitees: requests.filter(r => r.status === 'completed' && r.recipient_type === 'Mairie').length,
+        },
+        banque: {
+          pretsAccordes: transactions.filter(t => t.type === 'loan' && t.status === 'completed').length,
+          garantiesEvaluees: parcels.filter(p => p.status === 'evaluated_as_guarantee').length,
+        },
+        notaire: {
+          dossiersTraites: requests.filter(r => r.status === 'completed' && r.recipient_type === 'Notaire').length,
+          actesAuthentifies: contracts.filter(c => c.status === 'signed').length,
+        },
+        agent: {
+          clientsAssignes: users.filter(u => u.assigned_agent_id && agentUsers.some(a => a.id === u.assigned_agent_id)).length,
+          visitesPlanifiees: requests.filter(r => r.request_type === 'visit' && r.status === 'pending').length,
+        },
+      };
+
+      // Placeholder upcoming events (until events table exists)
+      const upcomingEvents = [
+        { title: 'Réunion de conformité', date: '2025-08-05', time: '10:00' },
+        { title: 'Audit foncier annuel', date: '2025-08-15', time: '09:00' },
+      ];
+
+      return {
+        totals: { totalUsers, totalParcels, totalRequests, totalSalesAmount },
+        charts: { userRegistrations, parcelStatus, requestTypes, monthlySales },
+        actorStats,
+        upcomingEvents
+      };
+    } catch (error) {
+      console.error('Erreur agrégation admin dashboard:', error);
+      throw error;
+    }
   }
 }
 
