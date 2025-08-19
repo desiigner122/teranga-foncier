@@ -262,9 +262,28 @@ const metrics = {
 
 ### Environnements
 
-- **🔧 Development** - `npm run dev` (localhost:5173)
-- **🔍 Staging** - Build preview avec données de test
-- **🌐 Production** - Déployé sur Vercel avec données réelles
+
+### Institutions & Géographie (2025-08-19)
+
+Une migration `20250819_institutions_geo_audit.sql` ajoute:
+1. Tables normalisées: `regions`, `departments`, `communes`
+2. Table `institution_profiles` (Mairie/Banque/Notaire) + indexes + RLS
+3. Table `audit_logs` + fonction `log_audit_event`
+4. Pages: `/dashboard/admin/institutions` pour liste & filtres basiques
+
+Edge Function d'invitation: `supabase/functions/invite-user/index.ts`
+
+Déploiement:
+```
+supabase db push --file database/20250819_institutions_geo_audit.sql
+supabase functions deploy invite-user --no-verify-jwt
+```
+Variables requises pour la fonction (dans le dashboard Supabase):
+- SUPABASE_SERVICE_ROLE_KEY
+- SUPABASE_URL
+
+Appel côté frontend (placeholder existant) nécessite entête `x-service-key` (adapter selon politique de sécurité: proxy backend recommandé pour ne jamais exposer la clé service côté client).
+
 
 ### Configuration Vercel
 

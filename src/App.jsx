@@ -75,6 +75,7 @@ import AdminDisputesPage from '@/pages/admin/AdminDisputesPage';
 import AdminCompliancePage from '@/pages/admin/AdminCompliancePage';
 import AdminTransactionsPage from '@/pages/admin/AdminTransactionsPage';
 import AdminAIAssistantPage from '@/pages/admin/AdminAIAssistantPage';
+import AdminInstitutionsPage from '@/pages/admin/AdminInstitutionsPage';
 
 // Agent Dashboard Pages
 import AgentDashboardPage from '@/pages/agent/AgentDashboardPage';
@@ -214,6 +215,7 @@ function App() {
                     <Route path="/dashboard/admin/disputes" element={<AdminDisputesPage />} />
                     <Route path="/dashboard/admin/transactions" element={<AdminTransactionsPage />} />
                     <Route path="/dashboard/admin/ai-assistant" element={<AdminAIAssistantPage />} />
+                    <Route path="/dashboard/admin/institutions" element={<AdminInstitutionsPage />} />
 
                     {/* Agent Routes */}
                     <Route path="/dashboard/agent" element={<AgentDashboardPage />} />

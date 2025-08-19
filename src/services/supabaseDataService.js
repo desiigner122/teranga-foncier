@@ -928,6 +928,34 @@ export class SupabaseDataService {
       throw error;
     }
   }
+
+  // ============== INSTITUTIONS LISTING (NEW) ==============
+  // Returns institution profiles joined with geo tables and base user info
+  static async listInstitutions({ regionId = null, type = null, status = null, limit = 100 } = {}) {
+    try {
+      let query = supabase
+        .from('institution_profiles')
+        .select(`id, user_id, institution_type, name, slug, status, created_at, region_id, department_id, commune_id, metadata,
+          users:user_id (full_name, email, role, verification_status),
+          regions:region_id (name),
+          departments:department_id (name),
+          communes:commune_id (name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (regionId) query = query.eq('region_id', regionId);
+      if (type) query = query.eq('institution_type', type);
+      if (status) query = query.eq('status', status);
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn('listInstitutions fallback (table missing?):', e.message || e);
+      return [];
+    }
+  }
 }
 
 // Export par défaut du service
