@@ -77,6 +77,8 @@ CREATE INDEX IF NOT EXISTS idx_institution_profiles_type ON institution_profiles
 CREATE INDEX IF NOT EXISTS idx_institution_profiles_region ON institution_profiles(region_id);
 CREATE INDEX IF NOT EXISTS idx_institution_profiles_status ON institution_profiles(status);
 CREATE INDEX IF NOT EXISTS idx_institution_profiles_metadata_gin ON institution_profiles USING GIN (metadata jsonb_path_ops);
+-- Optional functional index examples (uncomment if needed for frequent queries on nested JSON keys)
+-- CREATE INDEX IF NOT EXISTS idx_institution_profiles_metadata_region_name ON institution_profiles USING GIN ((metadata -> 'region_name'));
 
 -- Trigger function for updated_at
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -112,6 +114,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON audit_logs(actor_user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_target ON audit_logs(target_user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata jsonb_path_ops);
+-- CREATE INDEX IF NOT EXISTS idx_audit_logs_event_metadata ON audit_logs USING GIN ((metadata -> 'event_subtype'));
 
 -- =====================
 -- RLS & POLICIES

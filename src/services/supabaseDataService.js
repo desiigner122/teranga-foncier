@@ -932,7 +932,17 @@ export class SupabaseDataService {
   // ============== INSTITUTIONS LISTING (NEW) ==============
   // Returns institution profiles joined with geo tables and base user info
   static async listInstitutions({ regionId = null, type = null, status = null, limit = 100 } = {}) {
+    return this.listInstitutionsPaged({ regionId, type, status, page:1, pageSize: limit, sortBy:'created_at', sortDir:'desc' });
+  }
+
+  static async listInstitutionsPaged({ regionId = null, type = null, status = null, page = 1, pageSize = 12, sortBy='created_at', sortDir='desc' } = {}) {
     try {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      const sortable = ['created_at','name','status'];
+      if (!sortable.includes(sortBy)) sortBy = 'created_at';
+      const ascending = sortDir === 'asc';
+
       let query = supabase
         .from('institution_profiles')
         .select(`id, user_id, institution_type, name, slug, status, created_at, region_id, department_id, commune_id, metadata,
@@ -940,20 +950,59 @@ export class SupabaseDataService {
           regions:region_id (name),
           departments:department_id (name),
           communes:commune_id (name)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(limit);
+        `, { count: 'exact' })
+        .order(sortBy, { ascending })
+        .range(from, to);
 
       if (regionId) query = query.eq('region_id', regionId);
       if (type) query = query.eq('institution_type', type);
       if (status) query = query.eq('status', status);
 
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { data: data || [], total: count || 0, page, pageSize };
+    } catch (e) {
+      console.warn('listInstitutionsPaged fallback (table missing?):', e.message || e);
+      return { data: [], total: 0, page, pageSize };
+    }
+  }
+
+  static async getInstitutionStatusCounts({ regionId = null, type = null } = {}) {
+    try {
+      let query = supabase
+        .from('institution_profiles')
+        .select('status, count:id', { group: 'status' });
+      if (regionId) query = query.eq('region_id', regionId);
+      if (type) query = query.eq('institution_type', type);
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      const map = { pending:0, active:0, suspended:0 };
+      (data||[]).forEach(r => { map[r.status] = r.count; });
+      return map;
     } catch (e) {
-      console.warn('listInstitutions fallback (table missing?):', e.message || e);
-      return [];
+      console.warn('getInstitutionStatusCounts failed:', e.message || e);
+      return { pending:0, active:0, suspended:0 };
+    }
+  }
+
+  // ============== AUDIT LOGS (NEW) ==============
+  static async listAuditLogs({ page=1, pageSize=50, eventType=null, actorUserId=null, sortDir='desc' } = {}) {
+    try {
+      const from = (page-1)*pageSize;
+      const to = from + pageSize -1;
+      let query = supabase
+        .from('audit_logs')
+        .select('id, event_type, actor_user_id, target_user_id, target_table, target_id, metadata, created_at', { count:'exact' })
+        .order('created_at', { ascending: sortDir==='asc' })
+        .range(from, to);
+      if (eventType) query = query.eq('event_type', eventType);
+      if (actorUserId) query = query.eq('actor_user_id', actorUserId);
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { data: data || [], total: count || 0, page, pageSize };
+    } catch (e) {
+      console.warn('listAuditLogs failed:', e.message || e);
+      return { data: [], total:0, page, pageSize };
     }
   }
 }

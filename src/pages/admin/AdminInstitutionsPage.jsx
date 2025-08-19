@@ -18,20 +18,32 @@ export default function AdminInstitutionsPage() {
   const [search, setSearch] = useState('');
   const [regions, setRegions] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortDir, setSortDir] = useState('desc');
+  const [statusCounts, setStatusCounts] = useState({ pending:0, active:0, suspended:0 });
 
   const load = async () => {
     setLoading(true);
-    const data = await SupabaseDataService.listInstitutions({
+    const { data, total: t } = await SupabaseDataService.listInstitutionsPaged({
       regionId: regionFilter || null,
       type: typeFilter || null,
       status: statusFilter || null,
-      limit: 200
+      page,
+      pageSize,
+      sortBy,
+      sortDir
     });
     setInstitutions(data);
+    setTotal(t);
+    const counts = await SupabaseDataService.getInstitutionStatusCounts({ regionId: regionFilter || null, type: typeFilter || null });
+    setStatusCounts(counts);
     setLoading(false);
   };
 
-  useEffect(()=>{ load(); }, [regionFilter, typeFilter, statusFilter]);
+  useEffect(()=>{ load(); }, [regionFilter, typeFilter, statusFilter, page, pageSize, sortBy, sortDir]);
 
   useEffect(()=> {
     (async ()=>{
@@ -63,28 +75,47 @@ export default function AdminInstitutionsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-semibold">Institutions</h1>
-        <div className="flex gap-2 flex-wrap">
-          <Input placeholder="Recherche" value={search} onChange={e=>setSearch(e.target.value)} className="w-48" />
-          <select value={regionFilter} onChange={e=>setRegionFilter(e.target.value)} className="border rounded px-2 py-1 text-sm w-40">
+        <div className="flex gap-2 flex-wrap items-center">
+          <Input placeholder="Recherche" value={search} onChange={e=>{setSearch(e.target.value); setPage(1);}} className="w-48" />
+          <select value={regionFilter} onChange={e=>{setRegionFilter(e.target.value); setPage(1);}} className="border rounded px-2 py-1 text-sm w-40">
             <option value="">Région</option>
             {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
-          <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)} className="border rounded px-2 py-1 text-sm">
+          <select value={typeFilter} onChange={e=>{setTypeFilter(e.target.value); setPage(1);}} className="border rounded px-2 py-1 text-sm">
             <option value="">Type</option>
             <option value="Mairie">Mairie</option>
             <option value="Banque">Banque</option>
             <option value="Notaire">Notaire</option>
           </select>
-          <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} className="border rounded px-2 py-1 text-sm">
+          <select value={statusFilter} onChange={e=>{setStatusFilter(e.target.value); setPage(1);}} className="border rounded px-2 py-1 text-sm">
             <option value="">Statut</option>
             <option value="pending">En attente</option>
             <option value="active">Actif</option>
             <option value="suspended">Suspendu</option>
           </select>
-          <Button onClick={load} size="sm" disabled={loading}>{loading ? 'Chargement...' : 'Rafraîchir'}</Button>
+          <select value={sortBy} onChange={e=>{setSortBy(e.target.value); setPage(1);}} className="border rounded px-2 py-1 text-sm">
+            <option value="created_at">Tri: Date</option>
+            <option value="name">Tri: Nom</option>
+            <option value="status">Tri: Statut</option>
+          </select>
+          <button onClick={()=>{setSortDir(d=>d==='asc'?'desc':'asc'); setPage(1);}} className="text-xs underline">
+            {sortDir === 'asc' ? 'Asc' : 'Desc'}
+          </button>
+          <select value={pageSize} onChange={e=>{setPageSize(Number(e.target.value)); setPage(1);}} className="border rounded px-2 py-1 text-sm">
+            <option value={6}>6</option>
+            <option value={12}>12</option>
+            <option value={24}>24</option>
+          </select>
+          <Button onClick={load} size="sm" disabled={loading}>{loading ? '...' : 'Rafraîchir'}</Button>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="flex gap-4 text-xs">
+        <span>En attente: <strong>{statusCounts.pending}</strong></span>
+        <span>Actifs: <strong>{statusCounts.active}</strong></span>
+        <span>Suspendus: <strong>{statusCounts.suspended}</strong></span>
+        <span>Total filtré: <strong>{total}</strong></span>
+      </div>
+  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map(inst => (
           <Card key={inst.id} className="p-4 space-y-3">
             <div className="flex items-start justify-between">
@@ -124,6 +155,11 @@ export default function AdminInstitutionsPage() {
         {!loading && filtered.length === 0 && (
           <div className="col-span-full text-center text-sm text-muted-foreground py-10">Aucune institution trouvée.</div>
         )}
+      </div>
+      <div className="flex items-center justify-between pt-4">
+        <Button size="sm" variant="outline" disabled={page===1 || loading} onClick={()=>setPage(p=>p-1)}>Précédent</Button>
+        <div className="text-xs">Page {page} / {Math.max(1, Math.ceil(total / pageSize))}</div>
+        <Button size="sm" variant="outline" disabled={(page * pageSize) >= total || loading} onClick={()=>setPage(p=>p+1)}>Suivant</Button>
       </div>
     </div>
   );
