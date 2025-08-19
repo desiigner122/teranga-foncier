@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ExceptionalAddUserDialog from '@/components/admin/roles/ExceptionalAddUserDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +54,7 @@ const AdminUsersPageAdvanced = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [isExceptionalDialogOpen, setIsExceptionalDialogOpen] = useState(false);
   
   // Edit form
   const [editForm, setEditForm] = useState({
@@ -270,6 +272,11 @@ const AdminUsersPageAdvanced = () => {
         <p className="text-muted-foreground">
           Gérez tous les utilisateurs de la plateforme
         </p>
+        <div className="mt-3 flex gap-2">
+          <Button size="sm" onClick={()=>setIsExceptionalDialogOpen(true)}>
+            + Ajout exceptionnel
+          </Button>
+        </div>
       </div>
 
       {/* Filtres et recherche */}
@@ -473,6 +480,13 @@ const AdminUsersPageAdvanced = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Exceptional Add Dialog */}
+      <ExceptionalAddUserDialog
+        open={isExceptionalDialogOpen}
+        onOpenChange={(o)=> setIsExceptionalDialogOpen(o)}
+        onCreated={(created)=> { setUsers(prev=>[created, ...prev]); }}
+      />
     </motion.div>
   );
 };
