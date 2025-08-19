@@ -46,6 +46,57 @@ export class SupabaseDataService {
     }
   }
   
+  // ============== ROLES & PERMISSIONS (NEW) ==============
+  static async listRoles() {
+    try {
+      const { data, error } = await supabase.from('roles').select('*').order('key');
+      if (error) throw error; return data || [];
+    } catch (e) { console.warn('listRoles failed:', e.message||e); return []; }
+  }
+
+  static async listUserRoles(userId) {
+    // Prefer view v_user_roles if available
+    try {
+      const { data, error } = await supabase.from('v_user_roles').select('*').eq('user_id', userId);
+      if (error) throw error; return data || [];
+    } catch (e) {
+      // Fallback direct join style if view missing
+      try {
+        const { data, error } = await supabase.from('user_roles').select('role_id, roles:role_id(key,label,description,feature_flags,default_permissions)').eq('user_id', userId);
+        if (error) throw error;
+        return (data||[]).map(r => ({ user_id: userId, role_key: r.roles?.key, label: r.roles?.label, feature_flags: r.roles?.feature_flags, default_permissions: r.roles?.default_permissions }));
+      } catch (err) { console.warn('listUserRoles fallback failed:', err.message||err); return []; }
+    }
+  }
+
+  static async createRole({ key, label, description=null, defaultPermissions=[], featureFlags=[] }) {
+    try {
+      const { data, error } = await supabase.rpc('create_role', {
+        p_key: key,
+        p_label: label,
+        p_description: description,
+        p_default_permissions: defaultPermissions,
+        p_feature_flags: featureFlags
+      });
+      if (error) throw error; return data;
+    } catch (e) { console.error('createRole failed:', e.message||e); throw e; }
+  }
+
+  static async assignRole(userId, roleKey) {
+    try { const { error } = await supabase.rpc('assign_role', { p_user_id: userId, p_role_key: roleKey }); if (error) throw error; return true; }
+    catch (e) { console.error('assignRole failed:', e.message||e); throw e; }
+  }
+
+  static async revokeRole(userId, roleKey) {
+    try { const { error } = await supabase.rpc('revoke_role', { p_user_id: userId, p_role_key: roleKey }); if (error) throw error; return true; }
+    catch (e) { console.error('revokeRole failed:', e.message||e); throw e; }
+  }
+
+  static async getEffectivePermissions(userId) {
+    try { const { data, error } = await supabase.rpc('get_effective_permissions', { p_user: userId }); if (error) throw error; return data || []; }
+    catch (e) { console.warn('getEffectivePermissions failed:', e.message||e); return []; }
+  }
+  
   // ============== USERS ==============
   static async getUsers(limit = null) {
     let query = supabase
