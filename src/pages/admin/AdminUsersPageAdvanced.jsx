@@ -1,5 +1,8 @@
 // src/pages/admin/AdminUsersPageAdvanced.jsx
+// NOTE: Supports deep-link filtering via query param ?type=Vendeur (etc.).
+// The select stays in sync with the URL and allows dashboard cards to link directly.
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +45,8 @@ const AdminUsersPageAdvanced = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
   const [filterType, setFilterType] = useState('all');
   
   // Modals
@@ -62,6 +67,31 @@ const AdminUsersPageAdvanced = () => {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // Sync filter with query param ?type=
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const typeParam = params.get('type');
+    if (typeParam && userTypes.includes(typeParam) && typeParam !== filterType) {
+      setFilterType(typeParam);
+    } else if (!typeParam && filterType !== 'all') {
+      // If query removed externally, reset to all
+      setFilterType('all');
+    }
+  }, [location.search]);
+
+  // When filterType changes via UI, push to URL (except 'all')
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const current = params.get('type');
+    if (filterType === 'all' && current) {
+      params.delete('type');
+      navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+    } else if (filterType !== 'all' && filterType !== current) {
+      params.set('type', filterType);
+      navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+    }
+  }, [filterType]);
 
   useEffect(() => {
     filterUsers();

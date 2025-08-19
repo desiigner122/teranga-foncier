@@ -290,60 +290,61 @@ const AdminDashboardPage = () => {
         Statistiques par Acteur
       </h2>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="hover:shadow-lg transition-shadow border-l-4 border-red-500">
+  <Card className="hover:shadow-lg transition-shadow border-l-4 border-red-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center"><Store className="mr-2 h-4 w-4"/>Vendeurs</CardTitle>
-             <Link to="/admin/users?type=Vendeur"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
+       {/* Corrected path to include /dashboard prefix */}
+       <Link to="/dashboard/admin/users?type=Vendeur"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{actorStats.vendeur.parcellesListees} <span className="text-sm text-muted-foreground">parcelles listées</span></div>
             <p className="text-sm text-muted-foreground">{actorStats.vendeur.transactionsReussies} transactions réussies</p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow border-l-4 border-cyan-500">
+    <Card className="hover:shadow-lg transition-shadow border-l-4 border-cyan-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center"><User className="mr-2 h-4 w-4"/>Particuliers</CardTitle>
-            <Link to="/admin/users?type=Particulier"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
+      <Link to="/dashboard/admin/users?type=Particulier"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{actorStats.particulier.demandesSoumises} <span className="text-sm text-muted-foreground">demandes soumises</span></div>
             <p className="text-sm text-muted-foreground">{actorStats.particulier.acquisitions} acquisitions</p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow border-l-4 border-orange-500">
+  <Card className="hover:shadow-lg transition-shadow border-l-4 border-orange-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center"><Landmark className="mr-2 h-4 w-4"/>Mairies</CardTitle>
-             <Link to="/admin/users?type=Mairie"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
+       <Link to="/dashboard/admin/users?type=Mairie"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
           </CardHeader>
           <CardContent>
             <p className="text-xl font-bold">{actorStats.mairie.parcellesCommunales} <span className="text-sm text-muted-foreground">parcelles communales</span></p>
             <p className="text-sm text-muted-foreground">{actorStats.mairie.demandesTraitees} demandes traitées</p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow border-l-4 border-indigo-500">
+    <Card className="hover:shadow-lg transition-shadow border-l-4 border-indigo-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center"><Banknote className="mr-2 h-4 w-4"/>Banques</CardTitle>
-            <Link to="/admin/users?type=Banque"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
+      <Link to="/dashboard/admin/users?type=Banque"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
           </CardHeader>
           <CardContent>
             <p className="text-xl font-bold">{actorStats.banque.pretsAccordes} <span className="text-sm text-muted-foreground">prêts accordés</span></p>
             <p className="text-sm text-muted-foreground">{actorStats.banque.garantiesEvaluees} garanties évaluées</p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow border-l-4 border-pink-500">
+    <Card className="hover:shadow-lg transition-shadow border-l-4 border-pink-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center"><Gavel className="mr-2 h-4 w-4"/>Notaires</CardTitle>
-            <Link to="/admin/users?type=Notaire"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
+      <Link to="/dashboard/admin/users?type=Notaire"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
           </CardHeader>
           <CardContent>
             <p className="text-xl font-bold">{actorStats.notaire.dossiersTraites} <span className="text-sm text-muted-foreground">dossiers traités</span></p>
             <p className="text-sm text-muted-foreground">{actorStats.notaire.actesAuthentifies} actes authentifiés</p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow border-l-4 border-teal-500">
+    <Card className="hover:shadow-lg transition-shadow border-l-4 border-teal-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center"><UserCheck className="mr-2 h-4 w-4"/>Agents</CardTitle>
-            <Link to="/admin/users?type=Agent"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
+      <Link to="/dashboard/admin/users?type=Agent"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
           </CardHeader>
           <CardContent>
             <p className="text-xl font-bold">{actorStats.agent.clientsAssignes} <span className="text-sm text-muted-foreground">clients assignés</span></p>
