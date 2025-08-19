@@ -5,7 +5,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ExceptionalAddUserDialog from '@/components/admin/roles/ExceptionalAddUserDialog';
-import ExceptionalAddUserDialogImproved from '@/components/admin/roles/ExceptionalAddUserDialogImproved';
 import RolesPermissionsPanel from '@/components/admin/roles/RolesPermissionsPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users, UserCheck, Trash2, Edit, MoreHorizontal, Shield, UserX, CheckCircle2, XCircle, Clock, 
-  User as UserIcon, FileCheck, UserCog, RefreshCw, Eye
+  User as UserIcon, FileCheck, UserCog, FileBadge, AlertTriangle, Eye, FileText, RefreshCw
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
@@ -70,12 +69,15 @@ const AdminUsersPageAdvanced = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isViewDocumentsModalOpen, setIsViewDocumentsModalOpen] = useState(false);
+  const [isRequestDetailsModalOpen, setIsRequestDetailsModalOpen] = useState(false);
   const [isChangeTypeModalOpen, setIsChangeTypeModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isExceptionalDialogOpen, setIsExceptionalDialogOpen] = useState(false);
   const [changeStatusComment, setChangeStatusComment] = useState('');
   
-  // État de filtres
+  // Listes
+  const [typeChangeRequests, setTypeChangeRequests] = useState([]);
+  const [parcelSubmissions, setParcelSubmissions] = useState([]);
   
   // Edit form
   const [editForm, setEditForm] = useState({
@@ -97,6 +99,8 @@ const AdminUsersPageAdvanced = () => {
 
   useEffect(() => {
     loadUsers();
+    loadTypeChangeRequests();
+    loadParcelSubmissions();
   }, []);
 
   // Sync filter with query param ?type=
@@ -153,6 +157,88 @@ const AdminUsersPageAdvanced = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Charger les demandes de changement de type
+  const loadTypeChangeRequests = async () => {
+    try {
+      // Simulation pour le moment - serait remplacé par un appel API réel
+      const mockRequests = [
+        {
+          id: 'req-1',
+          user_id: 'user-1',
+          user_name: 'Amadou Diallo',
+          current_type: 'Particulier',
+          requested_type: 'Vendeur',
+          status: 'pending',
+          submitted_at: '2025-08-15T10:30:00Z',
+          documents: [
+            { id: 'doc-1', name: 'Carte d\'identité', url: '#', verified: false },
+            { id: 'doc-2', name: 'Justificatif de domicile', url: '#', verified: false }
+          ]
+        },
+        {
+          id: 'req-2',
+          user_id: 'user-2',
+          user_name: 'Fatou Sow',
+          current_type: 'Particulier',
+          requested_type: 'Investisseur',
+          status: 'pending',
+          submitted_at: '2025-08-17T14:15:00Z',
+          documents: [
+            { id: 'doc-3', name: 'Carte d\'identité', url: '#', verified: false },
+            { id: 'doc-4', name: 'Justificatif de domicile', url: '#', verified: false },
+            { id: 'doc-5', name: 'Attestation bancaire', url: '#', verified: false }
+          ]
+        }
+      ];
+      setTypeChangeRequests(mockRequests);
+    } catch (error) {
+      console.error('Erreur chargement demandes changement type:', error);
+    }
+  };
+
+  // Charger les soumissions de parcelles
+  const loadParcelSubmissions = async () => {
+    try {
+      // Simulation pour le moment - serait remplacé par un appel API réel
+      const mockSubmissions = [
+        {
+          id: 'sub-1',
+          user_id: 'user-3',
+          user_name: 'Ousmane Ndiaye',
+          reference: 'PAR-2508-A1',
+          status: 'pending',
+          submitted_at: '2025-08-14T09:20:00Z',
+          location: 'Dakar, Sacré-Cœur',
+          price: 25000000,
+          surface: 450,
+          documents: [
+            { id: 'doc-6', name: 'Titre foncier', url: '#', verified: false },
+            { id: 'doc-7', name: 'Plan cadastral', url: '#', verified: false },
+            { id: 'doc-8', name: 'Certificat de propriété', url: '#', verified: false }
+          ]
+        },
+        {
+          id: 'sub-2',
+          user_id: 'user-4',
+          user_name: 'Moussa Sall',
+          reference: 'PAR-2508-B2',
+          status: 'pending',
+          submitted_at: '2025-08-16T11:45:00Z',
+          location: 'Thiès, Zone résidentielle',
+          price: 18500000,
+          surface: 320,
+          documents: [
+            { id: 'doc-9', name: 'Titre foncier', url: '#', verified: false },
+            { id: 'doc-10', name: 'Plan cadastral', url: '#', verified: false }
+          ]
+        }
+      ];
+      setParcelSubmissions(mockSubmissions);
+    } catch (error) {
+      console.error('Erreur chargement soumissions parcelles:', error);
     }
   };
 
@@ -261,7 +347,162 @@ const AdminUsersPageAdvanced = () => {
     setIsChangeTypeModalOpen(true);
   };
 
-  // Voir les documents d'un utilisateur
+  // Approuver une demande de changement de type
+  const handleApproveTypeChange = async (request) => {
+    try {
+      // Mise à jour du type d'utilisateur
+      const userId = request.user_id;
+      const userToUpdate = users.find(u => u.id === userId);
+      
+      if (userToUpdate) {
+        await SupabaseDataService.updateUser(userId, { 
+          type: request.requested_type 
+        });
+        
+        // Mettre à jour la liste locale
+        setUsers(prev => prev.map(u => 
+          u.id === userId ? { ...u, type: request.requested_type } : u
+        ));
+        
+        // Mettre à jour le statut de la demande
+        const updatedRequests = typeChangeRequests.map(req => 
+          req.id === request.id ? { ...req, status: 'approved' } : req
+        );
+        setTypeChangeRequests(updatedRequests);
+        
+        // Créer une notification pour l'utilisateur
+        await SupabaseDataService.createNotification({
+          userId: userId,
+          type: 'type_change_approved',
+          title: `Demande de changement de type approuvée`,
+          body: `Votre compte est maintenant de type ${request.requested_type}`,
+          data: { 
+            previous_type: request.current_type,
+            new_type: request.requested_type
+          }
+        });
+        
+        toast({
+          title: "Type modifié",
+          description: `${userToUpdate.full_name || userToUpdate.email} est maintenant ${request.requested_type}`
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors du changement de type:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de changer le type d'utilisateur"
+      });
+    }
+  };
+
+  // Rejeter une demande de changement de type
+  const handleRejectTypeChange = async (request, comment = '') => {
+    try {
+      // Mettre à jour le statut de la demande
+      const updatedRequests = typeChangeRequests.map(req => 
+        req.id === request.id ? { ...req, status: 'rejected', rejection_reason: comment } : req
+      );
+      setTypeChangeRequests(updatedRequests);
+      
+      // Créer une notification pour l'utilisateur
+      await SupabaseDataService.createNotification({
+        userId: request.user_id,
+        type: 'type_change_rejected',
+        title: `Demande de changement de type rejetée`,
+        body: comment || `Votre demande de changement vers ${request.requested_type} a été rejetée`,
+        data: { 
+          requested_type: request.requested_type,
+          rejection_reason: comment
+        }
+      });
+      
+      toast({
+        title: "Demande rejetée",
+        description: `La demande de ${request.user_name} a été rejetée`
+      });
+    } catch (error) {
+      console.error('Erreur lors du rejet de la demande:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de rejeter la demande"
+      });
+    }
+  };
+
+  // Approuver une soumission de parcelle
+  const handleApproveParcelSubmission = async (submission) => {
+    try {
+      // Mettre à jour le statut de la soumission
+      const updatedSubmissions = parcelSubmissions.map(sub => 
+        sub.id === submission.id ? { ...sub, status: 'approved' } : sub
+      );
+      setParcelSubmissions(updatedSubmissions);
+      
+      // Créer une notification pour l'utilisateur
+      await SupabaseDataService.createNotification({
+        userId: submission.user_id,
+        type: 'parcel_submission_approved',
+        title: `Parcelle approuvée`,
+        body: `Votre parcelle ${submission.reference} a été approuvée et est maintenant visible publiquement`,
+        data: { 
+          reference: submission.reference,
+          location: submission.location
+        }
+      });
+      
+      toast({
+        title: "Parcelle approuvée",
+        description: `La parcelle ${submission.reference} est maintenant publiée`
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'approbation de la parcelle:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible d'approuver la parcelle"
+      });
+    }
+  };
+
+  // Rejeter une soumission de parcelle
+  const handleRejectParcelSubmission = async (submission, comment = '') => {
+    try {
+      // Mettre à jour le statut de la soumission
+      const updatedSubmissions = parcelSubmissions.map(sub => 
+        sub.id === submission.id ? { ...sub, status: 'rejected', rejection_reason: comment } : sub
+      );
+      setParcelSubmissions(updatedSubmissions);
+      
+      // Créer une notification pour l'utilisateur
+      await SupabaseDataService.createNotification({
+        userId: submission.user_id,
+        type: 'parcel_submission_rejected',
+        title: `Parcelle rejetée`,
+        body: comment || `Votre parcelle ${submission.reference} a été rejetée`,
+        data: { 
+          reference: submission.reference,
+          rejection_reason: comment
+        }
+      });
+      
+      toast({
+        title: "Parcelle rejetée",
+        description: `La parcelle ${submission.reference} a été rejetée`
+      });
+    } catch (error) {
+      console.error('Erreur lors du rejet de la parcelle:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de rejeter la parcelle"
+      });
+    }
+  };
+
+  // Voir les documents d'un utilisateur ou d'une demande
   const handleViewDocuments = (documents) => {
     setSelectedUser({ documents });
     setIsViewDocumentsModalOpen(true);
@@ -391,23 +632,492 @@ const AdminUsersPageAdvanced = () => {
           Gestion des Utilisateurs
         </h1>
         <p className="text-muted-foreground">
-          Gérez tous les utilisateurs de la plateforme, leurs profils et leurs accès
+          Gérez tous les utilisateurs de la plateforme, les demandes de changement de type, et les soumissions de parcelles
         </p>
         <div className="mt-3 flex gap-2">
           <Button size="sm" onClick={()=>setIsExceptionalDialogOpen(true)}>
             + Ajout exceptionnel
           </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => navigate('/dashboard/admin/type-change-requests')}
-          >
-            <UserCog className="h-4 w-4 mr-2" />
-            Demandes changement de type
-          </Button>
         </div>
       </div>
       
+      {/* Interface à onglets principale */}
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid grid-cols-4 mb-6">
+          <TabsTrigger value="users">
+            Utilisateurs
+          </TabsTrigger>
+          <TabsTrigger value="typeRequests" onClick={loadTypeChangeRequests}>
+            Demandes de Type
+            {typeChangeRequests.filter(r => r.status === 'pending').length > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {typeChangeRequests.filter(r => r.status === 'pending').length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="parcels" onClick={loadParcelSubmissions}>
+            Parcelles
+            {parcelSubmissions.filter(p => p.status === 'pending').length > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {parcelSubmissions.filter(p => p.status === 'pending').length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="documents">
+            Documents
+          </TabsTrigger>
+        </TabsList>
+        
+        {/* Contenu onglet Utilisateurs */}
+        <TabsContent value="users">
+          {/* Filtres et recherche */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Rechercher par nom ou email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filtrer par type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les types</SelectItem>
+                    {userTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tableau des utilisateurs */}
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>
+                Utilisateurs ({filteredUsers.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Utilisateur</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Rôle</TableHead>
+                    <TableHead>Rôles multiples</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Date d'inscription</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map(user => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{user.full_name || 'Nom non défini'}</div>
+                          <div className="text-sm text-muted-foreground">{user.email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{user.type || 'Non défini'}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {getRoleBadge(user.role)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {(userRolesMap[user.id]||[]).map(r => (
+                            <span key={r.role_key} className="px-2 py-0.5 rounded bg-muted text-xs flex items-center gap-1">
+                              {r.role_key}
+                              <button
+                                onClick={() => handleRevokeUserRole(user.id, r.role_key)}
+                                className="text-[10px] hover:text-red-600"
+                                aria-label={`Révoquer ${r.role_key}`}
+                              >×</button>
+                            </span>
+                          ))}
+                          <Button size="xs" variant="ghost" onClick={()=> setAssigningForUser(user)}>+</Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(user.verification_status)}
+                      </TableCell>
+                      <TableCell>
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'Inconnue'}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenChangeTypeModal(user)}>
+                              <UserCog className="h-4 w-4 mr-2" />
+                              Changer le type
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(user, 'pending')} disabled={user.verification_status === 'pending'}>
+                              <Clock className="h-4 w-4 mr-2" /> Marquer En attente
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(user, 'verified')} disabled={user.verification_status === 'verified'}>
+                              <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" /> Vérifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(user, 'rejected')} disabled={user.verification_status === 'rejected'}>
+                              <XCircle className="h-4 w-4 mr-2 text-red-600" /> Rejeter
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleAssignRole(user, 'admin')} disabled={user.role === 'admin'}>
+                              <Shield className="h-4 w-4 mr-2" /> Assigner Admin
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleAssignRole(user, 'agent')} disabled={user.role === 'agent'}>
+                              <UserCheck className="h-4 w-4 mr-2" /> Assigner Agent
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleAssignRole(user, 'user')} disabled={user.role === 'user'}>
+                              <UserIcon className="h-4 w-4 mr-2" /> Assigner Utilisateur
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteUser(user)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Contenu onglet Demandes de Type */}
+        <TabsContent value="typeRequests">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Rechercher par nom..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Select 
+                  defaultValue="pending"
+                  onValueChange={(value) => {
+                    const filteredRequests = value === 'all' 
+                      ? typeChangeRequests 
+                      : typeChangeRequests.filter(request => request.status === value);
+                    setFilteredUsers(filteredRequests);
+                  }}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filtrer par statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="approved">Approuvé</SelectItem>
+                    <SelectItem value="rejected">Rejeté</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={loadTypeChangeRequests}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>
+                Demandes de changement de type 
+                {typeChangeRequests.filter(r => r.status === 'pending').length > 0 && 
+                  ` (${typeChangeRequests.filter(r => r.status === 'pending').length} en attente)`
+                }
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Utilisateur</TableHead>
+                    <TableHead>Type actuel</TableHead>
+                    <TableHead>Type demandé</TableHead>
+                    <TableHead>Documents</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {typeChangeRequests.length > 0 ? (
+                    typeChangeRequests.map(request => (
+                      <TableRow key={request.id}>
+                        <TableCell>
+                          <div className="font-medium">{request.user_name}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{request.current_type}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{request.requested_type}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {request.documents && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewDocuments(request.documents)}
+                              className="flex items-center gap-1"
+                            >
+                              <FileText className="h-4 w-4" />
+                              <span>{request.documents.length}</span>
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {request.status === 'approved' && (
+                            <Badge className="bg-green-100 text-green-800">Approuvé</Badge>
+                          )}
+                          {request.status === 'pending' && (
+                            <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+                          )}
+                          {request.status === 'rejected' && (
+                            <Badge className="bg-red-100 text-red-800">Rejeté</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {request.submitted_at ? new Date(request.submitted_at).toLocaleDateString('fr-FR') : 'Inconnue'}
+                        </TableCell>
+                        <TableCell>
+                          {request.status === 'pending' && (
+                            <div className="flex gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleApproveTypeChange(request)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleRejectTypeChange(request)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-4">
+                        Aucune demande de changement de type trouvée.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Contenu onglet Parcelles */}
+        <TabsContent value="parcels">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Rechercher par référence ou emplacement..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Select 
+                  defaultValue="pending"
+                  onValueChange={(value) => {
+                    const filteredSubmissions = value === 'all' 
+                      ? parcelSubmissions 
+                      : parcelSubmissions.filter(parcel => parcel.status === value);
+                    setFilteredUsers(filteredSubmissions);
+                  }}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filtrer par statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="approved">Approuvé</SelectItem>
+                    <SelectItem value="rejected">Rejeté</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={loadParcelSubmissions}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>
+                Soumissions de parcelles
+                {parcelSubmissions.filter(p => p.status === 'pending').length > 0 && 
+                  ` (${parcelSubmissions.filter(p => p.status === 'pending').length} en attente)`
+                }
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Référence</TableHead>
+                    <TableHead>Vendeur</TableHead>
+                    <TableHead>Emplacement</TableHead>
+                    <TableHead>Prix</TableHead>
+                    <TableHead>Documents</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {parcelSubmissions.length > 0 ? (
+                    parcelSubmissions.map(parcel => (
+                      <TableRow key={parcel.id}>
+                        <TableCell>
+                          <div className="font-medium">{parcel.reference}</div>
+                        </TableCell>
+                        <TableCell>{parcel.user_name}</TableCell>
+                        <TableCell>{parcel.location}</TableCell>
+                        <TableCell>
+                          {new Intl.NumberFormat('fr-SN', { 
+                            style: 'currency', 
+                            currency: 'XOF',
+                            minimumFractionDigits: 0
+                          }).format(parcel.price)}
+                        </TableCell>
+                        <TableCell>
+                          {parcel.documents && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewDocuments(parcel.documents)}
+                              className="flex items-center gap-1"
+                            >
+                              <FileText className="h-4 w-4" />
+                              <span>{parcel.documents.length}</span>
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {parcel.status === 'approved' && (
+                            <Badge className="bg-green-100 text-green-800">Approuvé</Badge>
+                          )}
+                          {parcel.status === 'pending' && (
+                            <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+                          )}
+                          {parcel.status === 'rejected' && (
+                            <Badge className="bg-red-100 text-red-800">Rejeté</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {parcel.status === 'pending' && (
+                            <div className="flex gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleApproveParcelSubmission(parcel)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleRejectParcelSubmission(parcel)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-4">
+                        Aucune soumission de parcelle trouvée.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Contenu onglet Documents */}
+        <TabsContent value="documents">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Gestion des Documents
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Gestion avancée des documents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>Fonctionnalités à venir:</p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Archivage automatique</li>
+                      <li>Vérification par IA des documents</li>
+                      <li>Détection des fraudes</li>
+                      <li>Système de catégorisation</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
       {/* Filtres et recherche */}
       <Card>
         <CardContent className="p-4">
@@ -430,57 +1140,9 @@ const AdminUsersPageAdvanced = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={loadUsers}
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Filtres par statut de vérification */}
-      <Tabs defaultValue="all" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 mb-6">
-          <TabsTrigger value="all">
-            Tous
-          </TabsTrigger>
-          <TabsTrigger value="not_verified">
-            Non vérifiés
-            {users.filter(u => !u.verification_status || u.verification_status === 'not_verified').length > 0 && (
-              <Badge variant="outline" className="ml-2">
-                {users.filter(u => !u.verification_status || u.verification_status === 'not_verified').length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="pending">
-            En attente
-            {users.filter(u => u.verification_status === 'pending').length > 0 && (
-              <Badge className="ml-2 bg-yellow-100 text-yellow-800">
-                {users.filter(u => u.verification_status === 'pending').length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="verified">
-            Vérifiés
-            {users.filter(u => u.verification_status === 'verified').length > 0 && (
-              <Badge className="ml-2 bg-green-100 text-green-800">
-                {users.filter(u => u.verification_status === 'verified').length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="rejected">
-            Rejetés
-            {users.filter(u => u.verification_status === 'rejected').length > 0 && (
-              <Badge className="ml-2 bg-red-100 text-red-800">
-                {users.filter(u => u.verification_status === 'rejected').length}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
 
       {/* Tableau des utilisateurs */}
       <Card>
@@ -674,8 +1336,8 @@ const AdminUsersPageAdvanced = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Exceptional Add Dialog - Version améliorée */}
-      <ExceptionalAddUserDialogImproved
+      {/* Exceptional Add Dialog */}
+      <ExceptionalAddUserDialog
         open={isExceptionalDialogOpen}
         onOpenChange={(o)=> setIsExceptionalDialogOpen(o)}
         onCreated={(created)=> { setUsers(prev=>[created, ...prev]); }}
