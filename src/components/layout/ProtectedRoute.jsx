@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import LoadingSpinner from '@/components/ui/spinner';
 
 const ProtectedRoute = ({ children, requireVerification = true }) => {
-  const { isAuthenticated, isVerified, needsVerification, loading, user, profile } = useAuth();
+  const { isAuthenticated, isVerified, needsVerification, loading, profile } = useAuth();
   
   if (loading) {
     // Affiche un spinner tant que l'authentification et le profil ne sont pas complètement chargés
@@ -21,9 +21,13 @@ const ProtectedRoute = ({ children, requireVerification = true }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Vérification d'identité requise (sauf pour admin)
-  if (requireVerification && needsVerification && profile?.role !== 'admin' && profile?.type !== 'Administrateur') {
-    return <Navigate to="/verification" replace />;
+  // Nouvelle logique : on autorise l'accès si statut pending; on ne bloque que si explicitement 'rejected' ou needsVerification (aucun dossier)
+  const isAdminBypass = profile?.role === 'admin' || profile?.type === 'Administrateur';
+  const status = profile?.verification_status;
+  const isRejected = status === 'rejected' || status === 'failed';
+  if (requireVerification && !isAdminBypass) {
+    if (isRejected) return <Navigate to="/verification" replace />;
+    if (needsVerification && status !== 'pending') return <Navigate to="/verification" replace />;
   }
 
   // La route est protégée, l'utilisateur est authentifié et vérifié, on rend le contenu

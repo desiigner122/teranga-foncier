@@ -37,19 +37,19 @@ const NotificationItem = ({ notification, onMarkRead, onDelete }) => (
     transition={{ duration: 0.3 }}
     className={cn(
       "flex items-start gap-4 p-4 border-b last:border-b-0 transition-colors",
-      !notification.isRead && "bg-primary/5 hover:bg-primary/10"
+  !notification.read && "bg-primary/5 hover:bg-primary/10"
     )}
   >
-    <div className={cn("mt-1 relative", !notification.isRead ? "text-primary" : "text-muted-foreground")}>
+  <div className={cn("mt-1 relative", !notification.read ? "text-primary" : "text-muted-foreground")}> 
       <BellRing className="h-5 w-5" />
-      {!notification.isRead && <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-red-500"></span>}
+  {!notification.read && <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-red-500"></span>}
     </div>
     <div className="flex-grow">
-      <p className={cn("text-sm", !notification.isRead && "font-semibold")}>
-        {notification.message}
+      <p className={cn("text-sm", !notification.read && "font-semibold")}> 
+        {notification.title || notification.type}
       </p>
       <span className="text-xs text-muted-foreground">
-        {formatDate(notification.createdAt?.toDate?.() || notification.createdAt)}
+        {formatDate(notification.created_at)}
       </span>
     </div>
     <div className="flex flex-col sm:flex-row gap-1 items-center">
@@ -58,7 +58,7 @@ const NotificationItem = ({ notification, onMarkRead, onDelete }) => (
           <Link to={notification.link}>Voir <ArrowRight className="h-3 w-3 ml-1"/></Link>
         </Button>
       )}
-      {!notification.isRead && (
+  {!notification.read && (
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMarkRead(notification.id)} title="Marquer comme lu">
           <CheckCheck className="h-4 w-4" />
         </Button>
@@ -167,7 +167,7 @@ const NotificationsPage = () => {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <motion.div

@@ -59,7 +59,7 @@ const SecureMessagingPage = () => {
 
   // Handle conversation creation from external navigation (e.g., from parcel details)
   useEffect(() => {
-    if (!user || !isFirebaseAvailable) return;
+  if (!user) return;
 
     const { parcelId, parcelName, contactUser } = location.state || {};
     if (parcelId && contactUser) {
@@ -84,7 +84,7 @@ const SecureMessagingPage = () => {
 
   // Subscribe to messages when conversation is selected
   useEffect(() => {
-    if (selectedConversationId && isFirebaseAvailable) {
+  if (selectedConversationId) {
       setLoadingMessages(true);
       
       // Unsubscribe from previous conversation
@@ -96,7 +96,7 @@ const SecureMessagingPage = () => {
       messageUnsubscribeRef.current = subscribeToMessages(selectedConversationId);
       
       // Mark messages as read
-      markMessagesAsRead(selectedConversationId);
+  markMessagesAsRead && markMessagesAsRead(selectedConversationId);
       
       setLoadingMessages(false);
     }
@@ -205,9 +205,9 @@ const SecureMessagingPage = () => {
                     <div className="flex-grow overflow-hidden">
                       <div className="flex justify-between items-center">
                          <h3 className="text-sm font-semibold truncate">{otherParticipant.name}</h3>
-                         {conv.unreadCount?.[user?.id] > 0 && 
+             {conv.unreadCount > 0 && 
                            <Badge variant="destructive" className="h-5 px-1.5 text-xs">
-                             {conv.unreadCount[user.id]}
+               {conv.unreadCount}
                            </Badge>
                          }
                       </div>
@@ -216,7 +216,7 @@ const SecureMessagingPage = () => {
                       </p>
                     </div>
                      <span className="text-xs text-muted-foreground flex-shrink-0 ml-auto self-start pt-1">
-                       {formatDate(conv.lastMessageAt?.toDate?.() || conv.updatedAt?.toDate?.())}
+                       {formatDate(conv.lastMessageAt || conv.updatedAt)}
                      </span>
                   </div>
                 );
@@ -267,14 +267,14 @@ const SecureMessagingPage = () => {
                    <p className="text-center text-muted-foreground pt-10">Aucun message. Soyez le premier à en envoyer un !</p>
                 ) : (
                   conversationMessages.map(msg => (
-                    <div key={msg.id} className={cn("flex", msg.senderId === user.id ? 'justify-end' : 'justify-start')}>
+                    <div key={msg.id} className={cn("flex", (msg.sender_id||msg.senderId) === user.id ? 'justify-end' : 'justify-start')}>
                       <div className={cn(
                         "p-2 px-3 rounded-lg max-w-[75%]",
-                        msg.senderId === user.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                        (msg.sender_id||msg.senderId) === user.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
                       )}>
                         <p className="text-sm">{msg.content}</p>
                         <span className={cn("text-xs mt-1 block text-right", msg.senderId === user.id ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                           {formatDate(msg.createdAt?.toDate?.() || msg.createdAt)}
+                           {formatDate(msg.created_at || msg.createdAt)}
                         </span>
                       </div>
                     </div>

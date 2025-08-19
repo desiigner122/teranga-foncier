@@ -33,6 +33,7 @@ const ParcelDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [viewLogged, setViewLogged] = useState(false);
   const isParcelInCompare = comparisonList.includes(id);
 
   const loadParcel = async () => {
@@ -48,6 +49,7 @@ const ParcelDetailPage = () => {
       const normalized = {
         id: data.id,
         reference: data.reference,
+        owner_id: data.owner_id || null,
         name: data.name || data.title || `Parcelle ${data.reference}`,
         location_name: data.location_name || data.location || 'Localisation non spécifiée',
         description: data.description || 'Description indisponible.',
@@ -70,15 +72,77 @@ const ParcelDetailPage = () => {
     }
   };
 
-  useEffect(() => { loadParcel(); }, [id]);
+  useEffect(() => { loadParcel(); setViewLogged(false); }, [id]);
 
-  const handleAction = (message, details) => {
-    toast({
-      title: "Action Simulée",
-      description: message,
-    });
-    if (details?.action === 'initiateBuy') {
-       navigate('/messaging', { state: { parcelId: parcel.id, parcelName: parcel.name, contactUser: 'user2' }});
+  // Log a parcel view & user activity once parcel is loaded and user present
+  useEffect(() => {
+    if (!parcel || !user || viewLogged) return;
+    (async () => {
+      try {
+        await SupabaseDataService.logParcelView(parcel.id, user.id, { source: 'parcel_detail_page' });
+        await SupabaseDataService.recordUserActivity({
+          userId: user.id,
+            activityType: 'parcel_view',
+            entityType: 'parcel',
+            entityId: parcel.id,
+            description: `Consultation de la parcelle ${parcel.name}`,
+            metadata: { zone: parcel.zone }
+        });
+      } catch (e) {
+        // Non bloquant
+        console.warn('Instrumentation parcel view failed', e.message||e);
+      } finally {
+        setViewLogged(true);
+      }
+    })();
+  }, [parcel, user, viewLogged]);
+
+  const handleInquiry = async (type, extra={}) => {
+    if (!user) {
+      toast({ title: 'Connexion requise', description: 'Veuillez vous connecter pour effectuer cette action.' });
+      navigate('/login', { state: { redirectTo: `/parcelles/${id}` }});
+      return;
+    }
+    try {
+      const messageMap = {
+        info: `Demande d'information pour ${parcel.location_name}.`,
+        visit: `Demande de visite pour ${parcel.location_name}.`,
+        buy: `Initiation de la procédure d'achat pour ${parcel.location_name}.`
+      };
+      // Créer l'inquiry dans la base
+      const inquiry = await SupabaseDataService.createParcelInquiry({
+        parcelId: parcel.id,
+        inquirerId: user.id,
+        inquiryType: type,
+        message: messageMap[type] || 'Demande',
+        metadata: { ...extra }
+      });
+      // Enregistrer activité
+      await SupabaseDataService.recordUserActivity({
+        userId: user.id,
+        activityType: `parcel_inquiry_${type}`,
+        entityType: 'parcel',
+        entityId: parcel.id,
+        description: messageMap[type]
+      });
+      // Notifier propriétaire (si différent et disponible)
+      if (parcel.owner_id && parcel.owner_id !== user.id) {
+        SupabaseDataService.createNotification({
+          userId: parcel.owner_id,
+          type: 'parcel_inquiry',
+          title: 'Nouvelle demande sur votre parcelle',
+          body: `${user.email || 'Un utilisateur'} a envoyé une demande (${type}).`,
+          data: { parcel_id: parcel.id, inquiry_id: inquiry?.id, inquiry_type: type }
+        }).catch(()=>{});
+      }
+      toast({ title: 'Demande envoyée', description: messageMap[type] });
+      if (type === 'buy') {
+        // Rediriger vers messagerie (conversation potentielle)
+        navigate('/messaging', { state: { parcelId: parcel.id, parcelName: parcel.name } });
+      }
+    } catch (e) {
+      console.error('Inquiry action failed', e);
+      toast({ title: 'Erreur', description: "Impossible d'enregistrer la demande pour le moment.", variant: 'destructive' });
     }
   };
 
@@ -99,11 +163,40 @@ const ParcelDetailPage = () => {
     });
   };
 
-  const handleToggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    toast({
-      title: isFavorite ? "Retiré des favoris" : "Ajouté aux favoris",
-    });
+  // Charger statut favori depuis backend
+  useEffect(() => {
+    (async () => {
+      if (user && parcel) {
+        try {
+          const fav = await SupabaseDataService.isParcelFavorite(user.id, parcel.id);
+          setIsFavorite(fav);
+        } catch {/* silent */}
+      }
+    })();
+  }, [user, parcel]);
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      toast({ title: 'Connexion requise', description: 'Connectez-vous pour gérer vos favoris.' });
+      navigate('/login', { state: { redirectTo: `/parcelles/${id}` }});
+      return;
+    }
+    try {
+      if (isFavorite) {
+        await SupabaseDataService.removeFromFavorites(user.id, parcel.id);
+        setIsFavorite(false);
+        toast({ title: 'Retiré des favoris' });
+        SupabaseDataService.recordUserActivity({ userId: user.id, activityType:'favorite_removed', entityType:'parcel', entityId:parcel.id, description:`Retrait favori ${parcel.name}` });
+      } else {
+        await SupabaseDataService.addToFavorites(user.id, parcel.id);
+        setIsFavorite(true);
+        toast({ title: 'Ajouté aux favoris' });
+        SupabaseDataService.recordUserActivity({ userId: user.id, activityType:'favorite_added', entityType:'parcel', entityId:parcel.id, description:`Ajout favori ${parcel.name}` });
+      }
+    } catch (e) {
+      console.error('Toggle favorite failed', e);
+      toast({ title: 'Erreur', description: 'Impossible de mettre à jour le favori.', variant: 'destructive' });
+    }
   };
 
   const nearbyPointsOfInterest = [
@@ -204,12 +297,12 @@ const ParcelDetailPage = () => {
           </div>
 
           <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 self-start">
-             <ParcelActionsCard 
-                parcel={parcel}
-                onRequestInfo={() => handleAction(`Demande d'information pour ${parcel.location_name}.`)}
-                onInitiateBuy={() => handleAction(`Initiation de la procédure d'achat pour ${parcel.location_name}.`, { action: 'initiateBuy' })}
-                onRequestVisit={() => handleAction(`Demande de visite pour ${parcel.location_name}.`)}
-            />
+       <ParcelActionsCard 
+        parcel={parcel}
+        onRequestInfo={() => handleInquiry('info')}
+        onInitiateBuy={() => handleInquiry('buy')}
+        onRequestVisit={() => handleInquiry('visit')}
+      />
             <ParcelFeeCalculator price={parcel.price} />
              <Card>
                 <CardHeader>

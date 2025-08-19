@@ -25,6 +25,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { testAccounts } from '@/data/testAccounts';
 
 const TestAccountsHelper = ({ onAccountSelect }) => {
+  // In production we hide the helper entirely to avoid exposing test account hints
+  if (import.meta.env.PROD) {
+    return null; // Silent noop in production builds
+  }
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showPasswords, setShowPasswords] = useState(false);

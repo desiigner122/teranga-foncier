@@ -36,9 +36,17 @@ const RegisterPage = () => {
 
     try {
       // ÉTAPE 1: Créer l'utilisateur dans le système d'authentification de Supabase.
+      const normalizedEmail = email.trim().toLowerCase();
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email,
+        email: normalizedEmail,
         password: password,
+        options: {
+          data: {
+            full_name: name,
+            type: accountType,
+            role: accountType === 'Vendeur' ? 'seller' : 'user'
+          }
+        }
       });
 
       if (authError) {
@@ -49,15 +57,14 @@ const RegisterPage = () => {
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('users')
-          .insert([
-            {
+          .upsert({
               id: authData.user.id,
               full_name: name,
-              email: email,
+              email: normalizedEmail,
               type: accountType,
+              role: accountType === 'Vendeur' ? 'seller' : 'user',
               verification_status: 'not_verified'
-            }
-          ]);
+            }, { onConflict: 'id', ignoreDuplicates: false });
         
         if (profileError) {
           throw profileError;

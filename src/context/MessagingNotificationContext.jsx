@@ -1,20 +1,7 @@
 // src/context/MessagingNotificationContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  serverTimestamp,
-  writeBatch,
-  getDocs
-} from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '@/lib/firebaseClient';
+import { supabase } from '@/lib/supabaseClient';
+import SupabaseDataService from '@/services/supabaseDataService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -38,286 +25,180 @@ export const MessagingNotificationProvider = ({ children }) => {
   const [messages, setMessages] = useState({});
   const [unreadCounts, setUnreadCounts] = useState({ messages: 0, notifications: 0 });
   const [loading, setLoading] = useState(true);
-  const [isFirebaseAvailable, setIsFirebaseAvailable] = useState(false);
+  // Legacy naming kept so existing pages continue to work; now represents Supabase messaging availability
+  const [isFirebaseAvailable, setIsFirebaseAvailable] = useState(true);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
 
-  // Check Firebase availability
-  useEffect(() => {
-    setIsFirebaseAvailable(isFirebaseConfigured());
-    if (!isFirebaseConfigured()) {
-      // Firebase not configured, use fallback data for development
-      if (import.meta.env.DEV) {
-        console.warn('Firebase not configured. Using fallback data.');
+  // Load conversations from Supabase (polling + realtime optional)
+  const loadConversations = useCallback(async () => {
+    if (!user) return;
+    setIsLoadingConversations(true);
+    try {
+      const list = await SupabaseDataService.listUserConversationsWithUnread(user.id, 100);
+      const convIds = list.map(c=>c.id);
+      // Fetch participants for each conversation
+      if (convIds.length) {
+        const { data: parts } = await supabase.from('conversation_participants').select('conversation_id,user_id').in('conversation_id', convIds);
+        const byConv = parts?.reduce((acc,p)=>{ (acc[p.conversation_id]||(acc[p.conversation_id]=[])).push(p.user_id); return acc; },{}) || {};
+        const enhanced = list.map(c=>({
+          id: c.id,
+          participants: byConv[c.id] || [c.created_by].filter(Boolean),
+          title: c.subject || c.title || 'Conversation',
+          parcelId: c.parcel_id || null,
+          lastMessage: c.last_message || '',
+          lastMessageAt: c.last_message_at || c.updated_at,
+          updatedAt: c.updated_at || c.created_at,
+          unreadCount: c.unread_count || 0
+        }));
+        setConversations(enhanced);
+      } else {
+        setConversations([]);
       }
+    } catch (e) {
+      console.error('loadConversations failed', e);
+    } finally {
+      setIsLoadingConversations(false);
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
-  // Conversations listener
+  useEffect(() => { loadConversations(); }, [loadConversations]);
+
+  // Optional realtime channel for new conversations/messages
   useEffect(() => {
-    if (!user || !isFirebaseAvailable) {
-      setLoading(false);
-      return;
-    }
-
-    const conversationsRef = collection(db, 'conversations');
-    const q = query(
-      conversationsRef,
-      where('participants', 'array-contains', user.id),
-      orderBy('updatedAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        const convs = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setConversations(convs);
-        setLoading(false);
-      },
-      (error) => {
-        // Log conversation listener errors in development only
-        if (import.meta.env.DEV) {
-          console.error('Error listening to conversations:', error);
+    if (!user) return;
+    const channel = supabase.channel(`messaging_${user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema:'public', table:'messages' }, payload => {
+        const msg = payload.new;
+        // If message belongs to a known conversation, fetch messages list
+        if (msg.conversation_id) {
+          // lazy load conversation if not present
+          setConversations(prev => {
+            if (!prev.find(c=>c.id===msg.conversation_id)) {
+              loadConversations();
+            }
+            return prev;
+          });
+          // Append to messages cache
+          setMessages(prev => {
+            const existing = prev[msg.conversation_id] || [];
+            return { ...prev, [msg.conversation_id]: [...existing, msg] };
+          });
         }
-        setLoading(false);
-      }
-    );
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, loadConversations]);
 
-    return () => unsubscribe();
-  }, [user, isFirebaseAvailable]);
+  // Load notifications (poll every 30s)
+  const loadNotifications = useCallback(async () => {
+    if (!user) return;
+    setIsLoadingNotifications(true);
+    try {
+      const list = await SupabaseDataService.listNotifications(user.id, { unreadOnly:false, limit:100 });
+      setNotifications(list);
+    } catch (e) {
+      console.error('loadNotifications failed', e);
+    } finally { setIsLoadingNotifications(false); }
+  }, [user]);
 
-  // Notifications listener
+  useEffect(() => { loadNotifications(); }, [loadNotifications]);
+  // Realtime notifications (replace polling)
   useEffect(() => {
-    if (!user || !isFirebaseAvailable) return;
-
-    const notificationsRef = collection(db, 'notifications');
-    const q = query(
-      notificationsRef,
-      where('userId', '==', user.id),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q,
-      (snapshot) => {
-        const notifs = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setNotifications(notifs);
-      },
-      (error) => {
-        // Log notification listener errors in development only
-        if (import.meta.env.DEV) {
-          console.error('Error listening to notifications:', error);
-        }
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user, isFirebaseAvailable]);
+    if (!user) return;
+    const channel = supabase.channel(`notifications_${user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema:'public', table:'notifications', filter:`user_id=eq.${user.id}` }, payload => {
+        const row = payload.new;
+        setNotifications(prev => [row, ...prev].slice(0,100));
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema:'public', table:'notifications', filter:`user_id=eq.${user.id}` }, payload => {
+        const row = payload.new;
+        setNotifications(prev => prev.map(n => n.id===row.id ? row : n));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   // Messages listener for selected conversation
   const subscribeToMessages = useCallback((conversationId) => {
-    if (!isFirebaseAvailable) return () => {};
-
-    const messagesRef = collection(db, 'messages');
-    const q = query(
-      messagesRef,
-      where('conversationId', '==', conversationId),
-      orderBy('createdAt', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(q,
-      (snapshot) => {
-        const msgs = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setMessages(prev => ({
-          ...prev,
-          [conversationId]: msgs
-        }));
-      },
-      (error) => {
-        console.error('Error listening to messages:', error);
-      }
-    );
-
-    return unsubscribe;
-  }, [isFirebaseAvailable]);
+    // For Supabase we already have realtime channel global; here we fetch initial messages once
+    (async () => {
+      try {
+        const list = await SupabaseDataService.listConversationMessages(conversationId, 500);
+        setMessages(prev => ({ ...prev, [conversationId]: list }));
+      } catch (e) { console.error('fetch messages failed', e); }
+    })();
+    return () => {};
+  }, []);
 
   // Update unread counts
   useEffect(() => {
     if (!user) return;
-
-    const messageCount = conversations.reduce((total, conv) => {
-      return total + (conv.unreadCount?.[user.id] || 0);
-    }, 0);
-
-    const notificationCount = notifications.filter(n => !n.isRead).length;
-
-    setUnreadCounts({
-      messages: messageCount,
-      notifications: notificationCount
-    });
+  const messageCount = conversations.reduce((sum,c)=> sum + (c.unreadCount||0), 0);
+    const notificationCount = notifications.filter(n => !n.read).length;
+    setUnreadCounts({ messages: messageCount, notifications: notificationCount });
   }, [conversations, notifications, user]);
 
   // Send message
-  const sendMessage = async (conversationId, content, messageType = 'text') => {
-    if (!user || !isFirebaseAvailable) {
-      toast({
-        title: "Erreur",
-        description: "Service de messagerie non disponible",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const sendMessage = async (conversationId, content) => {
+    if (!user) return;
     try {
-      const messagesRef = collection(db, 'messages');
-      await addDoc(messagesRef, {
-        conversationId,
-        senderId: user.id,
-        content,
-        messageType,
-        createdAt: serverTimestamp(),
-        isRead: false
-      });
-
-      // Update conversation last message
-      const conversationRef = doc(db, 'conversations', conversationId);
-      await updateDoc(conversationRef, {
-        lastMessage: content,
-        lastMessageAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible d'envoyer le message",
-        variant: "destructive"
-      });
+      await SupabaseDataService.sendMessage({ conversationId, senderId: user.id, content });
+      // Refresh messages list quickly
+      const list = await SupabaseDataService.listConversationMessages(conversationId, 500);
+      setMessages(prev => ({ ...prev, [conversationId]: list }));
+      // Update conversation metadata in local state
+      setConversations(prev => prev.map(c => c.id===conversationId ? { ...c, lastMessage: content, lastMessageAt: new Date().toISOString(), updatedAt: new Date().toISOString() } : c));
+    } catch (e) {
+      console.error('sendMessage failed', e);
+      toast({ title:'Erreur', description:"Impossible d'envoyer le message", variant:'destructive' });
     }
   };
 
   // Create conversation
   const createConversation = async (participantIds, parcelId = null, title = null) => {
-    if (!user || !isFirebaseAvailable) return null;
-
+    if (!user) return null;
     try {
-      const conversationsRef = collection(db, 'conversations');
-      const docRef = await addDoc(conversationsRef, {
-        participants: participantIds,
-        parcelId,
-        title,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        unreadCount: participantIds.reduce((acc, id) => ({ ...acc, [id]: 0 }), {})
-      });
-
-      return docRef.id;
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-      return null;
-    }
+      const conv = await SupabaseDataService.createConversation({ subject: title, creatorId: user.id, participantIds });
+      if (conv) {
+        setConversations(prev => [
+          { id: conv.id, participants: participantIds.concat(user.id), title: title || 'Conversation', parcelId, lastMessage:'', updatedAt: conv.created_at, lastMessageAt: conv.created_at, unreadCount:{} },
+          ...prev
+        ]);
+        return conv.id;
+      }
+    } catch (e) { console.error('createConversation failed', e); }
+    return null;
   };
 
   // Mark messages as read
   const markMessagesAsRead = async (conversationId) => {
-    if (!user || !isFirebaseAvailable) return;
-
+    if (!user || !conversationId) return;
     try {
-      const messagesRef = collection(db, 'messages');
-      const q = query(
-        messagesRef,
-        where('conversationId', '==', conversationId),
-        where('senderId', '!=', user.id),
-        where('isRead', '==', false)
-      );
-
-      const snapshot = await getDocs(q);
-      const batch = writeBatch(db);
-
-      snapshot.docs.forEach(doc => {
-        batch.update(doc.ref, { isRead: true });
-      });
-
-      await batch.commit();
-
-      // Update conversation unread count
-      const conversationRef = doc(db, 'conversations', conversationId);
-      await updateDoc(conversationRef, {
-        [`unreadCount.${user.id}`]: 0
-      });
-
-    } catch (error) {
-      console.error('Error marking messages as read:', error);
-    }
+      await SupabaseDataService.markConversationMessagesRead({ conversationId, userId: user.id });
+      // Refresh unread count for this conversation
+      const unread = await SupabaseDataService.getConversationUnreadCount({ conversationId, userId: user.id });
+      setConversations(prev => prev.map(c => c.id===conversationId ? { ...c, unreadCount: unread } : c));
+    } catch(e){ console.warn('markMessagesAsRead failed', e); }
   };
 
   // Mark notification as read
   const markNotificationAsRead = async (notificationId) => {
-    if (!isFirebaseAvailable) return;
-
-    try {
-      const notificationRef = doc(db, 'notifications', notificationId);
-      await updateDoc(notificationRef, { isRead: true });
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
+    try { await SupabaseDataService.markNotificationRead(notificationId); loadNotifications(); } catch(e){ console.error('markNotificationAsRead failed', e);} };
 
   // Delete notification
-  const deleteNotification = async (notificationId) => {
-    if (!isFirebaseAvailable) return;
-
-    try {
-      const notificationRef = doc(db, 'notifications', notificationId);
-      await deleteDoc(notificationRef);
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
-  };
+  const deleteNotification = async () => { /* not implemented for Supabase notifications (soft delete optional) */ };
 
   // Mark all notifications as read
   const markAllNotificationsAsRead = async () => {
-    if (!user || !isFirebaseAvailable) return;
-
     try {
-      const unreadNotifications = notifications.filter(n => !n.isRead);
-      const batch = writeBatch(db);
-
-      unreadNotifications.forEach(notification => {
-        const notificationRef = doc(db, 'notifications', notification.id);
-        batch.update(notificationRef, { isRead: true });
-      });
-
-      await batch.commit();
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
+      await Promise.all(notifications.filter(n=>!n.read).map(n=>SupabaseDataService.markNotificationRead(n.id)));
+      loadNotifications();
+    } catch(e){ console.error('markAllNotificationsAsRead failed', e);} };
 
   // Delete all notifications
-  const deleteAllNotifications = async () => {
-    if (!user || !isFirebaseAvailable) return;
-
-    try {
-      const batch = writeBatch(db);
-
-      notifications.forEach(notification => {
-        const notificationRef = doc(db, 'notifications', notification.id);
-        batch.delete(notificationRef);
-      });
-
-      await batch.commit();
-    } catch (error) {
-      console.error('Error deleting all notifications:', error);
-    }
-  };
+  const deleteAllNotifications = async () => { /* destructive clear not implemented */ };
 
   const value = {
     // State

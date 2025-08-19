@@ -172,6 +172,39 @@ export class SupabaseDataService {
       if (error) throw error; return Array.from(new Set((data||[]).map(r=>r.name).filter(Boolean))).sort();
     } catch (e) { console.warn('listBanks fallback', e.message||e); return []; }
   }
+  // listPaymentMethods & listMobileMoneyProviders canonical implementations defined later (duplicates removed)
+  
+  // Dynamic payment methods (optional table-backed). Fallback to defaults if table absent.
+  static async listPaymentMethods() {
+    try {
+      const { data, error } = await supabase.from('payment_methods').select('id, name, icon, providers');
+      if (error) throw error;
+      // providers expected as json/text[]
+      return (data||[]).map(m => ({
+        id: m.id,
+        name: m.name,
+        icon: m.icon || null,
+        providers: Array.isArray(m.providers) ? m.providers : (m.providers ? [m.providers] : [])
+      }));
+    } catch (e) {
+      // fallback static minimal set
+      return [
+        { id: 'mobile', name: 'Mobile Money', icon: 'Smartphone', providers: ['Wave','Orange Money'] },
+        { id: 'transfer', name: 'Virement Bancaire', icon: 'Landmark', providers: [] },
+        { id: 'check', name: 'Chèque de banque', icon: 'FileCheck2', providers: [] }
+      ];
+    }
+  }
+
+  // Mobile money providers dedicated helper (optional separate table)
+  static async listMobileMoneyProviders() {
+    try {
+      const { data, error } = await supabase.from('mobile_money_providers').select('name').eq('enabled', true).order('name');
+      if (error) throw error; return (data||[]).map(r=>r.name);
+    } catch (e) {
+      return ['Wave','Orange Money'];
+    }
+  }
   static async listNotaireSpecialities() {
     // Attempt dedicated table notaire_specialities then fallback to institution_profiles metadata
     try {
@@ -474,6 +507,179 @@ export class SupabaseDataService {
     return data;
   }
 
+  // ============== ANALYTICS (VIEWS & INQUIRIES) ==============
+  static async logParcelView(parcelId, viewerId, metadata={}) {
+    try {
+      if (!parcelId) return null;
+      const payload = { parcel_id: parcelId, viewer_id: viewerId||null, metadata };
+      const { error } = await supabase.from('parcel_views').insert([payload]);
+      if (error) throw error;
+      return true;
+    } catch (e) { console.warn('logParcelView failed', e.message||e); return false; }
+  }
+  static async createParcelInquiry({ parcelId, inquirerId, inquiryType='info', message='', metadata={} }) {
+    try {
+      const { data, error } = await supabase.from('parcel_inquiries')
+        .insert([{ parcel_id: parcelId, inquirer_id: inquirerId, inquiry_type: inquiryType, message, metadata }])
+        .select()
+        .single();
+      if (error) throw error;
+      this.logEvent({ entityType:'parcel', entityId:parcelId, eventType:'parcel.inquiry', actorUserId:inquirerId, data:{ inquiryType } });
+      return data;
+    } catch (e) { console.error('createParcelInquiry failed', e.message||e); throw e; }
+  }
+  static async listParcelInquiries(parcelId, limit=50) {
+    try {
+      const { data, error } = await supabase.from('parcel_inquiries')
+        .select('*')
+        .eq('parcel_id', parcelId)
+        .order('created_at', { ascending:false })
+        .limit(limit);
+      if (error) throw error; return data||[];
+    } catch (e) { console.warn('listParcelInquiries failed', e.message||e); return []; }
+  }
+
+  // ============== USER ACTIVITIES ==============
+  static async recordUserActivity({ userId, activityType, entityType=null, entityId=null, description=null, metadata={} }) {
+    if (!userId || !activityType) return false;
+    try {
+      const { error } = await supabase.from('user_activities').insert([{ user_id:userId, activity_type:activityType, entity_type:entityType, entity_id:entityId, description, metadata }]);
+      if (error) throw error; return true;
+    } catch (e) { console.warn('recordUserActivity failed', e.message||e); return false; }
+  }
+  static async listUserActivities(userId, limit=50) {
+    try {
+      const { data, error } = await supabase.from('user_activities')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending:false })
+        .limit(limit);
+      if (error) throw error; return data||[];
+    } catch (e) { console.warn('listUserActivities failed', e.message||e); return []; }
+  }
+
+  // ============== SIMPLE MESSAGING (SUPABASE BACKEND) ==============
+  static async createConversation({ subject, creatorId, participantIds=[] }) {
+    try {
+      const { data: conv, error } = await supabase.from('conversations')
+        .insert([{ subject, created_by: creatorId }])
+        .select()
+        .single();
+      if (error) throw error;
+      const participants = Array.from(new Set([creatorId, ...participantIds].filter(Boolean))).map(uid=>({ conversation_id: conv.id, user_id: uid }));
+      if (participants.length) await supabase.from('conversation_participants').insert(participants);
+      this.logEvent({ entityType:'conversation', entityId:conv.id, eventType:'conversation.created', actorUserId:creatorId, data:{ subject } });
+      return conv;
+    } catch (e) { console.error('createConversation failed', e.message||e); throw e; }
+  }
+  static async sendMessage({ conversationId, senderId, content, attachments=[] }) {
+    try {
+      const { data, error } = await supabase.from('messages')
+        .insert([{ conversation_id: conversationId, sender_id: senderId, content, attachments }])
+        .select()
+        .single();
+      if (error) throw error;
+      this.logEvent({ entityType:'conversation', entityId:conversationId, eventType:'message.sent', actorUserId:senderId, data:{ length: content?.length } });
+      return data;
+    } catch (e) { console.error('sendMessage failed', e.message||e); throw e; }
+  }
+  static async listConversationMessages(conversationId, limit=200) {
+    try {
+      const { data, error } = await supabase.from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending:true })
+        .limit(limit);
+      if (error) throw error; return data||[];
+    } catch (e) { console.warn('listConversationMessages failed', e.message||e); return []; }
+  }
+  static async markConversationMessagesRead({ conversationId, userId, messageIds=[] }) {
+    if (!conversationId || !userId) return 0;
+    try {
+      // If specific messageIds provided, insert those; else bulk insert unread ones
+      if (messageIds.length) {
+        const rows = messageIds.map(id => ({ message_id:id, user_id:userId }));
+        const { error } = await supabase.from('message_reads').insert(rows, { upsert: true }).select();
+        if (error && !String(error.message||'').includes('duplicate')) throw error;
+        return messageIds.length;
+      }
+      // Bulk: fetch unread messages ids for user (messages not authored by user and not already in message_reads)
+      const { data: unread, error: unreadErr } = await supabase.rpc('list_unread_message_ids', { p_conversation_id: conversationId, p_user_id: userId });
+      if (unreadErr) {
+        // fallback manual query (less efficient)
+        const { data: msgs } = await supabase.from('messages').select('id,sender_id').eq('conversation_id', conversationId).neq('sender_id', userId);
+        const { data: reads } = await supabase.from('message_reads').select('message_id').eq('user_id', userId);
+        const readSet = new Set((reads||[]).map(r=>r.message_id));
+        const candidates = (msgs||[]).filter(m=>!readSet.has(m.id)).map(m=>m.id);
+        if (!candidates.length) return 0;
+        const rows = candidates.map(id=>({ message_id:id, user_id:userId }));
+        await supabase.from('message_reads').insert(rows).select();
+        return candidates.length;
+      }
+      if (!unread || !unread.length) return 0;
+      const rows = unread.map(id=>({ message_id:id, user_id:userId }));
+      await supabase.from('message_reads').insert(rows).select();
+      return unread.length;
+    } catch (e) { console.warn('markConversationMessagesRead failed', e.message||e); return 0; }
+  }
+  static async getConversationUnreadCount({ conversationId, userId }) {
+    if (!conversationId || !userId) return 0;
+    try {
+      const { data, error } = await supabase.rpc('count_unread_messages', { p_conversation_id: conversationId, p_user_id: userId });
+      if (!error && typeof data === 'number') return data;
+    } catch {/* ignore */}
+    try {
+      // fallback manual
+      const { data: msgs } = await supabase.from('messages').select('id,sender_id').eq('conversation_id', conversationId).neq('sender_id', userId);
+      const { data: reads } = await supabase.from('message_reads').select('message_id').eq('user_id', userId).in('message_id', (msgs||[]).map(m=>m.id));
+      const readSet = new Set((reads||[]).map(r=>r.message_id));
+      return (msgs||[]).filter(m=>!readSet.has(m.id)).length;
+    } catch (e) { console.warn('getConversationUnreadCount failed', e.message||e); return 0; }
+  }
+  static async listUserConversationsWithUnread(userId, limit=50) {
+  // Now RPC already returns unread_count
+  return this.listUserConversations(userId, limit);
+  }
+  static async listUserConversations(userId, limit=50) {
+    try {
+      const { data, error } = await supabase.rpc('list_user_conversations', { p_user_id: userId });
+      if (!error && data) return data;
+    } catch(e) {/* ignore */}
+    try {
+      // Fallback manual join if RPC absent
+      const { data: convs, error } = await supabase.from('conversation_participants')
+        .select('conversation_id, conversations:conversation_id(*)')
+        .eq('user_id', userId)
+        .limit(limit);
+      if (error) throw error;
+      return (convs||[]).map(r=>r.conversations).filter(Boolean);
+    } catch (e) { console.warn('listUserConversations failed', e.message||e); return []; }
+  }
+
+  // ============== NOTIFICATIONS ==============
+  static async createNotification({ userId, type, title, body, data={} }) {
+    if (!userId) return null;
+    try {
+      const { data: row, error } = await supabase.from('notifications')
+        .insert([{ user_id:userId, type, title, body, data }])
+        .select()
+        .single();
+      if (error) throw error;
+      return row;
+    } catch (e) { console.error('createNotification failed', e.message||e); return null; }
+  }
+  static async listNotifications(userId, { unreadOnly=false, limit=50 }={}) {
+    try {
+      let query = supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending:false }).limit(limit);
+      if (unreadOnly) query = query.eq('read', false);
+      const { data, error } = await query; if (error) throw error; return data||[];
+    } catch (e) { console.warn('listNotifications failed', e.message||e); return []; }
+  }
+  static async markNotificationRead(id) {
+    try { await supabase.from('notifications').update({ read:true, read_at:new Date().toISOString() }).eq('id', id); return true; }
+    catch(e){ return false; }
+  }
+
   // ============== DOCUMENTS ==============
   static async getDocuments(limit = null) {
     let query = supabase
@@ -594,6 +800,49 @@ export class SupabaseDataService {
       throw error;
     }
     return data;
+  }
+
+  /**
+   * ensureUserProfile: guarantee a row exists in users table for given auth user.
+   * Tries fetch by id, then upsert minimal profile if missing.
+   * Returns profile object or null.
+   */
+  static async ensureUserProfile(authUser) {
+    if (!authUser?.id || !authUser?.email) return null;
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return data;
+    } catch (e) {
+      // non fatal
+      console.warn('ensureUserProfile fetch warning:', e.message||e);
+    }
+    try {
+      const profile = {
+        id: authUser.id,
+        email: authUser.email,
+        full_name: authUser.user_metadata?.full_name || authUser.email,
+        type: authUser.user_metadata?.type || authUser.user_metadata?.role_type || 'Particulier',
+        role: authUser.user_metadata?.role || 'user',
+        verification_status: 'not_verified',
+        created_at: authUser.created_at,
+        updated_at: new Date().toISOString()
+      };
+      const { data, error } = await supabase
+        .from('users')
+        .upsert(profile, { onConflict: 'id', ignoreDuplicates: false })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.error('ensureUserProfile upsert failed:', e.message||e);
+      return null;
+    }
   }
 
   // ============== INSTITUTION PROFILES (NEW) ==============
@@ -819,6 +1068,18 @@ export class SupabaseDataService {
       throw error;
     }
     if (data) this.logEvent({ entityType:'request', entityId:id, eventType:'request.status_updated', actorUserId:data.user_id, data:{ new_status:status } });
+    // Notify requester
+    try {
+      if (data?.user_id) {
+        this.createNotification({
+          userId: data.user_id,
+          type: 'request_status',
+          title: 'Statut de votre demande mis à jour',
+          body: `La demande #${id} est maintenant: ${status}.`,
+          data: { request_id: id, status }
+        });
+      }
+    } catch {/* silent */}
     return data;
   }
 
@@ -838,6 +1099,18 @@ export class SupabaseDataService {
       throw error;
     }
     if (data) this.logEvent({ entityType:'transaction', entityId:id, eventType:'transaction.status_updated', actorUserId:data.user_id || null, data:{ new_status:status } });
+    try {
+      const parties = [data?.buyer_id, data?.seller_id].filter(Boolean);
+      parties.forEach(uid => {
+        if (uid) this.createNotification({
+          userId: uid,
+          type: 'transaction_status',
+          title: 'Transaction mise à jour',
+          body: `La transaction #${id} est maintenant: ${status}.`,
+          data: { transaction_id: id, status }
+        });
+      });
+    } catch {/* silent */}
     return data;
   }
 
@@ -874,6 +1147,18 @@ export class SupabaseDataService {
       throw error;
     }
     this.logEvent({ entityType:'parcel', entityId:parcelId, eventType:'user.favorite_added', actorUserId:userId, data:{ favorite_id:data.id } });
+    try {
+      const { data: parcel } = await supabase.from('parcels').select('owner_id, reference').eq('id', parcelId).maybeSingle();
+      if (parcel?.owner_id && parcel.owner_id !== userId) {
+        this.createNotification({
+          userId: parcel.owner_id,
+          type: 'favorite_added',
+          title: 'Nouvel intérêt pour votre parcelle',
+          body: `Un utilisateur a ajouté votre parcelle ${parcel.reference || parcelId} à ses favoris.`,
+          data: { parcel_id: parcelId, favorite_id: data.id }
+        });
+      }
+    } catch {/* silent */}
     return data;
   }
 

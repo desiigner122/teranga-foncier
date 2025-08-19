@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft, Smartphone, Landmark, FileCheck2, CheckCircle, Loader2, RefreshCcw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { paymentMethods, partnerBanks } from '@/data/paymentData';
+// Removed static payment data imports; now dynamically loaded from Supabase
 import LoadingSpinner from '@/components/ui/spinner';
 import SupabaseDataService from '@/services/supabaseDataService';
 
@@ -28,6 +28,9 @@ const PaymentPage = () => {
   const [isPaid, setIsPaid] = useState(false);
   const [currentStatus, setCurrentStatus] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [banks, setBanks] = useState([]);
+  const [loadingMeta, setLoadingMeta] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -48,6 +51,25 @@ const PaymentPage = () => {
     })();
     return ()=>{ mounted=false; };
   }, [transactionId, navigate, toast]);
+
+  // Load dynamic payment metadata (methods + banks)
+  useEffect(()=>{
+    let active = true;
+    (async()=>{
+      try {
+        const [methods, banksList] = await Promise.all([
+          SupabaseDataService.listPaymentMethods(),
+          SupabaseDataService.listBanks()
+        ]);
+        if (!active) return;
+        setPaymentMethods(methods);
+        setBanks(banksList);
+      } finally {
+        if (active) setLoadingMeta(false);
+      }
+    })();
+    return ()=>{ active=false; };
+  }, []);
 
   const refreshStatus = async () => {
     if (!transaction) return;
@@ -100,7 +122,7 @@ const PaymentPage = () => {
             <Select onValueChange={(value) => setPaymentDetails({ provider: value })}>
               <SelectTrigger><SelectValue placeholder="Choisissez un opérateur" /></SelectTrigger>
               <SelectContent>
-                {paymentMethods.find(p => p.id === 'mobile').providers.map(provider => (
+                {paymentMethods.find(p => p.id === 'mobile')?.providers?.map(provider => (
                   <SelectItem key={provider} value={provider}>{provider}</SelectItem>
                 ))}
               </SelectContent>
@@ -114,8 +136,8 @@ const PaymentPage = () => {
             <Select onValueChange={(value) => setPaymentDetails({ bank: value })}>
               <SelectTrigger><SelectValue placeholder="Choisissez votre banque" /></SelectTrigger>
               <SelectContent>
-                {partnerBanks.map(bank => (
-                  <SelectItem key={bank.id} value={bank.name}>{bank.name}</SelectItem>
+                {banks.map(name => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -140,7 +162,7 @@ const PaymentPage = () => {
     }
   };
 
-  if (!transaction) {
+  if (!transaction || loadingMeta) {
     return <div className="flex items-center justify-center h-full"><LoadingSpinner size="large" /></div>;
   }
 
@@ -203,17 +225,20 @@ const PaymentPage = () => {
               <div>
                 <Label>Méthode de paiement</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
-                  {paymentMethods.map(method => (
-                    <Button
-                      key={method.id}
-                      type="button"
-                      variant={selectedMethod === method.id ? 'default' : 'outline'}
-                      onClick={() => setSelectedMethod(method.id)}
-                      className="w-full justify-start"
-                    >
-                      <method.icon className="mr-2 h-4 w-4" /> {method.name}
-                    </Button>
-                  ))}
+                  {paymentMethods.map(method => {
+                    const Icon = method.icon && typeof method.icon === 'string' ? (method.icon === 'Smartphone' ? Smartphone : method.icon === 'Landmark' ? Landmark : method.icon === 'FileCheck2' ? FileCheck2 : Smartphone) : Smartphone;
+                    return (
+                      <Button
+                        key={method.id}
+                        type="button"
+                        variant={selectedMethod === method.id ? 'default' : 'outline'}
+                        onClick={() => setSelectedMethod(method.id)}
+                        className="w-full justify-start"
+                      >
+                        <Icon className="mr-2 h-4 w-4" /> {method.name}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
               

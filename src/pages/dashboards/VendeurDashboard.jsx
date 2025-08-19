@@ -21,7 +21,8 @@ import {
   Calendar,
   BarChart3,
   Zap,
-  Target
+  Target,
+  Inbox
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
@@ -48,6 +49,7 @@ const VendeurDashboard = () => {
   });
   const [marketInsights, setMarketInsights] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [inquiriesByListing, setInquiriesByListing] = useState([]);
 
   useEffect(() => {
     loadUserData();
@@ -158,6 +160,14 @@ const VendeurDashboard = () => {
       });
 
       setListings(userListings || []);
+      // Préparer une structure de demandes par annonce
+      const inquiries = (userListings||[]).map(l => ({
+        listingId: l.id,
+        reference: l.reference,
+        location: l.location,
+        inquiries: (l.parcel_inquiries||[]).map(i => ({ id:i.id, type:i.inquiry_type, created_at:i.created_at }))
+      })).filter(row => row.inquiries.length>0);
+      setInquiriesByListing(inquiries);
       setMarketInsights(insights);
 
     } catch (error) {
@@ -559,6 +569,50 @@ const VendeurDashboard = () => {
                       </div>
                     </div>
                   </motion.div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Demandes reçues */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Inbox className="h-5 w-5 text-indigo-500" />
+              Demandes Reçues
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+              </div>
+            ) : inquiriesByListing.length === 0 ? (
+              <p className="text-sm text-gray-500">Aucune demande reçue pour le moment.</p>
+            ) : (
+              <div className="space-y-4">
+                {inquiriesByListing.map(block => (
+                  <div key={block.listingId} className="border rounded-md p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm">{block.reference}</h4>
+                      <Badge variant="outline">{block.inquiries.length} demande{block.inquiries.length>1?'s':''}</Badge>
+                    </div>
+                    <ul className="space-y-2">
+                      {block.inquiries.slice(0,5).map(inq => (
+                        <li key={inq.id} className="text-xs flex items-center justify-between bg-muted/40 rounded px-2 py-1">
+                          <span className="flex items-center gap-2">
+                            <Badge variant="secondary" className="capitalize">{inq.type}</Badge>
+                            {new Date(inq.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'short'})}
+                          </span>
+                          <Button size="xs" variant="ghost" className="h-6 text-xs">Voir</Button>
+                        </li>
+                      ))}
+                      {block.inquiries.length>5 && (
+                        <li className="text-[11px] text-muted-foreground italic">+ {block.inquiries.length-5} autres...</li>
+                      )}
+                    </ul>
+                  </div>
                 ))}
               </div>
             )}

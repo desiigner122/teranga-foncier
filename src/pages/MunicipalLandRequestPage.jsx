@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { Landmark, Send, UploadCloud, CheckCircle2, ArrowLeft, ArrowRight, FileText, Info } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getRegions, getDepartments, getCommunes } from '@/data/administrativeDivisions';
 import SupabaseDataService from '@/services/supabaseDataService';
 
 const MunicipalLandRequestPage = () => {
@@ -35,9 +34,60 @@ const MunicipalLandRequestPage = () => {
   const [mairieResolvedId, setMairieResolvedId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const regions = useMemo(()=> getRegions(), []);
-  const departments = useMemo(()=> formData.region ? getDepartments(formData.region):[], [formData.region]);
-  const communes = useMemo(()=> formData.region && formData.department ? getCommunes(formData.region, formData.department):[], [formData.region, formData.department]);
+  const [regions, setRegions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [communes, setCommunes] = useState([]);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState(null);
+
+  // Load regions once
+  useEffect(()=>{
+    let active = true;
+    (async()=>{
+      setGeoLoading(true); setGeoError(null);
+      try {
+        const regs = await SupabaseDataService.listRegions();
+        if (active) setRegions(regs.map(r=> r.name || r.code || r.id));
+      } catch (e){ if (active) setGeoError('Erreur chargement régions'); }
+      finally { if (active) setGeoLoading(false); }
+    })();
+    return ()=>{ active=false; };
+  }, []);
+
+  // When region changes, load departments
+  useEffect(()=>{
+    let active = true;
+    if (!formData.region){ setDepartments([]); return; }
+    (async()=>{
+      try {
+        const regs = await SupabaseDataService.listRegions();
+        const match = regs.find(r=> (r.name===formData.region || r.code===formData.region));
+        if (!match){ setDepartments([]); return; }
+        const deps = await SupabaseDataService.listDepartmentsByRegion(match.id);
+        if (active) setDepartments(deps.map(d=> d.name));
+      } catch (e){ if (active) setDepartments([]); }
+    })();
+    return ()=>{ active=false; };
+  }, [formData.region]);
+
+  // When department changes, load communes
+  useEffect(()=>{
+    let active = true;
+    if (!formData.department){ setCommunes([]); return; }
+    (async()=>{
+      try {
+        const regs = await SupabaseDataService.listRegions();
+        const regMatch = regs.find(r=> (r.name===formData.region || r.code===formData.region));
+        if (!regMatch){ setCommunes([]); return; }
+        const deps = await SupabaseDataService.listDepartmentsByRegion(regMatch.id);
+        const depMatch = deps.find(d=> d.name===formData.department || d.code===formData.department);
+        if (!depMatch){ setCommunes([]); return; }
+        const cms = await SupabaseDataService.listCommunesByDepartment(depMatch.id);
+        if (active) setCommunes(cms.map(c=> c.name));
+      } catch (e){ if (active) setCommunes([]); }
+    })();
+    return ()=>{ active=false; };
+  }, [formData.region, formData.department]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

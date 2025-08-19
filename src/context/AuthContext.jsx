@@ -1,6 +1,7 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -62,8 +63,9 @@ export const AuthProvider = ({ children }) => {
         console.log("Profil récupéré:", { email: data.email, type: data.type, role: data.role, verification_status: data.verification_status });
         return data;
       }
-      // Aucun profil: retourner un profil par défaut NON vérifié (évite le bounce de vérification)
-      console.log("Aucun profil trouvé en base, retour profil mémoire non vérifié");
+      console.log('Profil introuvable, tentative ensureUserProfile');
+      const ensured = await SupabaseDataService.ensureUserProfile(authUser);
+      if (ensured) return ensured;
       return {
         id: authUser.id,
         email: authUser.email,

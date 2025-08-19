@@ -4,6 +4,7 @@ import HeaderLogo from '@/components/layout/header/HeaderLogo';
 import DesktopNavigation from '@/components/layout/header/DesktopNavigation';
 import MobileMenuButton from '@/components/layout/header/MobileMenuButton';
 import AuthSection from '@/components/layout/header/AuthSection';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import MobileMenu from '@/components/layout/header/MobileMenu';
 import { cn } from '@/lib/utils';
 
@@ -45,6 +46,7 @@ const Header = ({ children, isDashboard, isSolutionDashboard }) => {
         {!isDashboardLayout && <DesktopNavigation isScrolled={hasBackground} />}
 
         <div className="flex items-center gap-3 ml-auto">
+          <NotificationBell />
           <AuthSection isScrolled={hasBackground} />
           {!isDashboardLayout && <MobileMenuButton isMenuOpen={isMenuOpen} isScrolled={hasBackground} onClick={toggleMenu} />}
         </div>
