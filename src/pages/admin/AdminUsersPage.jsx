@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
+import SupabaseDataService from '@/services/supabaseDataService';
 
 const LoadingSpinner = React.lazy(() => import('@/components/ui/spinner').catch(() => ({
   default: () => <div>Chargement...</div>,
@@ -72,6 +73,22 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [hasMore, setHasMore] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newUser, setNewUser] = useState({
+    email: '',
+    full_name: '',
+    type: 'Particulier',
+    role: 'user',
+    autoVerify: false
+  });
+  // Admin-side document management & invitation flags
+  const [frontAdminFile, setFrontAdminFile] = useState(null);
+  const [backAdminFile, setBackAdminFile] = useState(null);
+  const [frontAdminPreview, setFrontAdminPreview] = useState(null);
+  const [backAdminPreview, setBackAdminPreview] = useState(null);
+  const [uploadingDocs, setUploadingDocs] = useState(false);
+  const [sendInvite, setSendInvite] = useState(false); // Placeholder (needs server function)
 
   const isValidImageUrl = (url) => {
     try {
@@ -180,11 +197,98 @@ export default function AdminUsersPage() {
       fetchUsers(newPage);
   }
 
+  const resetNewUser = () => {
+    setNewUser({ email: '', full_name: '', type: 'Particulier', role: 'user', autoVerify: false });
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUser.email) {
+      toast({ variant: 'destructive', title: 'Email requis' });
+      return;
+    }
+    setCreating(true);
+    try {
+      const payload = {
+        email: newUser.email.trim().toLowerCase(),
+        full_name: newUser.full_name || newUser.email,
+        type: newUser.type,
+        role: newUser.role,
+        verification_status: newUser.autoVerify ? 'verified' : 'not_verified',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      await SupabaseDataService.createUser(payload);
+      if (sendInvite) {
+        toast({
+          title: 'Invitation différée',
+          description: "Configurez une Edge Function avec la service key pour envoyer un email d'invitation.",
+        });
+      }
+      toast({ title: 'Utilisateur créé', description: `${payload.full_name}` });
+      setIsAddModalOpen(false);
+      resetNewUser();
+      fetchUsers(page);
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erreur création', description: err.message || 'Impossible de créer.' });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleAdminFileChange = (e, side) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast({ variant:'destructive', title:'Image requise'}); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (side==='front') { setFrontAdminFile(file); setFrontAdminPreview(ev.target.result); }
+      else { setBackAdminFile(file); setBackAdminPreview(ev.target.result); }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const adminUploadIdentityFile = async (file, type, userId) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${type}-ADMIN-${Date.now()}.${fileExt}`;
+    const bucket = 'identity-documents';
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file, { upsert: true });
+    if (uploadError) throw uploadError;
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    return urlData.publicUrl;
+  };
+
+  const handleAdminUploadDocs = async () => {
+    if (!selectedUser) return;
+    if (!frontAdminFile && !backAdminFile) { toast({ variant:'destructive', title:'Ajouter au moins une image'}); return; }
+    setUploadingDocs(true);
+    try {
+      const updates = { updated_at: new Date().toISOString() };
+      if (frontAdminFile) updates.id_card_front_url = await adminUploadIdentityFile(frontAdminFile, 'front', selectedUser.id);
+      if (backAdminFile) updates.id_card_back_url = await adminUploadIdentityFile(backAdminFile, 'back', selectedUser.id);
+      if (updates.id_card_front_url && updates.id_card_back_url && ['not_verified','rejected'].includes(selectedUser.verification_status)) {
+        updates.verification_status = 'pending';
+        updates.verification_submitted_at = new Date().toISOString();
+      }
+      const { error } = await supabase.from('users').update(updates).eq('id', selectedUser.id);
+      if (error) throw error;
+      toast({ title:'Documents mis à jour', description:'Images enregistrées.' });
+      setFrontAdminFile(null); setBackAdminFile(null); setFrontAdminPreview(null); setBackAdminPreview(null);
+      fetchUsers(page);
+    } catch (err) {
+      toast({ variant:'destructive', title:'Erreur upload', description: err.message });
+    } finally { setUploadingDocs(false); }
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-4 md:p-8 space-y-6">
-      <h1 className="text-2xl md:text-3xl font-bold flex items-center">
-        <Users className="mr-2" /> Gestion des Utilisateurs
-      </h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold flex items-center">
+          <Users className="mr-2" /> Gestion des Utilisateurs
+        </h1>
+        <Button onClick={() => setIsAddModalOpen(true)} className="self-start md:self-auto">
+          + Ajouter un utilisateur
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1">
@@ -295,13 +399,20 @@ export default function AdminUsersPage() {
                     {isValidImageUrl(selectedUser.id_card_front_url) ? (
                       <img src={selectedUser.id_card_front_url} alt="Recto de la carte d’identité" className="rounded-lg border mt-1 w-full max-h-48 object-contain"/>
                     ) : ( <p className="text-sm text-muted-foreground">Non fourni</p> )}
+                    {frontAdminPreview && <img src={frontAdminPreview} alt="Nouveau recto" className="rounded border mt-2 max-h-32 object-contain" />}
+                    <input type="file" accept="image/*" className="mt-2 text-xs" onChange={(e)=>handleAdminFileChange(e,'front')} />
                   </div>
                   <div>
                     <Label>Verso CNI</Label>
                     {isValidImageUrl(selectedUser.id_card_back_url) ? (
                       <img src={selectedUser.id_card_back_url} alt="Verso de la carte d’identité" className="rounded-lg border mt-1 w-full max-h-48 object-contain"/>
                     ) : ( <p className="text-sm text-muted-foreground">Non fourni</p> )}
+                    {backAdminPreview && <img src={backAdminPreview} alt="Nouveau verso" className="rounded border mt-2 max-h-32 object-contain" />}
+                    <input type="file" accept="image/*" className="mt-2 text-xs" onChange={(e)=>handleAdminFileChange(e,'back')} />
                   </div>
+                  <Button variant="secondary" size="sm" disabled={uploadingDocs} onClick={handleAdminUploadDocs} className="w-full">
+                    {uploadingDocs ? 'Envoi...' : 'Uploader / Remplacer'}
+                  </Button>
                 </div>
               </div>
               <div>
@@ -329,6 +440,55 @@ export default function AdminUsersPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Dialog ajout utilisateur */}
+      <Dialog open={isAddModalOpen} onOpenChange={(o)=>{ setIsAddModalOpen(o); if(!o) resetNewUser(); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Ajouter un utilisateur</DialogTitle>
+            <DialogDescription>Créer un enregistrement utilisateur (profil). Pour authentification réelle, un compte doit exister côté Auth.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={newUser.email} onChange={(e)=>setNewUser(u=>({...u,email:e.target.value}))} placeholder="email@exemple.com" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="full_name">Nom complet</Label>
+              <Input id="full_name" value={newUser.full_name} onChange={(e)=>setNewUser(u=>({...u,full_name:e.target.value}))} placeholder="Nom complet" />
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Type</Label>
+                <select className="border rounded-md h-9 px-2 text-sm" value={newUser.type} onChange={(e)=>setNewUser(u=>({...u,type:e.target.value}))}>
+                  {['Particulier','Vendeur','Mairie','Banque','Notaire','Agent','Administrateur'].map(t=> <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Rôle</Label>
+                <select className="border rounded-md h-9 px-2 text-sm" value={newUser.role} onChange={(e)=>setNewUser(u=>({...u,role:e.target.value}))}>
+                  {['user','agent','admin'].map(r=> <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input id="autoVerify" type="checkbox" checked={newUser.autoVerify} onChange={(e)=>setNewUser(u=>({...u,autoVerify:e.target.checked}))} />
+              <Label htmlFor="autoVerify" className="text-sm cursor-pointer">Marquer comme vérifié</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input id="sendInvite" type="checkbox" checked={sendInvite} onChange={(e)=>setSendInvite(e.target.checked)} />
+              <Label htmlFor="sendInvite" className="text-sm cursor-pointer">Envoyer une invitation email (backend requis)</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">L'utilisateur recevra l'accès selon son rôle et son statut de vérification. (Création Auth séparée si nécessaire)</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={()=>{ setIsAddModalOpen(false); }}>Annuler</Button>
+            <Button disabled={creating} onClick={handleCreateUser} className="bg-green-600 hover:bg-green-700">
+              {creating ? 'Création...' : 'Créer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

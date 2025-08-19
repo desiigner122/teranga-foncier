@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,20 @@ const VerificationRequired = () => {
   const navigate = useNavigate();
 
   // Vérifier si l'utilisateur a déjà soumis ses documents et est en attente
+  const [seconds, setSeconds] = useState(60);
+  useEffect(()=>{
+    if(!isPendingVerification) return;
+    const id = setInterval(()=> setSeconds(s=> s>0 ? s-1 : 0),1000);
+    return ()=> clearInterval(id);
+  },[isPendingVerification]);
+
+  const handleManualRefresh = async () => {
+    try {
+      await (window?.appAuthRefresh?.() || Promise.resolve());
+      window.location.reload();
+    } catch(e) { /* silent */ }
+  };
+
   if (isPendingVerification) {
     return (
       <motion.div 
@@ -68,13 +82,13 @@ const VerificationRequired = () => {
               </div>
             </div>
 
-            <div className="text-center">
-              <p className="text-xs text-gray-500 mb-4">
-                Vous recevrez une notification par email dès que la vérification sera terminée.
-              </p>
-              <Button variant="outline" onClick={() => navigate('/dashboard')} className="w-full">
-                Retour au tableau de bord
-              </Button>
+            <div className="space-y-3">
+              <div className="text-center text-xs text-gray-500">Prochaine actualisation automatique possible dans {seconds}s</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button variant="outline" onClick={() => navigate('/dashboard')}>Tableau de bord</Button>
+                <Button onClick={handleManualRefresh} disabled={seconds>0} className="bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50">Rafraîchir statut</Button>
+              </div>
+              <p className="text-center text-[11px] text-gray-400">Vous recevrez un email dès que la vérification sera terminée.</p>
             </div>
           </CardContent>
         </Card>
