@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
+import { senegalAdministrativeDivisions, senegalBanks, notaireSpecialities } from '@/data/senegalLocations';
 import SupabaseDataService from '@/services/supabaseDataService';
 
 const LoadingSpinner = React.lazy(() => import('@/components/ui/spinner').catch(() => ({
@@ -78,9 +79,14 @@ export default function AdminUsersPage() {
   const [newUser, setNewUser] = useState({
     email: '',
     full_name: '',
-    type: 'Particulier',
+    type: 'Mairie',
     role: 'user',
-    autoVerify: false
+    autoVerify: false,
+    region: '',
+    department: '',
+    commune: '',
+    bank_name: '',
+    notaire_speciality: ''
   });
   // Admin-side document management & invitation flags
   const [frontAdminFile, setFrontAdminFile] = useState(null);
@@ -198,7 +204,7 @@ export default function AdminUsersPage() {
   }
 
   const resetNewUser = () => {
-    setNewUser({ email: '', full_name: '', type: 'Particulier', role: 'user', autoVerify: false });
+    setNewUser({ email: '', full_name: '', type: 'Mairie', role: 'user', autoVerify: false, region:'', department:'', commune:'', bank_name:'', notaire_speciality:'' });
   };
 
   const handleCreateUser = async () => {
@@ -215,7 +221,14 @@ export default function AdminUsersPage() {
         role: newUser.role,
         verification_status: newUser.autoVerify ? 'verified' : 'not_verified',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        metadata: {
+          region: newUser.region || null,
+          department: newUser.department || null,
+            commune: newUser.commune || null,
+            bank_name: newUser.bank_name || null,
+            notaire_speciality: newUser.notaire_speciality || null
+        }
       };
       await SupabaseDataService.createUser(payload);
       if (sendInvite) {
@@ -461,16 +474,70 @@ export default function AdminUsersPage() {
               <div className="grid gap-2">
                 <Label>Type</Label>
                 <select className="border rounded-md h-9 px-2 text-sm" value={newUser.type} onChange={(e)=>setNewUser(u=>({...u,type:e.target.value}))}>
-                  {['Particulier','Vendeur','Mairie','Banque','Notaire','Agent','Administrateur'].map(t=> <option key={t} value={t}>{t}</option>)}
+                  {['Mairie','Banque','Notaire'].map(t=> <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div className="grid gap-2">
                 <Label>Rôle</Label>
                 <select className="border rounded-md h-9 px-2 text-sm" value={newUser.role} onChange={(e)=>setNewUser(u=>({...u,role:e.target.value}))}>
-                  {['user','agent','admin'].map(r=> <option key={r} value={r}>{r}</option>)}
+                  {['user','admin'].map(r=> <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
             </div>
+            {/* Conditional fields for hierarchical location (Mairie) */}
+            {newUser.type === 'Mairie' && (
+              <div className="space-y-3">
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div className="grid gap-1">
+                    <Label>Région</Label>
+                    <select className="border rounded-md h-9 px-2 text-sm" value={newUser.region} onChange={(e)=>{
+                      const region = e.target.value; setNewUser(u=>({...u,region, department:'', commune:''}));
+                    }}>
+                      <option value="">Sélectionner</option>
+                      {senegalAdministrativeDivisions.map(r=> <option key={r.code} value={r.code}>{r.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="grid gap-1">
+                    <Label>Département</Label>
+                    <select className="border rounded-md h-9 px-2 text-sm" value={newUser.department} onChange={(e)=>{
+                      const department = e.target.value; setNewUser(u=>({...u,department, commune:''}));
+                    }} disabled={!newUser.region}>
+                      <option value="">Sélectionner</option>
+                      {senegalAdministrativeDivisions.find(r=>r.code===newUser.region)?.departments.map(d=> <option key={d.code} value={d.code}>{d.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="grid gap-1">
+                    <Label>Commune</Label>
+                    <select className="border rounded-md h-9 px-2 text-sm" value={newUser.commune} onChange={(e)=> setNewUser(u=>({...u,commune:e.target.value}))} disabled={!newUser.department}>
+                      <option value="">Sélectionner</option>
+                      {senegalAdministrativeDivisions
+                        .find(r=>r.code===newUser.region)?.departments
+                        .find(d=>d.code===newUser.department)?.communes
+                        .map(c=> <option key={c.code} value={c.code}>{c.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Sélection hiérarchique basée sur l'administration territoriale du Sénégal.</p>
+              </div>
+            )}
+            {newUser.type === 'Banque' && (
+              <div className="grid gap-2">
+                <Label>Banque</Label>
+                <select className="border rounded-md h-9 px-2 text-sm" value={newUser.bank_name} onChange={(e)=>setNewUser(u=>({...u,bank_name:e.target.value}))}>
+                  <option value="">Choisir une banque</option>
+                  {senegalBanks.map(b=> <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+            )}
+            {newUser.type === 'Notaire' && (
+              <div className="grid gap-2">
+                <Label>Spécialité</Label>
+                <select className="border rounded-md h-9 px-2 text-sm" value={newUser.notaire_speciality} onChange={(e)=>setNewUser(u=>({...u,notaire_speciality:e.target.value}))}>
+                  <option value="">Choisir</option>
+                  {notaireSpecialities.map(s=> <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <input id="autoVerify" type="checkbox" checked={newUser.autoVerify} onChange={(e)=>setNewUser(u=>({...u,autoVerify:e.target.checked}))} />
               <Label htmlFor="autoVerify" className="text-sm cursor-pointer">Marquer comme vérifié</Label>
@@ -479,7 +546,7 @@ export default function AdminUsersPage() {
               <input id="sendInvite" type="checkbox" checked={sendInvite} onChange={(e)=>setSendInvite(e.target.checked)} />
               <Label htmlFor="sendInvite" className="text-sm cursor-pointer">Envoyer une invitation email (backend requis)</Label>
             </div>
-            <p className="text-xs text-muted-foreground">L'utilisateur recevra l'accès selon son rôle et son statut de vérification. (Création Auth séparée si nécessaire)</p>
+            <p className="text-xs text-muted-foreground">L'utilisateur recevra l'accès selon son rôle/statut. Les champs dynamiques sont stockés dans metadata.</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={()=>{ setIsAddModalOpen(false); }}>Annuler</Button>
