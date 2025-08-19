@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { exceptionalRoleSchemas, defaultExceptionalTypeOrder } from './ExceptionalUserSchemasImproved';
 import SupabaseDataService from '@/services/supabaseDataService';
-import { senegalAdministrativeDivisions, senegalBanks, notaireSpecialities, professionnelTypes } from '@/data/senegalData';
 
 // Utility
 const slugify = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
@@ -33,20 +32,13 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
   const [banks, setBanks] = useState([]);
   const [notaireSpecs, setNotaireSpecs] = useState([]);
 
-  // Utilisation des données locales comme fallback
-  const useLocalData = () => {
+  // Fallback message quand les données sont manquantes
+  const handleMissingData = () => {
     setShowLocalData(true);
-    const r = senegalAdministrativeDivisions.map(region => ({ 
-      id: region.code, 
-      name: region.name,
-      code: region.code
-    }));
-    setRegions(r);
-    setBanks(senegalBanks);
-    setNotaireSpecs(notaireSpecialities);
     toast({
-      title: "Utilisation des données locales",
-      description: "Les données sont chargées depuis le fichier local."
+      variant: 'destructive',
+      title: "Données manquantes",
+      description: "Les données de référence sont indisponibles. Veuillez vérifier la connexion à Supabase."
     });
   };
 
@@ -55,16 +47,16 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
     if (!open) return;
     (async () => {
       try {
-        // Essayer de charger depuis Supabase d'abord
+        // Charger depuis Supabase
         const [r, b, ns] = await Promise.all([
           SupabaseDataService.listRegions(),
           SupabaseDataService.listBanks(),
           SupabaseDataService.listNotaireSpecialities()
         ]);
         
-        // Si les données sont vides ou non disponibles, utiliser les données locales
+        // Si les données sont vides ou non disponibles, afficher un message
         if (!r || r.length === 0 || !b || b.length === 0 || !ns || ns.length === 0) {
-          useLocalData();
+          handleMissingData();
         } else {
           setRegions(r);
           setBanks(b);
@@ -73,7 +65,7 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
         }
       } catch (error) {
         console.error("Erreur de chargement des données de référence:", error);
-        useLocalData();
+        handleMissingData();
       }
     })();
   }, [open]);
@@ -86,47 +78,33 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
       return; 
     }
 
-    if (showLocalData) {
-      // Utiliser les données locales
-      const selectedRegion = senegalAdministrativeDivisions.find(r => r.code === values.region);
-      if (selectedRegion) {
-        const deps = selectedRegion.departments.map(dept => ({
-          id: dept.code,
-          name: dept.name,
-          code: dept.code
-        }));
-        setDepartments(deps);
-      }
-    } else {
-      // Essayer de charger depuis Supabase
-      (async () => {
-        try {
-          const regionObj = regions.find(r => String(r.id) === String(values.region) || r.code === values.region);
-          const regionId = regionObj?.id || values.region; // permettre id ou code
-          const deps = await SupabaseDataService.listDepartmentsByRegion(regionId);
-          
-          if (!deps || deps.length === 0) {
-            // Fallback sur les données locales si Supabase ne retourne rien
-            useLocalData();
-            const selectedRegion = senegalAdministrativeDivisions.find(r => r.code === values.region);
-            if (selectedRegion) {
-              const localDeps = selectedRegion.departments.map(dept => ({
-                id: dept.code,
-                name: dept.name,
-                code: dept.code
-              }));
-              setDepartments(localDeps);
-            }
-          } else {
-            setDepartments(deps);
-          }
-        } catch (error) {
-          console.error("Erreur de chargement des départements:", error);
-          useLocalData();
+    // Essayer de charger depuis Supabase
+    (async () => {
+      try {
+        const regionObj = regions.find(r => String(r.id) === String(values.region) || r.code === values.region);
+        const regionId = regionObj?.id || values.region; // permettre id ou code
+        const deps = await SupabaseDataService.listDepartmentsByRegion(regionId);
+        
+        if (!deps || deps.length === 0) {
+          // Message si pas de données
+          toast({
+            variant: 'warning',
+            title: 'Données manquantes',
+            description: 'Impossible de charger les départements pour cette région'
+          });
+        } else {
+          setDepartments(deps);
         }
-      })();
-    }
-  }, [values.region, regions, showLocalData]);
+      } catch (error) {
+        console.error("Erreur de chargement des départements:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Erreur',
+          description: 'Impossible de charger les départements'
+        });
+      }
+    })();
+  }, [values.region, regions]);
 
   // Charger les communes quand le département change
   useEffect(() => {
@@ -135,60 +113,38 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
       return; 
     }
 
-    if (showLocalData) {
-      // Utiliser les données locales
-      const selectedRegion = senegalAdministrativeDivisions.find(r => r.code === values.region);
-      if (selectedRegion) {
-        const selectedDept = selectedRegion.departments.find(d => d.code === values.department);
-        if (selectedDept) {
-          const coms = selectedDept.communes.map(com => ({
-            id: com.code,
-            name: com.name,
-            code: com.code
-          }));
-          setCommunes(coms);
+    // Essayer de charger depuis Supabase
+    (async () => {
+      try {
+        const depObj = departments.find(d => String(d.id) === String(values.department) || d.code === values.department);
+        const depId = depObj?.id || values.department;
+        const cms = await SupabaseDataService.listCommunesByDepartment(depId);
+        
+        if (!cms || cms.length === 0) {
+          toast({
+            variant: 'warning',
+            title: 'Données manquantes',
+            description: 'Impossible de charger les communes pour ce département'
+          });
+        } else {
+          setCommunes(cms);
         }
+      } catch (error) {
+        console.error("Erreur de chargement des communes:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Erreur',
+          description: 'Impossible de charger les communes'
+        });
       }
-    } else {
-      // Essayer de charger depuis Supabase
-      (async () => {
-        try {
-          const depObj = departments.find(d => String(d.id) === String(values.department) || d.code === values.department);
-          const depId = depObj?.id || values.department;
-          const cms = await SupabaseDataService.listCommunesByDepartment(depId);
-          
-          if (!cms || cms.length === 0) {
-            // Fallback sur les données locales si Supabase ne retourne rien
-            useLocalData();
-            const selectedRegion = senegalAdministrativeDivisions.find(r => r.code === values.region);
-            if (selectedRegion) {
-              const selectedDept = selectedRegion.departments.find(d => d.code === values.department);
-              if (selectedDept) {
-                const localComs = selectedDept.communes.map(com => ({
-                  id: com.code,
-                  name: com.name,
-                  code: com.code
-                }));
-                setCommunes(localComs);
-              }
-            }
-          } else {
-            setCommunes(cms);
-          }
-        } catch (error) {
-          console.error("Erreur de chargement des communes:", error);
-          useLocalData();
-        }
-      })();
-    }
-  }, [values.department, departments, values.region, showLocalData]);
+    })();
+  }, [values.department, departments]);
 
   const regionOptions = regions.map(r => ({ value: r.id || r.code, label: r.name }));
   const departmentOptions = departments.map(d => ({ value: d.id || d.code, label: d.name }));
   const communeOptions = communes.map(c => ({ value: c.id || c.code, label: c.name }));
   const bankOptions = banks.map(b => ({ value: b, label: b }));
   const notaireSpecOptions = notaireSpecs.map(s => ({ value: s, label: s }));
-  const professionnelTypeOptions = professionnelTypes.map(t => ({ value: t, label: t }));
 
   const validate = () => {
     if (!email) return 'Email requis';
@@ -402,9 +358,11 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
             onChange={e => handleChange('professionnel_type', e.target.value)}
           >
             <option value="">--Sélectionner--</option>
-            {professionnelTypeOptions.map(t => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
+            <option value="Agent Immobilier">Agent Immobilier</option>
+            <option value="Courtier">Courtier</option>
+            <option value="Conseiller">Conseiller</option>
+            <option value="Expert">Expert</option>
+            <option value="Autre">Autre</option>
           </select>
         );
       
@@ -509,7 +467,7 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
               Validation dynamique selon le type d'utilisateur sélectionné. Un profil d'institution sera créé si nécessaire.
               {!showLocalData ? 
                 " Les données sont chargées depuis Supabase." : 
-                " Les données sont chargées depuis le fichier local (fallback)."}
+                " Impossible de charger les données depuis Supabase. Vérifiez la connexion."}
             </p>
           </div>
         </div>
