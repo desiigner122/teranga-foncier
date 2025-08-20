@@ -1,4 +1,11 @@
 import React, { useState } from 'react';
+import { NavLink, Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
+import { Banknote, Building, TrendingUp, Leaf, Landmark, Scale, Handshake, Users, FileSignature, Sprout, ChevronDown, ChevronRight } from 'lucide-react';
+
 const solutions = [
   { title: 'Banques & Finances', href: '/solutions/banques', description: 'évaluez les garanties et analysez les risques fonciers.', icon: Banknote },
   { title: 'Promoteurs', href: '/solutions/promoteurs', description: 'Identifiez des opportunités et suivez vos projets de construction.', icon: Building },
