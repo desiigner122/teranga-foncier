@@ -6,7 +6,7 @@ import {
   Users, MapPin, FileCheck, DollarSign, UserCheck, Activity, FileText, BarChart, CalendarDays,
   ShieldCheck, LandPlot, Building, Banknote, Leaf, TrendingUp, Scale, Gavel,
   Home, Store, LayoutDashboard, User, Landmark, Handshake, MessageSquare, PieChart as PieChartIcon,
-  Settings, Bell, Database, Briefcase, TrendingDown, Menu
+  Settings, Bell, Database, Briefcase, TrendingDown
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,65 +16,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Bar } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
-import { Separator } from '@/components/ui/separator';
-
-// Navigation Items pour le sidebar admin
-const ADMIN_NAV_ITEMS = [
-  {
-    title: "Vue d'ensemble",
-    icon: LayoutDashboard,
-    href: "/dashboard/admin",
-    description: "Tableau de bord principal"
-  },
-  {
-    title: "Gestion des Utilisateurs",
-    icon: Users,
-    href: "/dashboard/admin/users",
-    description: "Gérer tous les utilisateurs"
-  },
-  {
-    title: "Gestion des Parcelles",
-    icon: LandPlot,
-    href: "/dashboard/admin/parcels",
-    description: "Gérer toutes les parcelles"
-  },
-  {
-    title: "Institutions",
-    icon: Building,
-    href: "/dashboard/admin/institutions",
-    description: "Gérer les institutions"
-  },
-  {
-    title: "Rapports",
-    icon: FileText,
-    href: "/dashboard/admin/reports",
-    description: "Rapports et analytics"
-  },
-  {
-    title: "Demandes",
-    icon: FileCheck,
-    href: "/dashboard/admin/requests",
-    description: "Gérer les demandes"
-  },
-  {
-    title: "Transactions",
-    icon: DollarSign,
-    href: "/dashboard/admin/transactions",
-    description: "Suivi des transactions"
-  },
-  {
-    title: "Rôles & Permissions",
-    icon: ShieldCheck,
-    href: "/dashboard/admin/roles",
-    description: "Gestion des rôles"
-  },
-  {
-    title: "Paramètres",
-    icon: Settings,
-    href: "/dashboard/admin/settings",
-    description: "Configuration système"
-  }
-];
 
 // Quick Actions pour l'admin
 const QUICK_ACTIONS = [
@@ -82,73 +23,31 @@ const QUICK_ACTIONS = [
     title: "Ajouter Utilisateur",
     description: "Créer un nouveau compte utilisateur",
     icon: User,
-    href: "/dashboard/admin/users/create",
+    href: "/dashboard/admin/users",
     color: "bg-blue-500"
   },
   {
     title: "Nouvelle Institution",
     description: "Enregistrer une nouvelle institution",
     icon: Building,
-    href: "/dashboard/admin/institutions/create",
+    href: "/dashboard/admin/institutions",
     color: "bg-green-500"
   },
   {
-    title: "Rapport Analytics",
-    description: "Générer un rapport détaillé",
+    title: "Voir Rapports",
+    description: "Consulter les rapports détaillés",
     icon: BarChart,
-    href: "/dashboard/admin/reports/generate",
+    href: "/dashboard/admin/reports",
     color: "bg-purple-500"
   },
   {
-    title: "Gérer Permissions",
-    description: "Configurer les rôles et accès",
-    icon: ShieldCheck,
-    href: "/dashboard/admin/roles",
+    title: "Gérer Agents",
+    description: "Administrer les agents",
+    icon: UserCheck,
+    href: "/dashboard/admin/agents",
     color: "bg-orange-500"
   }
 ];
-
-// AdminSidebar Component
-const AdminSidebar = ({ isCollapsed, onToggle }) => {
-  return (
-    <div className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-50 ${
-      isCollapsed ? 'w-16' : 'w-64'
-    }`}>
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <h2 className={`font-bold text-lg ${isCollapsed ? 'hidden' : 'block'}`}>
-            Administration
-          </h2>
-          <Button variant="ghost" size="sm" onClick={onToggle}>
-            <Menu className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      <Separator />
-      
-      <div className="p-2">
-        <nav className="space-y-1">
-          {ADMIN_NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <item.icon className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && (
-                <div className="flex flex-col">
-                  <span className="font-medium">{item.title}</span>
-                  <span className="text-xs text-gray-500">{item.description}</span>
-                </div>
-              )}
-            </Link>
-          ))}
-        </nav>
-      </div>
-    </div>
-  );
-};
 
 // Composant de graphique à barres simple (réutilisable)
 const SimpleBarChart = ({ data, dataKey, labelKey, barColorClass, title }) => {
@@ -220,7 +119,6 @@ const AdminDashboardPage = () => {
   });
   
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { toast } = useToast();
 
   // Charger les données du dashboard
@@ -333,65 +231,54 @@ const AdminDashboardPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <AdminSidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
-      />
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="p-6 space-y-6"
+    >
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Administration</h1>
+          <p className="text-gray-600 mt-1">Tableau de bord principal de gestion</p>
+        </div>
+        <Button>
+          <Bell className="h-4 w-4 mr-2" />
+          Notifications
+        </Button>
+      </div>
 
-      {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${
-        sidebarCollapsed ? 'ml-16' : 'ml-64'
-      }`}>
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="p-6 space-y-6"
-        >
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Administration</h1>
-              <p className="text-gray-600 mt-1">Tableau de bord principal de gestion</p>
-            </div>
-            <Button>
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
-            </Button>
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Briefcase className="h-5 w-5 mr-2" />
+            Actions Rapides
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {QUICK_ACTIONS.map((action) => (
+              <Link key={action.href} to={action.href}>
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-gray-400 hover:border-l-blue-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-lg ${action.color} text-white`}>
+                        <action.icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-sm">{action.title}</h3>
+                        <p className="text-xs text-gray-500">{action.description}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
           </div>
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Briefcase className="h-5 w-5 mr-2" />
-                Actions Rapides
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {QUICK_ACTIONS.map((action) => (
-                  <Link key={action.href} to={action.href}>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-gray-400 hover:border-l-blue-500">
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-lg ${action.color} text-white`}>
-                            <action.icon className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <h3 className="font-medium text-sm">{action.title}</h3>
-                            <p className="text-xs text-gray-500">{action.description}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        </CardContent>
+      </Card>
 
           {/* Statistiques principales */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -557,13 +444,11 @@ const AdminDashboardPage = () => {
             onAction={handleAIAction}
           />
 
-          <div className="mt-8 text-center text-muted-foreground text-sm">
-            <p>Données mises à jour en temps réel depuis la base de données Supabase.</p>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
+        <div className="mt-8 text-center text-muted-foreground text-sm">
+          <p>Données mises à jour en temps réel depuis la base de données Supabase.</p>
+        </div>
+      </motion.div>
+    );
+  };
 
 export default AdminDashboardPage;
