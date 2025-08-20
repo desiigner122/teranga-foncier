@@ -54,6 +54,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ChatbotProvider } from '@/context/ChatbotContext';
 import { MessagingNotificationProvider } from '@/context/MessagingNotificationContext';
 import { FeatureFlagsProvider } from '@/context/FeatureFlagsContext';
+import { RealtimeProvider } from '@/context/RealtimeContext';
 import VerificationPage from '@/pages/VerificationPage';
 import IdentityVerificationPage from '@/pages/IdentityVerificationPage';
 import VendeurDashboard from '@/pages/dashboards/VendeurDashboard';
@@ -165,9 +166,10 @@ function App() {
         <ComparisonProvider>
           <ScrollToTop />
       <AuthProvider>
-            <ChatbotProvider>
-              <MessagingNotificationProvider>
-        <FeatureFlagsProvider>
+        <RealtimeProvider>
+          <ChatbotProvider>
+            <MessagingNotificationProvider>
+              <FeatureFlagsProvider>
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<PublicLayout />}>
@@ -324,6 +326,7 @@ function App() {
                 </FeatureFlagsProvider>
                 </MessagingNotificationProvider>
               </ChatbotProvider>
+            </RealtimeProvider>
           </AuthProvider>
         </ComparisonProvider>
       </Router>

@@ -31,10 +31,12 @@ import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
+import { useAuth } from '@/context/AuthContext';
+import { useRealtimeParcels } from '@/hooks/useRealtimeTable';
 
 const ParticulierDashboard = () => {
   const { toast } = useToast();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     favoritesCounted: 0,
     savedSearches: 0,
@@ -48,56 +50,65 @@ const ParticulierDashboard = () => {
   const [favoriteBusy, setFavoriteBusy] = useState(null); // parcel id if toggling
   const [creatingMunicipalReq, setCreatingMunicipalReq] = useState(false);
   const [municipalReqForm, setMunicipalReqForm] = useState({ commune:'', department:'', region:'', area_sqm:'', message:'' });
+
+  // Utiliser le hook real-time pour les parcelles (pour les recommandations)
+  const { data: allParcels } = useRealtimeParcels();
   const [showMunicipalModal, setShowMunicipalModal] = useState(false);
 
   useEffect(() => {
-    loadUserData();
-    loadDashboardData();
-  }, []);
-  useEffect(()=>{
-    if(!user) return; 
-    const favChannel = supabase.channel('favorites_changes').on('postgres_changes',{ event:'*', schema:'public', table:'favorites', filter:`user_id=eq.${user.id}`}, ()=> loadDashboardData());
-    favChannel.subscribe();
-    return ()=> { try { supabase.removeChannel(favChannel);} catch{} };
+    if (user) {
+      loadDashboardData();
+    }
   }, [user]);
 
-  const loadUserData = async () => {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
+  // Recalculer les recommandations quand les parcelles changent
+  useEffect(() => {
+    const updateRecommendations = async () => {
+      if (user?.id && allParcels && allParcels.length > 0) {
+        try {
+          const favorites = await SupabaseDataService.getUserFavorites(user.id);
+          const recommendations = await generateAIRecommendations(user.id, favorites, allParcels);
+          setRecommendedParcels(recommendations);
+        } catch (error) {
+          console.error('Erreur mise à jour recommandations:', error);
+        }
+      }
+    };
 
-      const { data: profile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+    updateRecommendations();
+  }, [allParcels, user?.id]);
 
-      setUser({ ...user, ...profile });
+  // Charger l'analyse de sécurité quand l'utilisateur change
+  useEffect(() => {
+    const loadSecurityAnalysis = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const securityAnalysis = await antiFraudAI.analyzeUserFraud(user.id, {
+          loginHistory: true,
+          transactionHistory: true,
+          profileCompleteness: true
+        });
 
-      // Analyse de sécurité du profil utilisateur
-      const securityAnalysis = await antiFraudAI.analyzeUserFraud(user.id, {
-        loginHistory: true,
-        transactionHistory: true,
-        profileCompleteness: true
-      });
+        setStats(prev => ({
+          ...prev,
+          securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
+        }));
+      } catch (error) {
+        console.error('Erreur analyse sécurité:', error);
+      }
+    };
 
-      setStats(prev => ({
-        ...prev,
-        securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
-      }));
-
-    } catch (error) {
-      console.error('Erreur chargement utilisateur:', error);
-    }
-  };
+    loadSecurityAnalysis();
+  }, [user?.id]);
 
   const loadDashboardData = async () => {
+    if (!user?.id) return;
+    
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       // Charger les favoris
-  const favorites = await SupabaseDataService.getUserFavorites(user.id);
+      const favorites = await SupabaseDataService.getUserFavorites(user.id);
 
       // Charger les recherches sauvegardées
       const { data: searches } = await supabase
@@ -121,7 +132,7 @@ const ParticulierDashboard = () => {
         .limit(10);
 
       // Recommandations IA personnalisées
-  const recommendations = await generateAIRecommendations(user.id, favorites);
+      const recommendations = await generateAIRecommendations(user.id, favorites, allParcels);
 
       // Alertes de sécurité personnalisées
       const alerts = await loadSecurityAlerts(user.id);
@@ -144,14 +155,14 @@ const ParticulierDashboard = () => {
     }
   };
 
-  const generateAIRecommendations = async (userId, favorites) => {
+  const generateAIRecommendations = async (userId, favorites, allParcels) => {
     try {
       // Analyser les préférences de l'utilisateur
       const preferences = favorites?.map(f => ({
-  location: f.parcels?.location,
-  price: f.parcels?.price,
-  type: f.parcels?.type,
-  surface: f.parcels?.surface
+        location: f.parcels?.location,
+        price: f.parcels?.price,
+        type: f.parcels?.type,
+        surface: f.parcels?.surface
       }));
 
       if (!preferences || preferences.length === 0) {
@@ -159,15 +170,13 @@ const ParticulierDashboard = () => {
         return await getDefaultRecommendations();
       }
 
-      // IA pour recommandations personnalisées
-      const { data: parcels } = await supabase
-        .from('parcels')
-        .select('*')
-        .eq('status', 'available')
-        .limit(6);
+      // Utiliser les parcelles du hook real-time au lieu d'une requête
+      const availableParcels = (allParcels || [])
+        .filter(p => p.status === 'available')
+        .slice(0, 6);
 
       // Scoring IA basé sur les préférences
-      const scoredParcels = parcels.map(parcel => {
+      const scoredParcels = availableParcels.map(parcel => {
         let score = 0;
         
         // Analyse de localisation

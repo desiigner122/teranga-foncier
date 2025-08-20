@@ -1160,12 +1160,14 @@ export class SupabaseDataService {
           entityId: null,
           eventType: 'user.create_failed',
           actorUserId: null,
-            importance: 80,
+          importance: 80,
           source: 'admin_dashboard',
           data: { email: userData?.email, type: userData?.type, error: error.message }
         });
       } catch {/* ignore */}
       throw error;
+    } finally {
+      this._invalidateCache(['users']);
     }
   }
 
@@ -1266,6 +1268,9 @@ export class SupabaseDataService {
         console.warn('Log événement échoué:', eventError);
         // Non bloquant
       }
+
+      // Invalider le cache des utilisateurs
+      this._invalidateCache('users');
 
       return {
         ...profileData,
@@ -1369,6 +1374,7 @@ export class SupabaseDataService {
     }
     // Event instrumentation
     this.logEvent({ entityType:'request', entityId:data.id, eventType:'request.created', actorUserId:data.user_id, data:{ type:data.request_type, status:data.status } });
+    this._invalidateCache('requests');
     return data;
   }
 
@@ -1383,6 +1389,7 @@ export class SupabaseDataService {
       throw error;
     }
     this.logEvent({ entityType:'transaction', entityId:data.id, eventType:'transaction.created', actorUserId:data.user_id || null, data:{ amount:data.amount, status:data.status } });
+    this._invalidateCache('transactions');
     return data;
   }
 
@@ -1979,6 +1986,14 @@ export class SupabaseDataService {
     } catch (e) { console.error('completeLandEvaluation failed', e.message||e); throw e; }
   }
 
+  // ============== REALTIME INTEGRATION ==============
+  static _invalidateCache(table, filter = null) {
+    // Intégration avec realtimeStore si disponible
+    if (typeof window !== 'undefined' && window.realtimeStore) {
+      window.realtimeStore.invalidateTable(table, filter);
+    }
+  }
+
   // ============== FAVORITES ==============
   static async getUserFavorites(userId) {
     const { data, error } = await supabase
@@ -2012,6 +2027,7 @@ export class SupabaseDataService {
       throw error;
     }
     this.logEvent({ entityType:'parcel', entityId:parcelId, eventType:'user.favorite_added', actorUserId:userId, data:{ favorite_id:data.id } });
+    this._invalidateCache('user_favorites', `user_id.eq.${userId}`);
     try {
       const { data: parcel } = await supabase.from('parcels').select('owner_id, reference').eq('id', parcelId).maybeSingle();
       if (parcel?.owner_id && parcel.owner_id !== userId) {
@@ -2038,6 +2054,7 @@ export class SupabaseDataService {
       throw error;
     }
     this.logEvent({ entityType:'parcel', entityId:parcelId, eventType:'user.favorite_removed', actorUserId:userId });
+    this._invalidateCache('user_favorites', `user_id.eq.${userId}`);
     return true;
   }
 

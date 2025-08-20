@@ -19,13 +19,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SupabaseDataService from '@/services/supabaseDataService';
 import { supabase } from '@/lib/supabaseClient';
+import { useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 
 const AdminParcelSubmissionsPage = () => {
   const { toast } = useToast();
-  const [parcelSubmissions, setParcelSubmissions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Utiliser le hook real-time pour les soumissions de parcelles
+  const { 
+    data: parcelSubmissions, 
+    loading, 
+    error, 
+    refresh 
+  } = useRealtimeParcelSubmissions();
   
   // Modal states
   const [isViewImagesModalOpen, setIsViewImagesModalOpen] = useState(false);
@@ -33,8 +40,51 @@ const AdminParcelSubmissionsPage = () => {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   
-  // Filtrage des soumissions
-  const filteredSubmissions = parcelSubmissions.filter(submission => {
+  // Enrichir les données avec les informations utilisateur
+  const [enrichedSubmissions, setEnrichedSubmissions] = useState([]);
+  
+  useEffect(() => {
+    const enrichSubmissions = async () => {
+      if (!parcelSubmissions || parcelSubmissions.length === 0) {
+        setEnrichedSubmissions([]);
+        return;
+      }
+      
+      try {
+        const enriched = await Promise.all(parcelSubmissions.map(async sub => {
+          let ownerName = '—';
+          if (sub.owner_id) {
+            const { data: owner } = await supabase.from('users').select('full_name,email').eq('id', sub.owner_id).single();
+            ownerName = owner?.full_name || owner?.email || ownerName;
+          }
+          return {
+            id: sub.id,
+            parcel_id: sub.parcel_id,
+            parcel_name: sub.reference,
+            owner_id: sub.owner_id,
+            owner_name: ownerName,
+            location: sub.location,
+            area: sub.surface? `${sub.surface} m²` : '—',
+            price: sub.price? `${Number(sub.price).toLocaleString()} FCFA` : '—',
+            status: sub.status,
+            submitted_at: sub.created_at,
+            approved_at: sub.approved_at,
+            rejected_at: sub.rejected_at,
+            rejection_reason: sub.rejection_reason,
+            documents: Array.isArray(sub.documents)? sub.documents.map(d => ({ id: d.key, name: d.name || d.key, url: d.url || '#', verified: !!d.verified })) : []
+          };
+        }));
+        setEnrichedSubmissions(enriched);
+      } catch (error) {
+        console.error('Erreur enrichissement soumissions:', error);
+      }
+    };
+    
+    enrichSubmissions();
+  }, [parcelSubmissions]);
+  
+  // Filtrage des soumissions enrichies
+  const filteredSubmissions = enrichedSubmissions.filter(submission => {
     // Filtre par statut
     if (statusFilter !== 'all' && submission.status !== statusFilter) {
       return false;
@@ -53,63 +103,12 @@ const AdminParcelSubmissionsPage = () => {
     return true;
   });
 
-  const loadParcelSubmissions = useCallback(async () => {
-    try {
-      setLoading(true);
-      const submissions = await SupabaseDataService.listParcelSubmissions({ status: statusFilter === 'all'? null : statusFilter });
-      // Enrichir avec owner et convertir champs formatés
-      const enriched = await Promise.all((submissions||[]).map(async sub => {
-        let ownerName = '—';
-        if (sub.owner_id) {
-          const { data: owner } = await supabase.from('users').select('full_name,email').eq('id', sub.owner_id).single();
-          ownerName = owner?.full_name || owner?.email || ownerName;
-        }
-        return {
-          id: sub.id,
-          parcel_id: sub.parcel_id,
-            parcel_name: sub.reference,
-          owner_id: sub.owner_id,
-          owner_name: ownerName,
-          location: sub.location,
-          area: sub.surface? `${sub.surface} m²` : '—',
-          price: sub.price? `${Number(sub.price).toLocaleString()} FCFA` : '—',
-          status: sub.status,
-          submitted_at: sub.created_at,
-          approved_at: sub.approved_at,
-          rejected_at: sub.rejected_at,
-          rejection_reason: sub.rejection_reason,
-          documents: Array.isArray(sub.documents)? sub.documents.map(d => ({ id: d.key, name: d.name || d.key, url: d.url || '#', verified: !!d.verified })) : []
-        };
-      }));
-      setParcelSubmissions(enriched);
-    } catch (error) {
-      console.error('Erreur chargement soumissions parcelles:', error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger les soumissions de parcelles"
-      });
-    } finally { setLoading(false); }
-  }, [toast, statusFilter]);
-
-  useEffect(() => { loadParcelSubmissions(); }, [loadParcelSubmissions]);
-
-  // Realtime subscription for new / updated submissions
-  useEffect(()=>{
-    const channel = supabase.channel('parcel_submissions_admin')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'parcel_submissions' }, (payload)=>{
-        // Reload on relevant change (could optimize by patching local state)
-        loadParcelSubmissions();
-      }).subscribe();
-    return ()=> { supabase.removeChannel(channel); };
-  }, [loadParcelSubmissions]);
-
   // Approuver une soumission de parcelle
   const handleApproveSubmission = async (submission) => {
     try {
-      const approved = await SupabaseDataService.approveParcelSubmission(submission.id, {});
-      setParcelSubmissions(list => list.map(s => s.id === submission.id ? { ...s, status:'approved', approved_at: approved.approved_at } : s));
+      await SupabaseDataService.approveParcelSubmission(submission.id, {});
       toast({ title:'Parcelle approuvée', description: submission.parcel_name });
+      // L'update sera automatiquement reflété par le real-time
     } catch (error) {
       console.error('Erreur approbation:', error);
       toast({ variant:'destructive', title:'Erreur', description:"Impossible d'approuver" });
@@ -127,10 +126,11 @@ const AdminParcelSubmissionsPage = () => {
   const handleRejectSubmission = async () => {
     try {
       if (!selectedSubmission) return;
-      const rejected = await SupabaseDataService.rejectParcelSubmission(selectedSubmission.id, { reason: rejectionReason });
-      setParcelSubmissions(list => list.map(s => s.id === selectedSubmission.id ? { ...s, status:'rejected', rejected_at: rejected.rejected_at, rejection_reason: rejectionReason } : s));
+      await SupabaseDataService.rejectParcelSubmission(selectedSubmission.id, { reason: rejectionReason });
       toast({ title:'Soumission rejetée', description: selectedSubmission.parcel_name });
-      setIsRejectReasonModalOpen(false); setSelectedSubmission(null);
+      setIsRejectReasonModalOpen(false); 
+      setSelectedSubmission(null);
+      // L'update sera automatiquement reflété par le real-time
     } catch (error) {
       console.error('Erreur rejet:', error);
       toast({ variant:'destructive', title:'Erreur', description:'Rejet impossible' });
@@ -197,7 +197,7 @@ const AdminParcelSubmissionsPage = () => {
             <Button 
               variant="outline" 
               size="icon" 
-              onClick={loadParcelSubmissions}
+              onClick={refresh}
             >
               <RefreshCw className="h-4 w-4" />
             </Button>

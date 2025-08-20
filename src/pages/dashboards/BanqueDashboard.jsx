@@ -29,10 +29,11 @@ import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
+import { useAuth } from '@/context/AuthContext';
 
 const BanqueDashboard = () => {
   const { toast } = useToast();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     activeGuarantees: 0,
     pendingEvaluations: 0,
@@ -50,57 +51,39 @@ const BanqueDashboard = () => {
   const [actionBusy, setActionBusy] = useState(null); // composite key like type-id
 
   useEffect(() => {
-    loadUserData();
-    loadBankDashboardData();
-  }, []);
-  // Realtime subscriptions
-  useEffect(()=>{
-    const channels = [];
-    try {
-      const ch1 = supabase.channel('financing_requests_changes').on('postgres_changes',{ event:'*', schema:'public', table:'financing_requests', filter:`bank_id=eq.${user?.id||'000'}`}, ()=> loadBankDashboardData());
-      const ch2 = supabase.channel('bank_guarantees_changes').on('postgres_changes',{ event:'*', schema:'public', table:'bank_guarantees', filter:`bank_id=eq.${user?.id||'000'}`}, ()=> loadBankDashboardData());
-      const ch3 = supabase.channel('land_evaluations_changes').on('postgres_changes',{ event:'*', schema:'public', table:'land_evaluations', filter:`evaluator_id=eq.${user?.id||'000'}`}, ()=> loadBankDashboardData());
-      channels.push(ch1, ch2, ch3);
-      channels.forEach(c=> c.subscribe());
-    } catch(e){ /* silent */ }
-    return ()=> { channels.forEach(c=> { try { supabase.removeChannel(c);} catch{} }); };
-  }, [user]);
-
-  const loadUserData = async () => {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-
-      const { data: profile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      setUser({ ...user, ...profile });
-
-      // Analyse de sécurité pour banque
-      const securityAnalysis = await antiFraudAI.analyzeUserFraud(user.id, {
-        institutionalProfile: true,
-        complianceHistory: true,
-        financialStability: true
-      });
-
-      setStats(prev => ({
-        ...prev,
-        securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
-      }));
-
-    } catch (error) {
-      console.error('Erreur chargement utilisateur:', error);
+    if (user) {
+      loadBankDashboardData();
     }
-  };
+  }, [user]);
+  // Charger l'analyse de sécurité quand l'utilisateur change
+  useEffect(() => {
+    const loadSecurityAnalysis = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const securityAnalysis = await antiFraudAI.analyzeUserFraud(user.id, {
+          institutionalProfile: true,
+          complianceHistory: true,
+          financialStability: true
+        });
+
+        setStats(prev => ({
+          ...prev,
+          securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
+        }));
+      } catch (error) {
+        console.error('Erreur analyse sécurité:', error);
+      }
+    };
+
+    loadSecurityAnalysis();
+  }, [user?.id]);
 
   const loadBankDashboardData = async () => {
+    if (!user?.id) return;
+    
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       // Charger les garanties bancaires
       const { data: bankGuarantees } = await supabase
         .from('bank_guarantees')

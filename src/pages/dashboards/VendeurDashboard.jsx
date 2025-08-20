@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { useRealtimeParcelSubmissions, useRealtimeParcels } from '../../hooks/useRealtimeTable';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
@@ -42,40 +43,57 @@ const VendeurDashboard = () => {
     averagePrice: 0,
     securityScore: 88
   });
-  const [listings, setListings] = useState([]);
   const [analytics, setAnalytics] = useState({
     viewsThisMonth: 0,
     inquiriesThisMonth: 0,
     conversionRate: 0,
     topPerformingListing: null
   });
-  const [marketInsights, setMarketInsights] = useState([]); // sera alimenté par analyse IA marché réelle
-  const [loading, setLoading] = useState(true);
+  const [marketInsights, setMarketInsights] = useState([]);
   const [inquiriesByListing, setInquiriesByListing] = useState([]);
-  const [showModal, setShowModal] = useState(false); // legacy edit/create modal
-  const [showSubmissionModal, setShowSubmissionModal] = useState(false); // new anti-fraud submission modal
+  const [showModal, setShowModal] = useState(false);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [editingListing, setEditingListing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' });
-  const [selectedInquiry, setSelectedInquiry] = useState(null); // for inquiry detail modal
+  const [selectedInquiry, setSelectedInquiry] = useState(null);
+
+  // Utiliser les hooks realtime centralisés
+  const { data: submissions, loading: submissionsLoading } = useRealtimeParcelSubmissions({ 
+    ownerId: user?.id 
+  });
+  
+  const { data: listings, loading: listingsLoading } = useRealtimeParcels({ 
+    ownerId: user?.id 
+  });
+
+  // Calculs des métriques en temps réel
+  const pendingSubmissions = submissions.filter(s => s.status === 'pending');
+  const approvedSubmissions = submissions.filter(s => s.status === 'approved');
+  const rejectedSubmissions = submissions.filter(s => s.status === 'rejected');
+  
+  const activeListings = listings.filter(p => p.status === 'active');
+  const totalRevenue = activeListings.reduce((sum, p) => sum + (p.price || 0), 0);
+
+  const loading = submissionsLoading || listingsLoading;
 
   useEffect(() => {
     loadUserData();
-    loadSellerDashboardData();
+    loadMarketData(); // Charger seulement les données non couvertes par realtime
   }, []);
 
-  // Realtime: refresh listings when submission approved -> parcel appears
-  useEffect(()=>{
-    const channel = supabase.channel('parcel_submissions_vendor')
-      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'parcel_submissions' }, (payload)=>{
-        if (payload?.new?.owner_id === user?.id && payload.new.status === 'approved') {
-          // Reload parcels so approved one replaces placeholder
-          loadSellerDashboardData();
-        }
-      })
-      .subscribe();
-    return ()=> { supabase.removeChannel(channel); };
-  }, [user]);
+  // Plus besoin de realtime manuel pour submissions/parcels
+  // useEffect(()=>{
+  //   const channel = supabase.channel('parcel_submissions_vendor')
+  //     .on('postgres_changes', { event:'UPDATE', schema:'public', table:'parcel_submissions' }, (payload)=>{
+  //       if (payload?.new?.owner_id === user?.id && payload.new.status === 'approved') {
+  //         // Reload parcels so approved one replaces placeholder
+  //         loadSellerDashboardData();
+  //       }
+  //     })
+  //     .subscribe();
+  //   return ()=> { supabase.removeChannel(channel); };
+  // }, [user]);
 
   const loadUserData = async () => {
     try {
@@ -107,168 +125,73 @@ const VendeurDashboard = () => {
     }
   };
 
-  const loadSellerDashboardData = async () => {
-    setLoading(true);
+  const loadMarketData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Charger analytics et insights non couverts par realtime
+      const [inquiriesData, analyticsData] = await Promise.all([
+        SupabaseDataService.listParcelInquiries(user?.id || null),
+        // Autres données d'analytics...
+      ]);
       
-      // Charger les annonces du vendeur
-      const { data: userListings } = await supabase
-        .from('parcels')
-        .select(`
-          *,
-          parcel_views(id, viewed_at),
-          parcel_inquiries(id, created_at, inquiry_type)
-        `)
-        .eq('owner_id', user.id);
-
-  // Exclure annonces en validation des stats
-  const approvedListings = (userListings||[]).filter(l => l.status !== 'pending_validation');
-  const totalListings = approvedListings.length;
-  const totalViews = approvedListings.reduce((sum, listing) => sum + (listing.parcel_views?.length || 0), 0) || 0;
-  const totalRevenue = approvedListings.reduce((sum, listing) => listing.status === 'sold' ? sum + (listing.price||0) : sum, 0) || 0;
-  const averagePrice = totalListings > 0 ? approvedListings.reduce((sum, l)=> sum + (l.price||0),0)/ totalListings : 0;
-
-      // Analytics mensuelles
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
+      setInquiriesByListing(inquiriesData || []);
       
-      const viewsThisMonth = userListings?.reduce((sum, listing) => {
-        const monthViews = listing.parcel_views?.filter(view => {
-          const viewDate = new Date(view.viewed_at);
-          return viewDate.getMonth() === currentMonth && viewDate.getFullYear() === currentYear;
-        }).length || 0;
-        return sum + monthViews;
-      }, 0) || 0;
-
-      const inquiriesThisMonth = userListings?.reduce((sum, listing) => {
-        const monthInquiries = listing.parcel_inquiries?.filter(inquiry => {
-          const inquiryDate = new Date(inquiry.created_at);
-          return inquiryDate.getMonth() === currentMonth && inquiryDate.getFullYear() === currentYear;
-        }).length || 0;
-        return sum + monthInquiries;
-      }, 0) || 0;
-
-      // Taux de conversion
-      const conversionRate = totalViews > 0 ? (inquiriesThisMonth / viewsThisMonth) * 100 : 0;
-
-      // Meilleure annonce
-      const topPerformingListing = userListings?.reduce((top, listing) => {
-        const listingViews = listing.parcel_views?.length || 0;
-        const topViews = top?.parcel_views?.length || 0;
-        return listingViews > topViews ? listing : top;
-      }, null);
-
-  // Insights de marché IA (basé sur données réelles uniquement)
-  const insights = await generateMarketInsights(userListings);
-
-      setStats({
-        totalListings,
-        activeViews: totalViews,
+      // Calculer analytics en temps réel depuis les données realtime
+      const currentStats = {
+        totalListings: activeListings.length,
+        activeViews: analyticsData?.viewsThisMonth || 0,
         totalRevenue,
-        averagePrice,
-        securityScore: stats.securityScore
-      });
-
-      setAnalytics({
-        viewsThisMonth,
-        inquiriesThisMonth,
-        conversionRate,
-        topPerformingListing
-      });
-
-      setListings(userListings || []);
-      // Préparer une structure de demandes par annonce
-      const inquiries = (userListings||[]).map(l => ({
-        listingId: l.id,
-        reference: l.reference,
-        location: l.location,
-        inquiries: (l.parcel_inquiries||[]).map(i => ({ id:i.id, type:i.inquiry_type, created_at:i.created_at }))
-      })).filter(row => row.inquiries.length>0);
-      setInquiriesByListing(inquiries);
-      setMarketInsights(insights);
-
+        averagePrice: activeListings.length ? totalRevenue / activeListings.length : 0,
+        securityScore: stats.securityScore // Garder score sécurité existant
+      };
+      
+      setStats(currentStats);
+      
     } catch (error) {
-      console.error('Erreur chargement dashboard vendeur:', error);
-    } finally {
-      setLoading(false);
+      console.error('Erreur chargement market data:', error);
     }
   };
 
-  const generateMarketInsights = async (userListings) => {
+  // Recalculer les stats quand les données realtime changent
+  useEffect(() => {
+    if (!loading && user?.id) {
+      const currentStats = {
+        totalListings: activeListings.length,
+        activeViews: analytics.viewsThisMonth,
+        totalRevenue,
+        averagePrice: activeListings.length ? totalRevenue / activeListings.length : 0,
+        securityScore: stats.securityScore
+      };
+      setStats(currentStats);
+    }
+  }, [listings, submissions, loading]);
+
+  const loadUserProfile = async () => {
     try {
-      if (!userListings || userListings.length === 0) {
-        return [
-          {
-            type: 'tip',
-            title: 'Créez votre première annonce',
-            message: 'Commencez par publier une annonce pour recevoir des insights personnalisés',
-            priority: 'high'
-          }
-        ];
-      }
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
 
-      // Analyser les types de biens et prix
-      const propertyTypes = userListings.map(l => l.type);
-      const prices = userListings.map(l => l.price);
-      const locations = userListings.map(l => l.location);
+      const { data: profile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-      // Obtenir des données de marché similaires
-      const { data: marketData } = await supabase
-        .from('parcels')
-        .select('price, type, location, created_at')
-        .in('type', propertyTypes)
-        .neq('owner_id', userListings[0].owner_id)
-        .gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+      setUser({ ...user, ...profile });
 
-      const insights = [];
-
-      // Analyse des prix
-      if (marketData && marketData.length > 0) {
-        const marketAvgPrice = marketData.reduce((sum, item) => sum + item.price, 0) / marketData.length;
-        const userAvgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-        
-        if (userAvgPrice > marketAvgPrice * 1.1) {
-          insights.push({
-            type: 'warning',
-            title: 'Prix au-dessus du marché',
-            message: `Vos prix sont 10% plus élevés que la moyenne du marché (${marketAvgPrice.toLocaleString()} FCFA)`,
-            priority: 'medium'
-          });
-        } else if (userAvgPrice < marketAvgPrice * 0.9) {
-          insights.push({
-            type: 'success',
-            title: 'Prix compétitifs',
-            message: `Vos prix sont attractifs comparés au marché local`,
-            priority: 'low'
-          });
-        }
-      }
-
-      // Analyse des performances
-      const totalViews = userListings.reduce((sum, listing) => sum + (listing.parcel_views?.length || 0), 0);
-      if (totalViews < userListings.length * 10) {
-        insights.push({
-          type: 'tip',
-          title: 'Améliorez votre visibilité',
-          message: 'Ajoutez plus de photos et détails pour augmenter les vues',
-          priority: 'high'
-        });
-      }
-
-      // Analyse saisonnière IA
-      insights.push({
-        type: 'info',
-        title: 'Tendance saisonnière',
-        message: 'La demande immobilière augmente de 15% en cette période',
-        priority: 'medium'
+      // Analyse de sécurité pour vendeur
+      const securityAnalysis = await antiFraudAI.analyzeUserFraud(user.id, {
+        sellerProfile: true,
+        listingHistory: true,
+        verificationStatus: true
       });
 
-      return insights;
+      setStats(prev => ({
+        ...prev,
+        securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
+      }));
 
     } catch (error) {
-      console.error('Erreur génération insights:', error);
-      return [];
+      console.error('Erreur chargement utilisateur:', error);
     }
   };
 

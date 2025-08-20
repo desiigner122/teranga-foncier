@@ -28,24 +28,39 @@ create index if not exists idx_parcel_submissions_created_at on public.parcel_su
 -- Simple RLS (adjust as needed)
 alter table public.parcel_submissions enable row level security;
 
--- Owner can view own submissions
-create policy if not exists "parcel_submissions_owner_select" on public.parcel_submissions
-  for select using ( auth.uid() = owner_id );
+-- Recreate policies in an idempotent way (DROP + CREATE because CREATE POLICY lacks IF NOT EXISTS in current Postgres)
+drop policy if exists "parcel_submissions_owner_select" on public.parcel_submissions;
+create policy "parcel_submissions_owner_select" on public.parcel_submissions
+  for select
+  using ( auth.uid() = owner_id );
 
--- Owner can insert own row
-create policy if not exists "parcel_submissions_owner_insert" on public.parcel_submissions
-  for insert with check ( auth.uid() = owner_id );
+drop policy if exists "parcel_submissions_owner_insert" on public.parcel_submissions;
+create policy "parcel_submissions_owner_insert" on public.parcel_submissions
+  for insert
+  with check ( auth.uid() = owner_id );
 
--- Restricted update: only admin / mairie / notaire (example: relies on custom claim 'role')
-create policy if not exists "parcel_submissions_admin_update" on public.parcel_submissions
-  for update using (
-    exists (select 1 from public.users u where u.id = auth.uid() and (u.role = 'admin' or lower(u.type) in ('mairie','notaire')))
+drop policy if exists "parcel_submissions_admin_update" on public.parcel_submissions;
+create policy "parcel_submissions_admin_update" on public.parcel_submissions
+  for update
+  using (
+    exists (
+      select 1
+      from public.users u
+      where u.id = auth.uid()
+        and (
+          u.role = 'admin'
+          or lower(u.type) in ('mairie','notaire')
+        )
+    )
   );
 
--- Allow admins to select all
-create policy if not exists "parcel_submissions_admin_select_all" on public.parcel_submissions
-  for select using (
-    exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'admin')
+drop policy if exists "parcel_submissions_admin_select_all" on public.parcel_submissions;
+create policy "parcel_submissions_admin_select_all" on public.parcel_submissions
+  for select
+  using (
+    exists (
+      select 1 from public.users u where u.id = auth.uid() and u.role = 'admin'
+    )
   );
 
 -- Trigger to keep updated_at fresh
