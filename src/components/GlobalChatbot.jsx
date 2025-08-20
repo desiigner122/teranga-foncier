@@ -22,6 +22,39 @@ const GlobalChatbot = () => {
   // Abonnement temps réel à la table messages (retourne {data, loading, error, refetch})
   const { data: messages, loading: messagesLoading, error: messagesError, refetch } = useRealtimeMessages();
   const [filteredData, setFilteredData] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [currentSuggestions, setCurrentSuggestions] = useState([]);
+  const [initialSuggestions] = useState([
+    "Comment obtenir un terrain communal ?",
+    "Comment vérifier l'authenticité d'un titre foncier ?",
+    "Quelles sont les étapes pour acheter un terrain ?"
+  ]);
+  const [currentModel, setCurrentModel] = useState('hybrid');
+  const [responseTime, setResponseTime] = useState(0);
+  const [chatMessages, setMessages] = useState([]);
+  const endOfMessagesRef = useRef(null);
+  
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    if (endOfMessagesRef.current) {
+      endOfMessagesRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+  
+  // Fonction de message de bienvenue
+  const getWelcomeMessage = () => {
+    const hour = new Date().getHours();
+    let greeting = '';
+    
+    if (hour < 12) greeting = 'Bonjour';
+    else if (hour < 18) greeting = 'Bon après-midi';
+    else greeting = 'Bonsoir';
+    
+    const userName = user?.first_name || user?.full_name || 'cher utilisateur';
+    
+    return `${greeting} ${userName} 👋 Je suis l'assistant virtuel de Teranga Foncier. Comment puis-je vous aider aujourd'hui ?`;
+  };
   
   useEffect(() => {
     if (messages) {
@@ -30,16 +63,18 @@ const GlobalChatbot = () => {
   }, [messages]);
   
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isChatbotOpen) {
+      scrollToBottom();
+    }
+  }, [chatMessages, isChatbotOpen]);
 
   // Initialisation du message de bienvenue et des suggestions si la conversation est vide
   useEffect(() => {
-    if (isChatbotOpen && messages.length === 0) {
+    if (isChatbotOpen && chatMessages.length === 0) {
       setMessages([{ sender: 'bot', text: getWelcomeMessage() }]);
       setCurrentSuggestions(initialSuggestions);
     }
-  }, [isChatbotOpen]);
+  }, [isChatbotOpen, initialSuggestions, chatMessages.length]);
 
   const handleSendMessage = async (textToSend = inputValue) => {
     if (!textToSend.trim()) return;
@@ -104,6 +139,7 @@ const GlobalChatbot = () => {
       setCurrentSuggestions(initialSuggestions); // R�initialise les suggestions initiales en cas d'erreur
     } finally {
       setIsTyping(false);
+      setTimeout(scrollToBottom, 100);
     }
   };
 
@@ -360,7 +396,7 @@ const GlobalChatbot = () => {
                     </div>
                   </motion.div>
                 )}
-                <div ref={messagesEndRef} />
+                <div ref={endOfMessagesRef} />
               </div>
             </ScrollArea>
 
