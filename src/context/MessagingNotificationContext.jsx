@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 
 const MessagingNotificationContext = createContext();
 
@@ -20,14 +21,27 @@ export const MessagingNotificationProvider = ({ children }) => {
   const { toast } = useToast();
   
   // State
-  const { data: conversations, loading: conversationsLoading, error: conversationsError, refetch } = useRealtimeTable();
-  const [filteredData, setFilteredData] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [messages, setMessages] = useState({});
+  const [unreadCounts, setUnreadCounts] = useState({ messages: 0, notifications: 0 });
+  const [loading, setLoading] = useState(false);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [isFirebaseAvailable] = useState(false); // Supabase only
   
-  useEffect(() => {
-    if (conversations) {
-      setFilteredData(conversations);
+  // Load conversations
+  const loadConversations = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const convList = await SupabaseDataService.listConversations(user.id);
+      setConversations(convList || []);
+    } catch (e) {
+      console.error('loadConversations failed', e);
+    } finally {
+      setLoading(false);
     }
-  }, [conversations]);
+  }, [user]);
   
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
