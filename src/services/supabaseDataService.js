@@ -1036,17 +1036,88 @@ export class SupabaseDataService {
 
   // ============== CREATE OPERATIONS ==============
   static async createUser(userData) {
-    const { data, error } = await supabase
-      .from('users')
-      .insert([userData])
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Erreur lors de la création de l\'utilisateur:', error);
+    try {
+      // 1. Créer l'utilisateur dans Auth avec mot de passe
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            full_name: userData.full_name,
+            type: userData.type,
+            role: userData.role || 'user'
+          }
+        }
+      });
+
+      if (authError) {
+        console.error('Erreur création Auth:', authError);
+        throw new Error(`Erreur d'authentification: ${authError.message}`);
+      }
+
+      // 2. Créer le profil complet dans la table users
+      const userProfile = {
+        id: authData.user.id,
+        email: userData.email,
+        full_name: userData.full_name,
+        phone: userData.phone,
+        type: userData.type,
+        role: userData.role || 'user',
+        metadata: {
+          ...userData.metadata,
+          creation_method: 'admin_complete',
+          password_generated: true,
+          created_by: 'admin'
+        },
+        verification_status: 'verified', // Les utilisateurs créés par admin sont pré-vérifiés
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('users')
+        .upsert(userProfile, { onConflict: 'id' })
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Erreur création profil:', profileError);
+        // Si le profil échoue, on essaie de nettoyer l'auth user
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+        } catch (cleanupError) {
+          console.warn('Impossible de nettoyer l\'utilisateur auth:', cleanupError);
+        }
+        throw new Error(`Erreur de profil: ${profileError.message}`);
+      }
+
+      // 3. Créer une notification de bienvenue
+      try {
+        await this.createNotification({
+          user_id: authData.user.id,
+          title: `Bienvenue sur Teranga Foncier`,
+          body: `Votre compte ${userData.type} a été créé avec succès. Vous pouvez maintenant vous connecter et accéder à toutes les fonctionnalités.`,
+          type: 'welcome',
+          data: {
+            user_type: userData.type,
+            creation_source: 'admin',
+            login_email: userData.email
+          }
+        });
+      } catch (notifError) {
+        console.warn('Notification de bienvenue échouée:', notifError);
+        // Non bloquant
+      }
+
+      return {
+        ...profileData,
+        auth_user: authData.user,
+        temporary_password: userData.password // Pour affichage à l'admin
+      };
+    } catch (error) {
+      console.error('Erreur création utilisateur:', error);
       throw error;
     }
-    return data;
   }
 
   /**

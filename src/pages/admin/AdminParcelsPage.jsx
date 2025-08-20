@@ -94,6 +94,7 @@ const AdminParcelsPage = () => {
       reference: parcel.reference || '',
       location_name: parcel.location_name || '',
       area_sqm: parcel.area_sqm || '',
+      price: parcel.price || '',
       description: parcel.description || '',
       status: parcel.status || 'Disponible',
       owner_id: parcel.owner_id || '',
@@ -109,6 +110,7 @@ const AdminParcelsPage = () => {
       reference: '',
       location_name: '',
       area_sqm: '',
+      price: '',
       description: '',
       status: 'Disponible',
       owner_id: '',
@@ -258,6 +260,7 @@ const AdminParcelsPage = () => {
                       <TableHead>Nom</TableHead>
                       <TableHead>Localisation</TableHead>
                       <TableHead>Surface (m²)</TableHead>
+                      <TableHead>Prix (FCFA)</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -269,6 +272,7 @@ const AdminParcelsPage = () => {
                         <TableCell className="font-medium">{parcel.name || 'N/A'}</TableCell>
                         <TableCell>{parcel.location_name || 'N/A'}</TableCell>
                         <TableCell>{parcel.area_sqm || 'N/A'}</TableCell>
+                        <TableCell>{parcel.price ? new Intl.NumberFormat('fr-SN').format(parcel.price) : 'N/A'}</TableCell>
                         <TableCell><Badge variant={getStatusBadgeVariant(parcel.status)}>{parcel.status || 'N/A'}</Badge></TableCell>
                         <TableCell className="text-right flex justify-end space-x-2">
                           <Link to={`/parcelles/${parcel.id}`}>
@@ -370,6 +374,10 @@ const AdminParcelsPage = () => {
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="area_sqm" className="text-right">Surface (m²)</Label>
               <Input id="area_sqm" type="number" value={formData.area_sqm} onChange={handleFormChange} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="price" className="text-right">Prix (FCFA)</Label>
+              <Input id="price" type="number" value={formData.price} onChange={handleFormChange} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="status" className="text-right">Statut</Label>

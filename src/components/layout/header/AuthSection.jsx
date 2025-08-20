@@ -42,26 +42,6 @@ const AuthSection = ({ isScrolled }) => {
     <div className="flex items-center gap-2 md:gap-3">
       {user ? (
         <>
-          {/* Notifications Button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="relative h-10 w-10" 
-            asChild
-          >
-            <Link to="/dashboard/notifications">
-              <Bell className="h-5 w-5" />
-              {unreadCounts.notifications > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-                >
-                  {unreadCounts.notifications > 99 ? '99+' : unreadCounts.notifications}
-                </Badge>
-              )}
-            </Link>
-          </Button>
-
           {/* Messages Button */}
           <Button 
             variant="ghost" 

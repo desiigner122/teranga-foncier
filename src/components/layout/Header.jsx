@@ -46,7 +46,7 @@ const Header = ({ children, isDashboard, isSolutionDashboard }) => {
         {!isDashboardLayout && <DesktopNavigation isScrolled={hasBackground} />}
 
         <div className="flex items-center gap-3 ml-auto">
-          <NotificationBell />
+          {!isDashboardLayout && <NotificationBell />}
           <AuthSection isScrolled={hasBackground} />
           {!isDashboardLayout && <MobileMenuButton isMenuOpen={isMenuOpen} isScrolled={hasBackground} onClick={toggleMenu} />}
         </div>
