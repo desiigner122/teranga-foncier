@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 
 const MessagingNotificationContext = createContext();
 
