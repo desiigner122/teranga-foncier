@@ -1,6 +1,6 @@
-ï»¿// src/components/layout/DashboardLayout.jsx
+// src/components/layout/DashboardLayout.jsx
 import React, { useState } from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
@@ -12,12 +12,12 @@ import GlobalAIChat from '@/components/ui/GlobalAIChat';
 import DashboardAIAssistant from '@/components/ui/DashboardAIAssistant';
 
 const DashboardLayout = ({ children }) => {
-  // RenommÃ© pour plus de clartÃ©, `false` = ouvert, `true` = rÃ©duit
+  // Renommé pour plus de clarté, `false` = ouvert, `true` = réduit
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); 
   const { profile } = useAuth();
   const location = useLocation();
 
-  // DÃ©terminer le rÃ´le de l'utilisateur et le contexte du dashboard
+  // Déterminer le rôle de l'utilisateur et le contexte du dashboard
   const getUserRole = () => {
     return profile?.role || profile?.type || 'user';
   };
@@ -43,7 +43,7 @@ const DashboardLayout = ({ children }) => {
       />
 
       {/* Main content area */}
-      {/* md:pl-64 ou md:pl-20 selon l'Ã©tat de la sidebar */}
+      {/* md:pl-64 ou md:pl-20 selon l'état de la sidebar */}
       <div className={cn(
         "flex flex-col flex-1 transition-all duration-300",
         isSidebarCollapsed ? "md:pl-20" : "md:pl-64"
@@ -71,7 +71,7 @@ const DashboardLayout = ({ children }) => {
       </div>
 
       {/* Assistants IA */}
-      {/* Assistant spÃ©cialisÃ© dashboard Ã  gauche */}
+      {/* Assistant spécialisé dashboard à gauche */}
       <DashboardAIAssistant 
         userRole={getDashboardContext().role}
         dashboardContext={getDashboardContext()}
@@ -80,7 +80,7 @@ const DashboardLayout = ({ children }) => {
         }}
       />
 
-      {/* Chat IA global Ã  droite */}
+      {/* Chat IA global à droite */}
       <GlobalAIChat />
     </div>
   );

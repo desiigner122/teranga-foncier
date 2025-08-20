@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -74,12 +74,12 @@ const CreateRequestPage = () => {
       return;
     }
 
-    // Validation spÃ©cifique par type
+    // Validation spécifique par type
     if (formData.type === 'terrain_communal' && !formData.mairie_id) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Veuillez sÃ©lectionner une mairie destinataire"
+        description: "Veuillez sélectionner une mairie destinataire"
       });
       return;
     }
@@ -88,7 +88,7 @@ const CreateRequestPage = () => {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Veuillez sÃ©lectionner une banque et un terrain pour le financement"
+        description: "Veuillez sélectionner une banque et un terrain pour le financement"
       });
       return;
     }
@@ -103,7 +103,7 @@ const CreateRequestPage = () => {
         location: formData.location,
         status: 'pending',
         urgency: formData.urgency,
-        // Destinataire spÃ©cifique selon le type
+        // Destinataire spécifique selon le type
         recipient_type: formData.type === 'terrain_communal' ? 'Mairie' : 'Banque',
         recipient_id: formData.type === 'terrain_communal' ? formData.mairie_id : formData.banque_id,
         parcel_id: formData.parcel_id || null,
@@ -115,7 +115,7 @@ const CreateRequestPage = () => {
 
       const createdRequest = await SupabaseDataService.createRequest(requestData);
       
-      // CrÃ©er une notification pour le destinataire
+      // Créer une notification pour le destinataire
       const recipientMessage = formData.type === 'terrain_communal' 
         ? `Nouvelle demande de terrain communal de ${user.email}`
         : `Nouvelle demande de financement de ${user.email}`;
@@ -123,7 +123,7 @@ const CreateRequestPage = () => {
       await SupabaseDataService.createNotification({
         userId: formData.type === 'terrain_communal' ? formData.mairie_id : formData.banque_id,
         type: 'new_request',
-        title: 'Nouvelle demande reÃ§ue',
+        title: 'Nouvelle demande reçue',
         body: recipientMessage,
         data: {
           request_id: createdRequest.id,
@@ -133,19 +133,19 @@ const CreateRequestPage = () => {
       });
       
       toast({
-        title: "Demande crÃ©Ã©e",
-        description: `Votre demande a Ã©tÃ© envoyÃ©e Ã  ${formData.type === 'terrain_communal' ? 'la mairie' : 'la banque'} concernÃ©e. Vous recevrez une notification dÃ¨s qu'elle sera traitÃ©e.`
+        title: "Demande créée",
+        description: `Votre demande a été envoyée à ${formData.type === 'terrain_communal' ? 'la mairie' : 'la banque'} concernée. Vous recevrez une notification dès qu'elle sera traitée.`
       });
 
       // Redirect to requests page
       navigate('/dashboard/my-requests');
       
     } catch (error) {
-      console.error('Erreur lors de la crÃ©ation de la demande:', error);
+      console.error('Erreur lors de la création de la demande:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de crÃ©er la demande. Veuillez rÃ©essayer."
+        description: "Impossible de créer la demande. Veuillez réessayer."
       });
     } finally {
       setLoading(false);
@@ -205,13 +205,13 @@ const CreateRequestPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="description">Description dÃ©taillÃ©e *</Label>
+              <Label htmlFor="description">Description détaillée *</Label>
               <Textarea
                 id="description"
                 rows={4}
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="DÃ©crivez votre projet en dÃ©tail..."
+                placeholder="Décrivez votre projet en détail..."
               />
             </div>
 
@@ -221,7 +221,7 @@ const CreateRequestPage = () => {
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="Adresse ou zone gÃ©ographique"
+                placeholder="Adresse ou zone géographique"
               />
             </div>
 
@@ -253,25 +253,25 @@ const CreateRequestPage = () => {
                 <Label htmlFor="mairie_id">Mairie destinataire *</Label>
                 <Select value={formData.mairie_id} onValueChange={(value) => setFormData(prev => ({ ...prev, mairie_id: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="SÃ©lectionnez la mairie concernÃ©e" />
+                    <SelectValue placeholder="Sélectionnez la mairie concernée" />
                   </SelectTrigger>
                   <SelectContent>
                     {mairies.map((mairie) => (
                       <SelectItem key={mairie.id} value={mairie.id}>
-                        {mairie.full_name || mairie.email} - {mairie.metadata?.commune || 'Commune non spÃ©cifiÃ©e'}
+                        {mairie.full_name || mairie.email} - {mairie.metadata?.commune || 'Commune non spécifiée'}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Votre demande sera directement envoyÃ©e Ã  cette mairie
+                  Votre demande sera directement envoyée à cette mairie
                 </p>
               </div>
 
               <div>
                 <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  Localisation du terrain demandÃ©
+                  Localisation du terrain demandé
                 </h4>
                 <GeographicSelector
                   value={formData.geographic_location}
@@ -281,10 +281,10 @@ const CreateRequestPage = () => {
               </div>
 
               <div>
-                <Label htmlFor="usage_prevu">Usage prÃ©vu du terrain *</Label>
+                <Label htmlFor="usage_prevu">Usage prévu du terrain *</Label>
                 <Select value={formData.usage_prevu} onValueChange={(value) => setFormData(prev => ({ ...prev, usage_prevu: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="SÃ©lectionnez l'usage prÃ©vu" />
+                    <SelectValue placeholder="Sélectionnez l'usage prévu" />
                   </SelectTrigger>
                   <SelectContent>
                     {usageOptions.map((option) => (
@@ -297,7 +297,7 @@ const CreateRequestPage = () => {
               </div>
 
               <div>
-                <Label htmlFor="surface">Surface souhaitÃ©e (mÂ²)</Label>
+                <Label htmlFor="surface">Surface souhaitée (m²)</Label>
                 <Input
                   id="surface"
                   type="number"
@@ -308,7 +308,7 @@ const CreateRequestPage = () => {
               </div>
 
               <div>
-                <Label htmlFor="duree_souhaitee">DurÃ©e d'occupation souhaitÃ©e</Label>
+                <Label htmlFor="duree_souhaitee">Durée d'occupation souhaitée</Label>
                 <Input
                   id="duree_souhaitee"
                   value={formData.duree_souhaitee}
@@ -336,7 +336,7 @@ const CreateRequestPage = () => {
                 <Label htmlFor="banque_id">Banque destinataire *</Label>
                 <Select value={formData.banque_id} onValueChange={(value) => setFormData(prev => ({ ...prev, banque_id: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="SÃ©lectionnez la banque" />
+                    <SelectValue placeholder="Sélectionnez la banque" />
                   </SelectTrigger>
                   <SelectContent>
                     {banques.map((banque) => (
@@ -347,31 +347,31 @@ const CreateRequestPage = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Votre demande de financement sera directement envoyÃ©e Ã  cette banque
+                  Votre demande de financement sera directement envoyée à cette banque
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="parcel_id">Terrain Ã  financer *</Label>
+                <Label htmlFor="parcel_id">Terrain à financer *</Label>
                 <Select value={formData.parcel_id} onValueChange={(value) => setFormData(prev => ({ ...prev, parcel_id: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="SÃ©lectionnez le terrain concernÃ©" />
+                    <SelectValue placeholder="Sélectionnez le terrain concerné" />
                   </SelectTrigger>
                   <SelectContent>
                     {userParcels.map((parcel) => (
                       <SelectItem key={parcel.id} value={parcel.id}>
-                        {parcel.reference} - {parcel.name} ({parcel.surface_area}mÂ²)
+                        {parcel.reference} - {parcel.name} ({parcel.surface_area}m²)
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  La banque pourra voir tous les dÃ©tails de ce terrain
+                  La banque pourra voir tous les détails de ce terrain
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="montant_demande">Montant demandÃ© (FCFA) *</Label>
+                <Label htmlFor="montant_demande">Montant demandé (FCFA) *</Label>
                 <Input
                   id="montant_demande"
                   type="number"
@@ -420,7 +420,7 @@ const CreateRequestPage = () => {
                   id="situation_professionnelle"
                   value={formData.situation_professionnelle}
                   onChange={(e) => setFormData(prev => ({ ...prev, situation_professionnelle: e.target.value }))}
-                  placeholder="Ex: Fonctionnaire, CommerÃ§ant, etc."
+                  placeholder="Ex: Fonctionnaire, Commerçant, etc."
                 />
               </div>
             </div>
@@ -443,7 +443,7 @@ const CreateRequestPage = () => {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <FileText className="h-8 w-8" />
-          CrÃ©er une Demande
+          Créer une Demande
         </h1>
         <p className="text-muted-foreground">
           Soumettez votre demande de terrain communal ou de financement
@@ -477,13 +477,13 @@ const CreateRequestPage = () => {
         <CardHeader>
           <CardTitle>
             {step === 1 && "Type de demande"}
-            {step === 2 && "Informations gÃ©nÃ©rales"}
-            {step === 3 && "DÃ©tails spÃ©cifiques"}
+            {step === 2 && "Informations générales"}
+            {step === 3 && "Détails spécifiques"}
           </CardTitle>
           <CardDescription>
-            {step === 1 && "SÃ©lectionnez le type de demande que vous souhaitez faire"}
+            {step === 1 && "Sélectionnez le type de demande que vous souhaitez faire"}
             {step === 2 && "Renseignez les informations de base de votre demande"}
-            {step === 3 && "ComplÃ©tez les informations spÃ©cifiques Ã  votre demande"}
+            {step === 3 && "Complétez les informations spécifiques à votre demande"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -498,7 +498,7 @@ const CreateRequestPage = () => {
           onClick={() => setStep(prev => Math.max(1, prev - 1))}
           disabled={step === 1}
         >
-          PrÃ©cÃ©dent
+          Précédent
         </Button>
         
         {step < 3 ? (
@@ -513,7 +513,7 @@ const CreateRequestPage = () => {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? "CrÃ©ation..." : "CrÃ©er la demande"}
+            {loading ? "Création..." : "Créer la demande"}
           </Button>
         )}
       </div>

@@ -1,4 +1,4 @@
-﻿// src/context/MessagingNotificationContext.jsx
+// src/context/MessagingNotificationContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';

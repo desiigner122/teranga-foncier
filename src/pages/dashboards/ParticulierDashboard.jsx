@@ -1,5 +1,5 @@
-ï»¿import React, { useState, useEffect } from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import React, { useState, useEffect } from 'react';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -68,7 +68,7 @@ const ParticulierDashboard = () => {
           const recommendations = await generateAIRecommendations(user.id, favorites, allParcels);
           setRecommendedParcels(recommendations);
         } catch (error) {
-          console.error('Erreur mise Ã  jour recommandations:', error);
+          console.error('Erreur mise à jour recommandations:', error);
         }
       }
     };
@@ -76,7 +76,7 @@ const ParticulierDashboard = () => {
     updateRecommendations();
   }, [allParcels, user?.id]);
 
-  // Charger l'analyse de sÃ©curitÃ© quand l'utilisateur change
+  // Charger l'analyse de sécurité quand l'utilisateur change
   useEffect(() => {
     const loadSecurityAnalysis = async () => {
       if (!user?.id) return;
@@ -93,7 +93,7 @@ const ParticulierDashboard = () => {
           securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
         }));
       } catch (error) {
-        console.error('Erreur analyse sÃ©curitÃ©:', error);
+        console.error('Erreur analyse sécurité:', error);
       }
     };
 
@@ -108,7 +108,7 @@ const ParticulierDashboard = () => {
       // Charger les favoris
       const favorites = await SupabaseDataService.getUserFavorites(user.id);
 
-      // Charger les recherches sauvegardÃ©es
+      // Charger les recherches sauvegardées
       const { data: searches } = await supabase
         .from('saved_searches')
         .select('*')
@@ -121,7 +121,7 @@ const ParticulierDashboard = () => {
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .eq('status', 'in_progress');
 
-      // Charger l'activitÃ© rÃ©cente
+      // Charger l'activité récente
       const { data: activity } = await supabase
         .from('user_activities')
         .select('*')
@@ -129,10 +129,10 @@ const ParticulierDashboard = () => {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Recommandations IA personnalisÃ©es
+      // Recommandations IA personnalisées
       const recommendations = await generateAIRecommendations(user.id, favorites, allParcels);
 
-      // Alertes de sÃ©curitÃ© personnalisÃ©es
+      // Alertes de sécurité personnalisées
       const alerts = await loadSecurityAlerts(user.id);
 
       setStats({
@@ -155,7 +155,7 @@ const ParticulierDashboard = () => {
 
   const generateAIRecommendations = async (userId, favorites, allParcels) => {
     try {
-      // Analyser les prÃ©fÃ©rences de l'utilisateur
+      // Analyser les préférences de l'utilisateur
       const preferences = favorites?.map(f => ({
         location: f.parcels?.location,
         price: f.parcels?.price,
@@ -164,16 +164,16 @@ const ParticulierDashboard = () => {
       }));
 
       if (!preferences || preferences.length === 0) {
-        // Recommandations par dÃ©faut pour nouveaux utilisateurs
+        // Recommandations par défaut pour nouveaux utilisateurs
         return await getDefaultRecommendations();
       }
 
-      // Utiliser les parcelles du hook real-time au lieu d'une requÃªte
+      // Utiliser les parcelles du hook real-time au lieu d'une requête
       const availableParcels = (allParcels || [])
         .filter(p => p.status === 'available')
         .slice(0, 6);
 
-      // Scoring IA basÃ© sur les prÃ©fÃ©rences
+      // Scoring IA basé sur les préférences
       const scoredParcels = availableParcels.map(parcel => {
         let score = 0;
         
@@ -235,7 +235,7 @@ const ParticulierDashboard = () => {
       return alerts || [];
 
     } catch (error) {
-      console.error('Erreur alertes sÃ©curitÃ©:', error);
+      console.error('Erreur alertes sécurité:', error);
       return [];
     }
   };
@@ -254,17 +254,17 @@ const ParticulierDashboard = () => {
   const getActivityMessage = (activity) => {
     switch (activity.action_type) {
       case 'view_parcel':
-        return `Parcelle visualisÃ©e: ${activity.details?.parcel_reference || 'RÃ©f. inconnue'}`;
+        return `Parcelle visualisée: ${activity.details?.parcel_reference || 'Réf. inconnue'}`;
       case 'favorite_added':
-        return `Parcelle ajoutÃ©e aux favoris`;
+        return `Parcelle ajoutée aux favoris`;
       case 'search_saved':
-        return `Recherche sauvegardÃ©e: ${activity.details?.search_name || 'Sans nom'}`;
+        return `Recherche sauvegardée: ${activity.details?.search_name || 'Sans nom'}`;
       case 'transaction_started':
-        return `Transaction initiÃ©e`;
+        return `Transaction initiée`;
       case 'document_uploaded':
-        return `Document tÃ©lÃ©chargÃ©: ${activity.details?.document_type || 'Type inconnu'}`;
+        return `Document téléchargé: ${activity.details?.document_type || 'Type inconnu'}`;
       default:
-        return activity.description || 'ActivitÃ© inconnue';
+        return activity.description || 'Activité inconnue';
     }
   };
 
@@ -272,7 +272,7 @@ const ParticulierDashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Analyse complÃ¨te de sÃ©curitÃ©
+      // Analyse complète de sécurité
       const securityAnalysis = await antiFraudAI.analyzeUserFraud(user.id, {
         profileAnalysis: true,
         behaviorAnalysis: true,
@@ -281,8 +281,8 @@ const ParticulierDashboard = () => {
       });
 
       toast({
-        title: "Analyse de sÃ©curitÃ© terminÃ©e",
-        description: `Score de sÃ©curitÃ©: ${Math.round((1 - securityAnalysis.riskScore) * 100)}%`,
+        title: "Analyse de sécurité terminée",
+        description: `Score de sécurité: ${Math.round((1 - securityAnalysis.riskScore) * 100)}%`,
       });
 
       setStats(prev => ({
@@ -291,11 +291,11 @@ const ParticulierDashboard = () => {
       }));
 
     } catch (error) {
-      console.error('Erreur analyse sÃ©curitÃ©:', error);
+      console.error('Erreur analyse sécurité:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible d'effectuer l'analyse de sÃ©curitÃ©",
+        description: "Impossible d'effectuer l'analyse de sécurité",
       });
     }
   };
@@ -307,16 +307,16 @@ const ParticulierDashboard = () => {
       const isFav = await SupabaseDataService.isParcelFavorite(user.id, parcelId);
       if (isFav) {
         await SupabaseDataService.removeFromFavorites(user.id, parcelId);
-        toast({ title: 'RetirÃ© des favoris' });
+        toast({ title: 'Retiré des favoris' });
       } else {
         await SupabaseDataService.addToFavorites(user.id, parcelId);
-        toast({ title: 'AjoutÃ© aux favoris' });
+        toast({ title: 'Ajouté aux favoris' });
       }
       // Refresh favorites count & recommendations
       loadDashboardData();
     } catch (e) {
       console.error(e);
-      toast({ variant:'destructive', title:'Erreur', description:'Impossible de mettre Ã  jour les favoris' });
+      toast({ variant:'destructive', title:'Erreur', description:'Impossible de mettre à jour les favoris' });
     } finally {
       setFavoriteBusy(null);
     }
@@ -325,20 +325,20 @@ const ParticulierDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* En-tÃªte avec salutations */}
+        {/* En-tête avec salutations */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Bonjour {user?.full_name || 'Utilisateur'} ðŸ‘‹
+              Bonjour {user?.full_name || 'Utilisateur'} ??
             </h1>
             <p className="text-gray-600 mt-1">
-              Votre tableau de bord personnel sÃ©curisÃ© par IA anti-fraude
+              Votre tableau de bord personnel sécurisé par IA anti-fraude
             </p>
           </div>
           <div className="flex gap-3">
             <Button onClick={handleSecurityCheck} className="bg-green-600 hover:bg-green-700">
               <Shield className="h-4 w-4 mr-2" />
-              VÃ©rifier la SÃ©curitÃ©
+              Vérifier la Sécurité
             </Button>
             <Button variant="outline" onClick={()=> setShowMunicipalModal(true)}>
               <MapPin className="h-4 w-4 mr-2" />
@@ -389,7 +389,7 @@ const ParticulierDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">SÃ©curitÃ©</p>
+                  <p className="text-sm font-medium text-gray-600">Sécurité</p>
                   <p className="text-3xl font-bold text-purple-600">{stats.securityScore}%</p>
                 </div>
                 <Shield className="h-8 w-8 text-purple-500" />
@@ -398,13 +398,13 @@ const ParticulierDashboard = () => {
           </Card>
         </div>
 
-        {/* Alertes de sÃ©curitÃ© */}
+        {/* Alertes de sécurité */}
         {securityAlerts.length > 0 && (
           <Card className="border-red-200 bg-red-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-700">
                 <AlertTriangle className="h-5 w-5" />
-                Alertes de SÃ©curitÃ©
+                Alertes de Sécurité
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -435,7 +435,7 @@ const ParticulierDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Star className="h-5 w-5 text-yellow-500" />
-                  Recommandations IA PersonnalisÃ©es
+                  Recommandations IA Personnalisées
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -472,7 +472,7 @@ const ParticulierDashboard = () => {
                             {parcel.price?.toLocaleString()} FCFA
                           </span>
                           <span className="text-xs text-gray-500">
-                            {parcel.surface} mÂ²
+                            {parcel.surface} m²
                           </span>
                         </div>
                         <div className="mt-2 flex gap-2">
@@ -492,20 +492,20 @@ const ParticulierDashboard = () => {
             </Card>
           </div>
 
-          {/* ActivitÃ© rÃ©cente */}
+          {/* Activité récente */}
           <div>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-blue-500" />
-                  ActivitÃ© RÃ©cente
+                  Activité Récente
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {recentActivity.length === 0 ? (
                   <div className="text-center py-8">
                     <Bell className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-500">Aucune activitÃ© rÃ©cente</p>
+                    <p className="text-sm text-gray-500">Aucune activité récente</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -564,7 +564,7 @@ const ParticulierDashboard = () => {
         onSuccess={() => {
           toast({
             title: "Demande soumise",
-            description: "Votre demande de transition vers vendeur a Ã©tÃ© soumise avec succÃ¨s",
+            description: "Votre demande de transition vers vendeur a été soumise avec succès",
           });
           setIsVendeurTransitionModalOpen(false);
         }}
@@ -573,24 +573,24 @@ const ParticulierDashboard = () => {
       {showMunicipalModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={()=> !creatingMunicipalReq && setShowMunicipalModal(false)}>âœ•</button>
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={()=> !creatingMunicipalReq && setShowMunicipalModal(false)}>?</button>
             <h2 className="text-xl font-semibold mb-4">Nouvelle Demande Municipale</h2>
-            <form onSubmit={async e=> { e.preventDefault(); if(!user) return; try { setCreatingMunicipalReq(true); const req = await SupabaseDataService.createMunicipalRequest({ requesterId:user.id, region: municipalReqForm.region, department: municipalReqForm.department, commune: municipalReqForm.commune, requestType: 'allocation_terrain', areaSqm: municipalReqForm.area_sqm? Number(municipalReqForm.area_sqm): null, message: municipalReqForm.message }); toast({ title:'Demande soumise', description:req?.reference || 'RÃ©fÃ©rence gÃ©nÃ©rÃ©e'}); setShowMunicipalModal(false); setMunicipalReqForm({ commune:'', department:'', region:'', area_sqm:'', message:''}); } catch(err){ console.error(err); toast({ variant:'destructive', title:'Erreur', description:'Soumission impossible'});} finally { setCreatingMunicipalReq(false);} }} className="space-y-4">
+            <form onSubmit={async e=> { e.preventDefault(); if(!user) return; try { setCreatingMunicipalReq(true); const req = await SupabaseDataService.createMunicipalRequest({ requesterId:user.id, region: municipalReqForm.region, department: municipalReqForm.department, commune: municipalReqForm.commune, requestType: 'allocation_terrain', areaSqm: municipalReqForm.area_sqm? Number(municipalReqForm.area_sqm): null, message: municipalReqForm.message }); toast({ title:'Demande soumise', description:req?.reference || 'Référence générée'}); setShowMunicipalModal(false); setMunicipalReqForm({ commune:'', department:'', region:'', area_sqm:'', message:''}); } catch(err){ console.error(err); toast({ variant:'destructive', title:'Erreur', description:'Soumission impossible'});} finally { setCreatingMunicipalReq(false);} }} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium mb-1">Commune *</label>
                   <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.commune} onChange={e=> setMunicipalReqForm(f=>({...f, commune:e.target.value}))} required />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1">DÃ©partement</label>
+                  <label className="block text-xs font-medium mb-1">Département</label>
                   <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.department} onChange={e=> setMunicipalReqForm(f=>({...f, department:e.target.value}))} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1">RÃ©gion</label>
+                  <label className="block text-xs font-medium mb-1">Région</label>
                   <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.region} onChange={e=> setMunicipalReqForm(f=>({...f, region:e.target.value}))} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1">Surface (mÂ²)</label>
+                  <label className="block text-xs font-medium mb-1">Surface (m²)</label>
                   <input type="number" min="0" className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.area_sqm} onChange={e=> setMunicipalReqForm(f=>({...f, area_sqm:e.target.value}))} />
                 </div>
               </div>

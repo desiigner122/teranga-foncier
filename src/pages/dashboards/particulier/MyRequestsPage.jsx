@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -79,8 +79,8 @@ const MyRequestsPage = () => {
     const statusConfig = {
       'en_attente': { label: 'En attente', variant: 'default' },
       'en_cours': { label: 'En cours', variant: 'secondary' },
-      'approuvee': { label: 'ApprouvÃ©e', variant: 'success' },
-      'rejetee': { label: 'RejetÃ©e', variant: 'destructive' }
+      'approuvee': { label: 'Approuvée', variant: 'success' },
+      'rejetee': { label: 'Rejetée', variant: 'destructive' }
     };
 
     const config = statusConfig[status] || { label: status, variant: 'default' };
@@ -147,7 +147,7 @@ const MyRequestsPage = () => {
           Mes Demandes
         </h1>
         <p className="text-muted-foreground">
-          Suivez l'Ã©tat de vos demandes de terrain et de financement
+          Suivez l'état de vos demandes de terrain et de financement
         </p>
       </div>
 
@@ -175,8 +175,8 @@ const MyRequestsPage = () => {
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="en_attente">En attente</SelectItem>
                   <SelectItem value="en_cours">En cours</SelectItem>
-                  <SelectItem value="approuvee">ApprouvÃ©e</SelectItem>
-                  <SelectItem value="rejetee">RejetÃ©e</SelectItem>
+                  <SelectItem value="approuvee">Approuvée</SelectItem>
+                  <SelectItem value="rejetee">Rejetée</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -242,7 +242,7 @@ const MyRequestsPage = () => {
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
               <div>
-                <p className="text-sm text-muted-foreground">ApprouvÃ©es</p>
+                <p className="text-sm text-muted-foreground">Approuvées</p>
                 <p className="text-2xl font-bold">
                   {requests.filter(r => r.status === 'approuvee').length}
                 </p>
@@ -258,11 +258,11 @@ const MyRequestsPage = () => {
           <Card>
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Aucune demande trouvÃ©e</h3>
+              <h3 className="text-lg font-semibold mb-2">Aucune demande trouvée</h3>
               <p className="text-muted-foreground">
                 {requests.length === 0 
-                  ? "Vous n'avez pas encore fait de demande. CrÃ©ez votre premiÃ¨re demande pour commencer."
-                  : "Aucune demande ne correspond Ã  vos critÃ¨res de recherche."
+                  ? "Vous n'avez pas encore fait de demande. Créez votre première demande pour commencer."
+                  : "Aucune demande ne correspond à vos critères de recherche."
                 }
               </p>
             </CardContent>
@@ -284,7 +284,7 @@ const MyRequestsPage = () => {
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>CrÃ©Ã©e le {formatDate(request.created_at)}</span>
+                        <span>Créée le {formatDate(request.created_at)}</span>
                       </div>
                       
                       <div className="flex items-center gap-1">
@@ -311,7 +311,7 @@ const MyRequestsPage = () => {
                   <div className="flex flex-col gap-2">
                     <Button variant="outline" size="sm">
                       <Eye className="h-4 w-4 mr-2" />
-                      Voir dÃ©tails
+                      Voir détails
                     </Button>
                     
                     {request.status === 'en_cours' && (

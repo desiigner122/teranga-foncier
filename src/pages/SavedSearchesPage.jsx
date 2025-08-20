@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -25,17 +25,17 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const formatSearchParams = (params) => {
-  if (!params) return 'CritÃ¨res non dÃ©finis.';
+  if (!params) return 'Critères non définis.';
   const parts = [];
   if (params.search) parts.push(`Terme: "${params.search}"`);
   if (params.zone && params.zone !== 'all') parts.push(`Zone: ${params.zone}`);
   if (params.status && params.status !== 'all') parts.push(`Statut: ${params.status}`);
   if (params.minPrice) parts.push(`Prix min: ${new Intl.NumberFormat('fr-SN', {style:'currency', currency:'XOF', maximumFractionDigits:0}).format(params.minPrice)}`);
   if (params.maxPrice) parts.push(`Prix max: ${new Intl.NumberFormat('fr-SN', {style:'currency', currency:'XOF', maximumFractionDigits:0}).format(params.maxPrice)}`);
-  if (params.minArea) parts.push(`Surface min: ${params.minArea} mÂ²`);
-  if (params.maxArea) parts.push(`Surface max: ${params.maxArea} mÂ²`);
+  if (params.minArea) parts.push(`Surface min: ${params.minArea} m²`);
+  if (params.maxArea) parts.push(`Surface max: ${params.maxArea} m²`);
   
-  if (parts.length === 0) return "Tous les terrains (aucun critÃ¨re spÃ©cifique).";
+  if (parts.length === 0) return "Tous les terrains (aucun critère spécifique).";
   return parts.join(' | ');
 };
 
@@ -56,13 +56,13 @@ const SavedSearchCard = ({ search, onToggleNotify, onDelete, onEdit, onViewResul
           </CardTitle>
           <Badge variant={search.notify ? 'success' : 'secondary'} className="flex items-center self-start sm:self-center text-xs py-1 px-2">
             {search.notify ? <Bell className="h-3.5 w-3.5 mr-1.5"/> : <BellOff className="h-3.5 w-3.5 mr-1.5"/>}
-            Notifications {search.notify ? 'ActivÃ©es' : 'DÃ©sactivÃ©es'}
+            Notifications {search.notify ? 'Activées' : 'Désactivées'}
           </Badge>
         </div>
-        <CardDescription className="text-xs mt-1">CrÃ©Ã©e le: {new Date(search.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</CardDescription>
+        <CardDescription className="text-xs mt-1">Créée le: {new Date(search.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm font-medium mb-1.5 text-foreground">CritÃ¨res :</p>
+        <p className="text-sm font-medium mb-1.5 text-foreground">Critères :</p>
         <p className="text-sm text-muted-foreground bg-muted/40 p-3 rounded-md border border-dashed border-border/70 text-xs leading-relaxed">
           {formatSearchParams(search.search_parameters)}
         </p>
@@ -81,7 +81,7 @@ const SavedSearchCard = ({ search, onToggleNotify, onDelete, onEdit, onViewResul
              <Button variant="outline" size="sm" onClick={() => onEdit(search)} title="Modifier cette recherche">
                  <Edit3 className="h-4 w-4"/>
              </Button>
-              <Button variant="default" size="sm" onClick={() => onViewResults(search.search_parameters)} title="Voir les rÃ©sultats actuels">
+              <Button variant="default" size="sm" onClick={() => onViewResults(search.search_parameters)} title="Voir les résultats actuels">
                  <ExternalLink className="h-4 w-4"/>
              </Button>
              <AlertDialog>
@@ -94,7 +94,7 @@ const SavedSearchCard = ({ search, onToggleNotify, onDelete, onEdit, onViewResul
                    <AlertDialogHeader>
                      <AlertDialogTitle>Confirmer la Suppression</AlertDialogTitle>
                      <AlertDialogDescription>
-                       Voulez-vous vraiment supprimer la recherche sauvegardÃ©e "{search.search_name || 'Recherche Sans Nom'}" ? Cette action est irrÃ©versible et arrÃªtera les notifications associÃ©es.
+                       Voulez-vous vraiment supprimer la recherche sauvegardée "{search.search_name || 'Recherche Sans Nom'}" ? Cette action est irréversible et arrêtera les notifications associées.
                      </AlertDialogDescription>
                    </AlertDialogHeader>
                    <AlertDialogFooter>
@@ -155,7 +155,7 @@ const SavedSearchesPage = () => {
     setError(null);
 
     if (!user) {
-      setError("Veuillez vous connecter pour gÃ©rer vos recherches sauvegardÃ©es.");
+      setError("Veuillez vous connecter pour gérer vos recherches sauvegardées.");
       setLoading(false);
       return;
     }
@@ -165,8 +165,8 @@ const SavedSearchesPage = () => {
         const userSearches = initialSampleSearches.filter(s => s.user_id === 'user1'); // Demo user_id
         setSavedSearches(userSearches.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)));
       } catch (err) {
-        console.error("Erreur de chargement des recherches sauvegardÃ©es:", err);
-        setError("Impossible de charger vos recherches sauvegardÃ©es.");
+        console.error("Erreur de chargement des recherches sauvegardées:", err);
+        setError("Impossible de charger vos recherches sauvegardées.");
         setSavedSearches([]);
       } finally {
         setLoading(false);
@@ -178,7 +178,7 @@ const SavedSearchesPage = () => {
   const handleToggleNotify = (searchId, notify) => {
     try {
       setSavedSearches(prev => prev.map(s => s.id === searchId ? { ...s, notify: notify } : s));
-      toast({ title: `Alertes ${notify ? 'activÃ©es' : 'dÃ©sactivÃ©es'}`, description: `Les notifications pour cette recherche ont Ã©tÃ© ${notify ? 'activÃ©es' : 'dÃ©sactivÃ©es'}.` });
+      toast({ title: `Alertes ${notify ? 'activées' : 'désactivées'}`, description: `Les notifications pour cette recherche ont été ${notify ? 'activées' : 'désactivées'}.` });
     } catch (err) {
       toast({ title: "Erreur", description: "Impossible de modifier le statut des notifications.", variant: "destructive" });
     }
@@ -187,14 +187,14 @@ const SavedSearchesPage = () => {
   const handleDeleteSearch = (searchId) => {
     try {
       setSavedSearches(prev => prev.filter(s => s.id !== searchId));
-      toast({ title: "Recherche SupprimÃ©e", description: "La recherche sauvegardÃ©e a Ã©tÃ© supprimÃ©e avec succÃ¨s." });
+      toast({ title: "Recherche Supprimée", description: "La recherche sauvegardée a été supprimée avec succès." });
     } catch (err) {
       toast({ title: "Erreur", description: "Impossible de supprimer la recherche.", variant: "destructive" });
     }
   };
 
   const handleEditSearch = (search) => {
-     toast({ title: "FonctionnalitÃ© Ã  venir", description: "La modification des recherches sera bientÃ´t disponible. Pour l'instant, supprimez et recrÃ©ez votre recherche." });
+     toast({ title: "Fonctionnalité à venir", description: "La modification des recherches sera bientôt disponible. Pour l'instant, supprimez et recréez votre recherche." });
   };
 
    const handleAddNewSearch = () => {
@@ -205,8 +205,8 @@ const SavedSearchesPage = () => {
             <p className="mb-2">Pour sauvegarder une nouvelle recherche :</p>
             <ol className="list-decimal list-inside text-sm space-y-1">
               <li>Allez sur la <Link to="/parcelles" className="text-primary underline">page des parcelles</Link>.</li>
-              <li>Appliquez les filtres souhaitÃ©s (zone, prix, surface, etc.).</li>
-              <li>Cliquez sur le bouton "Sauvegarder la Recherche" (bientÃ´t disponible en haut des filtres).</li>
+              <li>Appliquez les filtres souhaités (zone, prix, surface, etc.).</li>
+              <li>Cliquez sur le bouton "Sauvegarder la Recherche" (bientôt disponible en haut des filtres).</li>
             </ol>
           </div>
         ),
@@ -219,7 +219,7 @@ const SavedSearchesPage = () => {
     // Navigate to parcels list page with these params
     // This is a placeholder navigation, a real app would use react-router's navigate
     window.location.href = `/parcelles?${queryParams}`;
-    toast({ title: "Redirection...", description: "Affichage des rÃ©sultats correspondants."});
+    toast({ title: "Redirection...", description: "Affichage des résultats correspondants."});
   };
 
   return (
@@ -232,12 +232,12 @@ const SavedSearchesPage = () => {
       <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="text-center sm:text-left">
           <h1 className="text-3xl md:text-4xl font-bold text-primary flex items-center">
-            <SearchCheck className="h-8 w-8 mr-3 text-primary"/> Mes Recherches SauvegardÃ©es
+            <SearchCheck className="h-8 w-8 mr-3 text-primary"/> Mes Recherches Sauvegardées
           </h1>
-          <p className="text-muted-foreground mt-1">GÃ©rez vos critÃ¨res de recherche et soyez alertÃ© des nouvelles parcelles correspondantes.</p>
+          <p className="text-muted-foreground mt-1">Gérez vos critères de recherche et soyez alerté des nouvelles parcelles correspondantes.</p>
         </div>
          <Button onClick={handleAddNewSearch} variant="default" size="lg" className="self-center sm:self-auto">
-             <PlusCircle className="h-5 w-5 mr-2"/> CrÃ©er une Nouvelle Recherche
+             <PlusCircle className="h-5 w-5 mr-2"/> Créer une Nouvelle Recherche
          </Button>
       </div>
 
@@ -265,10 +265,10 @@ const SavedSearchesPage = () => {
       ) : (
         <div className="text-center py-16 bg-card rounded-lg border border-dashed border-border/70 shadow-sm">
           <SearchCheck className="h-16 w-16 mx-auto text-muted-foreground/70 mb-5" />
-          <h2 className="text-2xl font-semibold mb-2 text-foreground">Aucune recherche sauvegardÃ©e pour le moment.</h2>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">Sauvegardez vos critÃ¨res de recherche depuis la page des terrains pour Ãªtre alertÃ© des nouvelles opportunitÃ©s.</p>
+          <h2 className="text-2xl font-semibold mb-2 text-foreground">Aucune recherche sauvegardée pour le moment.</h2>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">Sauvegardez vos critères de recherche depuis la page des terrains pour être alerté des nouvelles opportunités.</p>
           <Button asChild size="lg">
-            <Link to="/parcelles">Explorer les parcelles et dÃ©finir des alertes</Link>
+            <Link to="/parcelles">Explorer les parcelles et définir des alertes</Link>
           </Button>
         </div>
       )}

@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -64,8 +64,8 @@ const MyFavoritesPage = () => {
       await SupabaseDataService.removeFavorite(user.id, favoriteId);
       setFavorites(prev => prev.filter(f => f.id !== favoriteId));
       toast({
-        title: "Favori supprimÃ©",
-        description: `"${itemTitle}" a Ã©tÃ© retirÃ© de vos favoris`
+        title: "Favori supprimé",
+        description: `"${itemTitle}" a été retiré de vos favoris`
       });
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
@@ -108,7 +108,7 @@ const MyFavoritesPage = () => {
   };
 
   const formatPrice = (price) => {
-    if (!price) return 'Prix non spÃ©cifiÃ©';
+    if (!price) return 'Prix non spécifié';
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'XOF',
@@ -223,7 +223,7 @@ const MyFavoritesPage = () => {
               <div className="flex items-center space-x-2">
                 <Star className="h-5 w-5 text-yellow-500" />
                 <span className="text-sm text-muted-foreground">
-                  {filteredFavorites.length} favoris affichÃ©s
+                  {filteredFavorites.length} favoris affichés
                 </span>
               </div>
             </div>
@@ -245,12 +245,12 @@ const MyFavoritesPage = () => {
             <CardContent className="p-8 text-center">
               <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">
-                {favorites.length === 0 ? "Aucun favori" : "Aucun rÃ©sultat"}
+                {favorites.length === 0 ? "Aucun favori" : "Aucun résultat"}
               </h3>
               <p className="text-muted-foreground">
                 {favorites.length === 0 
-                  ? "Vous n'avez pas encore ajoutÃ© de biens Ã  vos favoris. Explorez les annonces et ajoutez vos coups de cÅ“ur !"
-                  : "Aucun favori ne correspond Ã  vos critÃ¨res de recherche."
+                  ? "Vous n'avez pas encore ajouté de biens à vos favoris. Explorez les annonces et ajoutez vos coups de cœur !"
+                  : "Aucun favori ne correspond à vos critères de recherche."
                 }
               </p>
             </CardContent>
@@ -268,7 +268,7 @@ const MyFavoritesPage = () => {
                     </div>
                     <div className="absolute bottom-2 left-2">
                       <Badge variant="secondary" className="text-xs">
-                        AjoutÃ© le {formatDate(favorite.created_at)}
+                        Ajouté le {formatDate(favorite.created_at)}
                       </Badge>
                     </div>
                   </div>
@@ -309,7 +309,7 @@ const MyFavoritesPage = () => {
                       
                       {favorite.surface && (
                         <div className="text-sm text-muted-foreground">
-                          Surface: {favorite.surface} mÂ²
+                          Surface: {favorite.surface} m²
                         </div>
                       )}
                     </div>
@@ -317,7 +317,7 @@ const MyFavoritesPage = () => {
                     <div className="flex gap-2 mt-4">
                       <Button variant="outline" size="sm" className="flex-1">
                         <Eye className="h-4 w-4 mr-2" />
-                        Voir dÃ©tails
+                        Voir détails
                       </Button>
                       <Button variant="outline" size="sm">
                         <Share2 className="h-4 w-4" />

@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -38,7 +38,7 @@ const LogbookPage = () => {
         return;
       }
 
-      // RÃ©cupÃ©rer les entrÃ©es du journal agricole depuis la table agricultural_logs
+      // Récupérer les entrées du journal agricole depuis la table agricultural_logs
       const { data: logEntries, error } = await SupabaseDataService.supabaseClient
         .from('agricultural_logs')
         .select(`
@@ -69,13 +69,13 @@ const LogbookPage = () => {
 
   const getActivityIcon = (type) => {
     switch (type) {
-      case 'planting': return 'ðŸŒ±';
-      case 'irrigation': return 'ðŸ’§';
-      case 'fertilizing': return 'ðŸŒ¿';
-      case 'harvesting': return 'ðŸŒ¾';
-      case 'treatment': return 'ðŸš¿';
-      case 'maintenance': return 'ðŸ”§';
-      default: return 'ðŸ“';
+      case 'planting': return '??';
+      case 'irrigation': return '??';
+      case 'fertilizing': return '??';
+      case 'harvesting': return '??';
+      case 'treatment': return '??';
+      case 'maintenance': return '??';
+      default: return '??';
     }
   };
 
@@ -84,7 +84,7 @@ const LogbookPage = () => {
       case 'planting': return 'Plantation';
       case 'irrigation': return 'Irrigation';
       case 'fertilizing': return 'Fertilisation';
-      case 'harvesting': return 'RÃ©colte';
+      case 'harvesting': return 'Récolte';
       case 'treatment': return 'Traitement';
       case 'maintenance': return 'Maintenance';
       default: return 'Autre';
@@ -102,9 +102,9 @@ const LogbookPage = () => {
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'completed': return 'TerminÃ©';
+      case 'completed': return 'Terminé';
       case 'in_progress': return 'En cours';
-      case 'planned': return 'PlanifiÃ©';
+      case 'planned': return 'Planifié';
       default: return status;
     }
   };
@@ -136,7 +136,7 @@ const LogbookPage = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6 p-4 md:p-6"
     >
-      {/* En-tÃªte */}
+      {/* En-tête */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex items-center">
@@ -144,17 +144,17 @@ const LogbookPage = () => {
             Journal d'Exploitation
           </h1>
           <p className="text-sm text-muted-foreground max-w-prose mt-1">
-            Suivez toutes vos activitÃ©s agricoles et gardez un historique dÃ©taillÃ©
+            Suivez toutes vos activités agricoles et gardez un historique détaillé
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={loadLogbookEntries} disabled={refreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            RafraÃ®chir
+            Rafraîchir
           </Button>
           <Button size="sm">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Nouvelle entrÃ©e
+            Nouvelle entrée
           </Button>
         </div>
       </div>
@@ -163,7 +163,7 @@ const LogbookPage = () => {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Filtres et recherche</CardTitle>
-          <CardDescription>Trouvez rapidement vos activitÃ©s agricoles</CardDescription>
+          <CardDescription>Trouvez rapidement vos activités agricoles</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -178,14 +178,14 @@ const LogbookPage = () => {
             </div>
             <Select value={activityFilter} onValueChange={setActivityFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Type d'activitÃ©" />
+                <SelectValue placeholder="Type d'activité" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes les activitÃ©s</SelectItem>
+                <SelectItem value="all">Toutes les activités</SelectItem>
                 <SelectItem value="planting">Plantation</SelectItem>
                 <SelectItem value="irrigation">Irrigation</SelectItem>
                 <SelectItem value="fertilizing">Fertilisation</SelectItem>
-                <SelectItem value="harvesting">RÃ©colte</SelectItem>
+                <SelectItem value="harvesting">Récolte</SelectItem>
                 <SelectItem value="treatment">Traitement</SelectItem>
                 <SelectItem value="maintenance">Maintenance</SelectItem>
               </SelectContent>
@@ -214,12 +214,12 @@ const LogbookPage = () => {
         </CardContent>
       </Card>
 
-      {/* Liste des entrÃ©es */}
+      {/* Liste des entrées */}
       <Card>
         <CardHeader>
-          <CardTitle>Historique des activitÃ©s</CardTitle>
+          <CardTitle>Historique des activités</CardTitle>
           <CardDescription>
-            {filteredEntries.length} entrÃ©e(s) dans votre journal
+            {filteredEntries.length} entrée(s) dans votre journal
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -227,17 +227,17 @@ const LogbookPage = () => {
             <div className="text-center py-8">
               <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {entries.length === 0 ? 'Aucune entrÃ©e dans le journal' : 'Aucun rÃ©sultat'}
+                {entries.length === 0 ? 'Aucune entrée dans le journal' : 'Aucun résultat'}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {entries.length === 0 
-                  ? 'Commencez Ã  enregistrer vos activitÃ©s agricoles'
-                  : 'Essayez de modifier vos critÃ¨res de recherche'
+                  ? 'Commencez à enregistrer vos activités agricoles'
+                  : 'Essayez de modifier vos critères de recherche'
                 }
               </p>
               <Button className="mt-4" size="sm">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Ajouter une entrÃ©e
+                Ajouter une entrée
               </Button>
             </div>
           ) : (
@@ -281,14 +281,14 @@ const LogbookPage = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     {entry.duration_hours && (
                       <div>
-                        <span className="text-muted-foreground">DurÃ©e:</span>
+                        <span className="text-muted-foreground">Durée:</span>
                         <p className="font-medium">{entry.duration_hours}h</p>
                       </div>
                     )}
                     
                     {entry.cost && (
                       <div>
-                        <span className="text-muted-foreground">CoÃ»t:</span>
+                        <span className="text-muted-foreground">Coût:</span>
                         <p className="font-medium text-red-600">
                           {entry.cost.toLocaleString()} FCFA
                         </p>
@@ -297,14 +297,14 @@ const LogbookPage = () => {
 
                     {entry.weather_conditions && (
                       <div>
-                        <span className="text-muted-foreground">MÃ©tÃ©o:</span>
+                        <span className="text-muted-foreground">Météo:</span>
                         <p className="font-medium">{entry.weather_conditions}</p>
                       </div>
                     )}
 
                     {entry.equipment_used && (
                       <div>
-                        <span className="text-muted-foreground">Ã‰quipement:</span>
+                        <span className="text-muted-foreground">Équipement:</span>
                         <p className="font-medium">{entry.equipment_used}</p>
                       </div>
                     )}

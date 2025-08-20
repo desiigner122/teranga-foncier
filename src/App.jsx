@@ -1,6 +1,6 @@
-ï»¿// src/App.jsx
+// src/App.jsx
 import React from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { BrowserRouter as Router, Route, Routes, Outlet, Link, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/Header';
@@ -151,10 +151,10 @@ const NotFoundPage = () => (
    <div className="container mx-auto text-center py-20 flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
      <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 100 }}>
        <h1 className="text-6xl font-bold text-primary">404</h1>
-       <h2 className="text-2xl font-semibold mb-4">Page Non TrouvÃ©e</h2>
-       <p className="text-muted-foreground mb-8 max-w-md">DÃ©solÃ©, la page que vous recherchez semble s'Ãªtre Ã©garÃ©e dans le cadastre numÃ©rique.</p>
+       <h2 className="text-2xl font-semibold mb-4">Page Non Trouvée</h2>
+       <p className="text-muted-foreground mb-8 max-w-md">Désolé, la page que vous recherchez semble s'être égarée dans le cadastre numérique.</p>
        <Button asChild size="lg" className="bg-gradient-to-r from-green-500 to-primary hover:opacity-90 text-white">
-         <Link to="/">Retourner Ã  l'Accueil</Link>
+         <Link to="/">Retourner à l'Accueil</Link>
        </Button>
      </motion.div>
    </div>

@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -89,8 +89,8 @@ const MyPropertiesPage = () => {
       await SupabaseDataService.createProperty(propertyData);
       
       toast({
-        title: "Bien ajoutÃ©",
-        description: "Votre bien a Ã©tÃ© ajoutÃ© avec succÃ¨s"
+        title: "Bien ajouté",
+        description: "Votre bien a été ajouté avec succès"
       });
 
       setFormData({
@@ -109,7 +109,7 @@ const MyPropertiesPage = () => {
       setShowAddForm(false);
       loadProperties();
     } catch (error) {
-      console.error('Erreur lors de la crÃ©ation du bien:', error);
+      console.error('Erreur lors de la création du bien:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -132,8 +132,8 @@ const MyPropertiesPage = () => {
       await SupabaseDataService.deleteProperty(propertyId);
       setProperties(prev => prev.filter(p => p.id !== propertyId));
       toast({
-        title: "Bien supprimÃ©",
-        description: `"${propertyTitle}" a Ã©tÃ© supprimÃ©`
+        title: "Bien supprimé",
+        description: `"${propertyTitle}" a été supprimé`
       });
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
@@ -201,7 +201,7 @@ const MyPropertiesPage = () => {
             Mes Biens
           </h1>
           <p className="text-muted-foreground">
-            GÃ©rez votre portefeuille immobilier
+            Gérez votre portefeuille immobilier
           </p>
         </div>
         <Button onClick={() => setShowAddForm(true)}>
@@ -236,7 +236,7 @@ const MyPropertiesPage = () => {
                   <Label htmlFor="type">Type de bien *</Label>
                   <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="SÃ©lectionnez le type" />
+                      <SelectValue placeholder="Sélectionnez le type" />
                     </SelectTrigger>
                     <SelectContent>
                       {propertyTypes.map((type) => (
@@ -260,7 +260,7 @@ const MyPropertiesPage = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="surface">Surface (mÂ²)</Label>
+                  <Label htmlFor="surface">Surface (m²)</Label>
                   <Input
                     id="surface"
                     type="number"
@@ -299,12 +299,12 @@ const MyPropertiesPage = () => {
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="DÃ©crivez votre bien..."
+                  placeholder="Décrivez votre bien..."
                 />
               </div>
 
               <div>
-                <Label>Ã‰quipements et caractÃ©ristiques</Label>
+                <Label>Équipements et caractéristiques</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                   {featuresOptions.map((feature) => (
                     <div key={feature} className="flex items-center space-x-2">
@@ -419,7 +419,7 @@ const MyPropertiesPage = () => {
             <div className="flex items-center space-x-2">
               <DollarSign className="h-5 w-5 text-yellow-500" />
               <div>
-                <p className="text-sm text-muted-foreground">En nÃ©gociation</p>
+                <p className="text-sm text-muted-foreground">En négociation</p>
                 <p className="text-2xl font-bold">
                   {properties.filter(p => p.status === 'under_negotiation').length}
                 </p>
@@ -449,11 +449,11 @@ const MyPropertiesPage = () => {
           <Card>
             <CardContent className="p-8 text-center">
               <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Aucun bien trouvÃ©</h3>
+              <h3 className="text-lg font-semibold mb-2">Aucun bien trouvé</h3>
               <p className="text-muted-foreground">
                 {properties.length === 0 
-                  ? "Vous n'avez pas encore ajoutÃ© de biens. Commencez par ajouter votre premier bien."
-                  : "Aucun bien ne correspond Ã  vos critÃ¨res de recherche."
+                  ? "Vous n'avez pas encore ajouté de biens. Commencez par ajouter votre premier bien."
+                  : "Aucun bien ne correspond à vos critères de recherche."
                 }
               </p>
             </CardContent>
@@ -500,7 +500,7 @@ const MyPropertiesPage = () => {
                       
                       <div className="flex gap-4 text-sm text-muted-foreground">
                         {property.surface && (
-                          <span>{property.surface} mÂ²</span>
+                          <span>{property.surface} m²</span>
                         )}
                         {property.bedrooms && (
                           <span>{property.bedrooms} ch.</span>

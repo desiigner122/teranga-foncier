@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -29,11 +29,11 @@ const MairieRequestsPage = () => {
         setLoading(true);
         
         if (user && user.id) {
-          // Utiliser la nouvelle mÃ©thode pour rÃ©cupÃ©rer les demandes destinÃ©es spÃ©cifiquement Ã  cette mairie
+          // Utiliser la nouvelle méthode pour récupérer les demandes destinées spécifiquement à cette mairie
           const mairieRequests = await SupabaseDataService.getRequestsByRecipient(user.id, 'mairie');
           setRequests(mairieRequests);
         } else {
-          // Fallback: rÃ©cupÃ©rer toutes les demandes de type mairie si pas d'utilisateur spÃ©cifique
+          // Fallback: récupérer toutes les demandes de type mairie si pas d'utilisateur spécifique
           const allRequests = await SupabaseDataService.getRequests();
           const mairieRequests = allRequests.filter(r => 
             r.recipient_type === 'Mairie' || 
@@ -101,8 +101,8 @@ const MairieRequestsPage = () => {
             <select className="border rounded px-2 text-sm" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
               <option value="all">Tous statuts</option>
               <option value="pending">En attente</option>
-              <option value="approved">ApprouvÃ©</option>
-              <option value="rejected">RejetÃ©</option>
+              <option value="approved">Approuvé</option>
+              <option value="rejected">Rejeté</option>
             </select>
           </div>
         </CardHeader>
@@ -137,10 +137,10 @@ const MairieRequestsPage = () => {
                         <Button variant="outline" size="sm" onClick={() => handleRequestAction(req.id,'Instruite','in_review')}>
                           Instruire
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'ApprouvÃ©e','approved')}>
+                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'Approuvée','approved')}>
                           <CheckCircle className="h-4 w-4 text-green-500"/>
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'RejetÃ©e','rejected')}>
+                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'Rejetée','rejected')}>
                           <XCircle className="h-4 w-4 text-red-500"/>
                         </Button>
                       </td>

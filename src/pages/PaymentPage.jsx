@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -50,7 +50,7 @@ const PaymentPage = () => {
           setCurrentStatus(found.status);
         }
       } catch (e) {
-        toast({ title:'Erreur', description:e.message||'Transaction non trouvÃ©e', variant:'destructive' });
+        toast({ title:'Erreur', description:e.message||'Transaction non trouvée', variant:'destructive' });
         navigate('/transactions');
       }
     })();
@@ -93,7 +93,7 @@ const PaymentPage = () => {
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-      toast({ title:'Non connectÃ©', description:'Connectez-vous pour payer', variant:'destructive' });
+      toast({ title:'Non connecté', description:'Connectez-vous pour payer', variant:'destructive' });
       return;
     }
     setIsProcessing(true);
@@ -104,18 +104,18 @@ const PaymentPage = () => {
   if (paid?.status) setCurrentStatus(paid.status);
       if (paid) {
         toast({
-          title: 'Paiement RÃ©ussi !',
-          description: `Le paiement de ${formatPrice(paid.amount || transaction.amount)} pour ${paid.reference || transaction.reference || transaction.description} a Ã©tÃ© enregistrÃ©.`,
+          title: 'Paiement Réussi !',
+          description: `Le paiement de ${formatPrice(paid.amount || transaction.amount)} pour ${paid.reference || transaction.reference || transaction.description} a été enregistré.`,
           variant: 'success'
         });
       } else {
-        toast({ title:'Paiement', description:'Transaction marquÃ©e payÃ©e.', variant:'success' });
+        toast({ title:'Paiement', description:'Transaction marquée payée.', variant:'success' });
       }
       setTimeout(()=> navigate('/transactions'), 2500);
     } catch (err) {
       console.error(err);
       setIsProcessing(false);
-      toast({ title:'Erreur paiement', description: err.message || 'Ã‰chec du paiement', variant:'destructive' });
+      toast({ title:'Erreur paiement', description: err.message || 'Échec du paiement', variant:'destructive' });
     }
   };
 
@@ -125,14 +125,14 @@ const PaymentPage = () => {
         return (
           <div className="space-y-4">
             <Select onValueChange={(value) => setPaymentDetails({ provider: value })}>
-              <SelectTrigger><SelectValue placeholder="Choisissez un opÃ©rateur" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Choisissez un opérateur" /></SelectTrigger>
               <SelectContent>
                 {paymentMethods.find(p => p.id === 'mobile')?.providers?.map(provider => (
                   <SelectItem key={provider} value={provider}>{provider}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Input type="tel" placeholder="NumÃ©ro de tÃ©lÃ©phone (ex: 771234567)" required />
+            <Input type="tel" placeholder="Numéro de téléphone (ex: 771234567)" required />
           </div>
         );
       case 'transfer':
@@ -146,19 +146,19 @@ const PaymentPage = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Input placeholder="NumÃ©ro de rÃ©fÃ©rence du virement" required />
+            <Input placeholder="Numéro de référence du virement" required />
             <p className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-md">
-              Veuillez effectuer un virement vers le compte IBAN <span className="font-mono">SN012 01010 123456789012 87</span> avec la rÃ©fÃ©rence de transaction <span className="font-mono">{transaction.id}</span>.
+              Veuillez effectuer un virement vers le compte IBAN <span className="font-mono">SN012 01010 123456789012 87</span> avec la référence de transaction <span className="font-mono">{transaction.id}</span>.
             </p>
           </div>
         );
       case 'check':
         return (
           <div className="space-y-4">
-            <Input placeholder="NumÃ©ro du chÃ¨que" required />
-            <Input placeholder="Banque Ã©mettrice" required />
+            <Input placeholder="Numéro du chèque" required />
+            <Input placeholder="Banque émettrice" required />
             <p className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-md">
-              Le chÃ¨que doit Ãªtre libellÃ© Ã  l'ordre de "Teranga Foncier SA" et dÃ©posÃ© Ã  notre agence principale.
+              Le chèque doit être libellé à l'ordre de "Teranga Foncier SA" et déposé à notre agence principale.
             </p>
           </div>
         );
@@ -179,9 +179,9 @@ const PaymentPage = () => {
         className="container mx-auto py-12 flex flex-col items-center justify-center text-center"
       >
         <CheckCircle className="h-24 w-24 text-green-500 mb-6" />
-        <h1 className="text-3xl font-bold mb-2">Paiement EffectuÃ© !</h1>
-        <p className="text-lg text-muted-foreground mb-4">Votre transaction a Ã©tÃ© traitÃ©e avec succÃ¨s (statut: {currentStatus || 'paid'}).</p>
-        <p className="text-sm">Vous allez Ãªtre redirigÃ© vers vos transactions...</p>
+        <h1 className="text-3xl font-bold mb-2">Paiement Effectué !</h1>
+        <p className="text-lg text-muted-foreground mb-4">Votre transaction a été traitée avec succès (statut: {currentStatus || 'paid'}).</p>
+        <p className="text-sm">Vous allez être redirigé vers vos transactions...</p>
       </motion.div>
     );
   }
@@ -197,8 +197,8 @@ const PaymentPage = () => {
       </Button>
       <Card className="overflow-hidden">
         <CardHeader className="bg-muted/30">
-          <CardTitle className="text-2xl">Paiement SÃ©curisÃ©</CardTitle>
-          <CardDescription>Finalisez votre transaction en toute sÃ©curitÃ©.</CardDescription>
+          <CardTitle className="text-2xl">Paiement Sécurisé</CardTitle>
+          <CardDescription>Finalisez votre transaction en toute sécurité.</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="border-b pb-4 mb-6">
@@ -221,14 +221,14 @@ const PaymentPage = () => {
             </div>
           </div>
           <div className="text-center mb-6">
-            <p className="text-sm text-muted-foreground">Montant Ã  payer</p>
+            <p className="text-sm text-muted-foreground">Montant à payer</p>
             <p className="text-4xl font-bold text-primary">{formatPrice(transaction.amount)}</p>
           </div>
 
           <form onSubmit={handlePaymentSubmit}>
             <div className="space-y-4">
               <div>
-                <Label>MÃ©thode de paiement</Label>
+                <Label>Méthode de paiement</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
                   {paymentMethods.map(method => {
                     const Icon = method.icon && typeof method.icon === 'string' ? (method.icon === 'Smartphone' ? Smartphone : method.icon === 'Landmark' ? Landmark : method.icon === 'FileCheck2' ? FileCheck2 : Smartphone) : Smartphone;
@@ -253,7 +253,7 @@ const PaymentPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="pt-4 border-t"
                 >
-                  <h3 className="font-semibold mb-4">DÃ©tails du paiement</h3>
+                  <h3 className="font-semibold mb-4">Détails du paiement</h3>
                   {renderPaymentDetails()}
                 </motion.div>
               )}

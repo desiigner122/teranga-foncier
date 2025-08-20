@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { realtimeStore } from '@/lib/realtimeStore';
 
 /**

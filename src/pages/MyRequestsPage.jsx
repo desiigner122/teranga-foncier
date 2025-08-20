@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -31,10 +31,10 @@ const getRequestStatusVariant = (status) => {
     case 'Nouvelle': return 'info';
     case 'En instruction':
     case 'En cours': return 'warning';
-    case 'TraitÃ©e': 
-    case 'ApprouvÃ©e': return 'success';
-    case 'AnnulÃ©e':
-    case 'RejetÃ©': return 'destructive';
+    case 'Traitée': 
+    case 'Approuvée': return 'success';
+    case 'Annulée':
+    case 'Rejeté': return 'destructive';
     default: return 'secondary';
   }
 };
@@ -72,11 +72,11 @@ const RequestCard = ({ request, parcelDetails }) => {
                 <div className="mb-3 p-3 bg-muted/50 rounded border text-sm">
                     <p className="font-semibold mb-1">Concernant la parcelle :</p>
                     <Link to={`/parcelles/${request.parcel_id}`} className="text-primary hover:underline font-medium block truncate">{parcelDetails.name}</Link>
-                    <p className="text-xs text-muted-foreground">{parcelDetails.zone} - {parcelDetails.area_sqm} mÂ²</p>
+                    <p className="text-xs text-muted-foreground">{parcelDetails.zone} - {parcelDetails.area_sqm} m²</p>
                 </div>
                 ) : (
                 <div className="mb-3 p-3 bg-muted/50 rounded border text-sm">
-                     <p className="font-semibold mb-1">Demande auprÃ¨s de : {request.recipient}</p>
+                     <p className="font-semibold mb-1">Demande auprès de : {request.recipient}</p>
                 </div>
                 )}
                 
@@ -195,7 +195,7 @@ const MyRequestsPage = () => {
     >
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-primary">Mes Demandes</h1>
-        <p className="text-muted-foreground">Suivez l'Ã©tat de vos demandes d'information, d'achat ou de visite.</p>
+        <p className="text-muted-foreground">Suivez l'état de vos demandes d'information, d'achat ou de visite.</p>
       </div>
 
       {loading ? (
@@ -214,7 +214,7 @@ const MyRequestsPage = () => {
       ) : (
         <div className="text-center py-16 bg-muted/50 rounded-lg border border-dashed">
           <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Aucune demande trouvÃ©e</h2>
+          <h2 className="text-xl font-semibold mb-2">Aucune demande trouvée</h2>
           <p className="text-muted-foreground mb-6">Vous n'avez pas encore soumis de demande. Explorez nos parcelles !</p>
           <Button asChild>
             <Link to="/parcelles">Voir les parcelles</Link>

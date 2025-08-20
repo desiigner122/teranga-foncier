@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -15,7 +15,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 const RoiCalculatorPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  // Loading gÃ©rÃ© par le hook temps rÃ©el
+  // Loading géré par le hook temps réel
   const [calculating, setCalculating] = useState(false);
   const { data: savedCalculations, loading: savedCalculationsLoading, error: savedCalculationsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -59,7 +59,7 @@ const RoiCalculatorPage = () => {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Veuillez remplir au minimum le coÃ»t total et le revenu estimÃ©"
+        description: "Veuillez remplir au minimum le coût total et le revenu estimé"
       });
       return;
     }
@@ -89,7 +89,7 @@ const RoiCalculatorPage = () => {
           rentabilite: roiSimple > 0 ? 'Profitable' : 'Non profitable'
         };
       } else {
-        // ROI actualisÃ© (VAN/TRI)
+        // ROI actualisé (VAN/TRI)
         const fluxAnnuel = (revenu - frais) / duree;
         let van = -cout;
         
@@ -106,7 +106,7 @@ const RoiCalculatorPage = () => {
           tri: tri.toFixed(2),
           roiActualise: roiActualise.toFixed(2),
           fluxAnnuel: fluxAnnuel.toFixed(2),
-          rentabilite: van > 0 ? 'Profitable (VAN positive)' : 'Non profitable (VAN nÃ©gative)'
+          rentabilite: van > 0 ? 'Profitable (VAN positive)' : 'Non profitable (VAN négative)'
         };
       }
 
@@ -116,7 +116,7 @@ const RoiCalculatorPage = () => {
       toast({
         variant: "destructive",
         title: "Erreur de calcul",
-        description: "VÃ©rifiez que tous les montants sont des nombres valides"
+        description: "Vérifiez que tous les montants sont des nombres valides"
       });
     } finally {
       setCalculating(false);
@@ -151,7 +151,7 @@ const RoiCalculatorPage = () => {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Veuillez effectuer un calcul et donner un nom Ã  votre simulation"
+        description: "Veuillez effectuer un calcul et donner un nom à votre simulation"
       });
       return;
     }
@@ -176,8 +176,8 @@ const RoiCalculatorPage = () => {
       if (error) throw error;
 
       toast({
-        title: "SuccÃ¨s",
-        description: "Calcul sauvegardÃ© avec succÃ¨s"
+        title: "Succès",
+        description: "Calcul sauvegardé avec succès"
       });
 
       setCalculationName('');
@@ -203,8 +203,8 @@ const RoiCalculatorPage = () => {
     setResults(calculation.results);
     
     toast({
-      title: "Calcul chargÃ©",
-      description: `Simulation "${calculation.name}" chargÃ©e avec succÃ¨s`
+      title: "Calcul chargé",
+      description: `Simulation "${calculation.name}" chargée avec succès`
     });
   };
 
@@ -240,7 +240,7 @@ const RoiCalculatorPage = () => {
           <CardHeader>
             <CardTitle>Simulez le Retour sur Investissement</CardTitle>
             <CardDescription>
-              Entrez les paramÃ¨tres de votre investissement pour calculer le ROI
+              Entrez les paramètres de votre investissement pour calculer le ROI
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -252,13 +252,13 @@ const RoiCalculatorPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="simple">ROI Simple</SelectItem>
-                  <SelectItem value="advanced">ROI ActualisÃ© (VAN/TRI)</SelectItem>
+                  <SelectItem value="advanced">ROI Actualisé (VAN/TRI)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="coutTotal">CoÃ»t Total de l'Investissement (FCFA)</Label>
+              <Label htmlFor="coutTotal">Coût Total de l'Investissement (FCFA)</Label>
               <Input 
                 id="coutTotal" 
                 type="number" 
@@ -269,7 +269,7 @@ const RoiCalculatorPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="revenuEstime">Revenu/Valeur de Revente EstimÃ© (FCFA)</Label>
+              <Label htmlFor="revenuEstime">Revenu/Valeur de Revente Estimé (FCFA)</Label>
               <Input 
                 id="revenuEstime" 
                 type="number" 
@@ -282,7 +282,7 @@ const RoiCalculatorPage = () => {
             {calculationType === 'advanced' && (
               <>
                 <div>
-                  <Label htmlFor="dureeInvestissement">DurÃ©e de l'investissement (annÃ©es)</Label>
+                  <Label htmlFor="dureeInvestissement">Durée de l'investissement (années)</Label>
                   <Input 
                     id="dureeInvestissement" 
                     type="number" 
@@ -343,14 +343,14 @@ const RoiCalculatorPage = () => {
           </CardContent>
         </Card>
 
-        {/* RÃ©sultats */}
+        {/* Résultats */}
         <div className="space-y-6">
           {results && (
             <Card>
               <CardHeader>
-                <CardTitle>RÃ©sultats du calcul</CardTitle>
+                <CardTitle>Résultats du calcul</CardTitle>
                 <CardDescription>
-                  {results.type === 'simple' ? 'Calcul ROI simple' : 'Calcul ROI actualisÃ©'}
+                  {results.type === 'simple' ? 'Calcul ROI simple' : 'Calcul ROI actualisé'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -364,7 +364,7 @@ const RoiCalculatorPage = () => {
                       
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="p-3 border rounded">
-                          <span className="text-muted-foreground">ROI AnnualisÃ©:</span>
+                          <span className="text-muted-foreground">ROI Annualisé:</span>
                           <p className="text-lg font-bold">{results.roiAnnualise}%</p>
                         </div>
                         <div className="p-3 border rounded">
@@ -390,7 +390,7 @@ const RoiCalculatorPage = () => {
                           <p className="text-lg font-bold">{results.tri}%</p>
                         </div>
                         <div className="p-3 border rounded">
-                          <span className="text-muted-foreground">ROI ActualisÃ©:</span>
+                          <span className="text-muted-foreground">ROI Actualisé:</span>
                           <p className="text-lg font-bold">{results.roiActualise}%</p>
                         </div>
                       </div>
@@ -411,10 +411,10 @@ const RoiCalculatorPage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <History className="h-5 w-5" />
-                  Calculs sauvegardÃ©s
+                  Calculs sauvegardés
                 </CardTitle>
                 <CardDescription>
-                  Vos simulations rÃ©centes
+                  Vos simulations récentes
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -433,7 +433,7 @@ const RoiCalculatorPage = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {calc.calculation_type === 'simple' ? 'ROI Simple' : 'ROI ActualisÃ©'}
+                          {calc.calculation_type === 'simple' ? 'ROI Simple' : 'ROI Actualisé'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {(calc.initial_investment / 1000000).toFixed(1)}M FCFA

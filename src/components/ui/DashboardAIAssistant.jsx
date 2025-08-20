@@ -1,6 +1,6 @@
 // src/components/ui/DashboardAIAssistant.jsx - Assistant IA spécialisé à gauche
 import React, { useState, useEffect, useRef } from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Button } from '@/components/ui/button';
 import { Brain, X, Send, Zap, Sparkles, Settings, BarChart3 } from 'lucide-react';

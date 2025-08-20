@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ const MyDocumentsPage = () => {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [docs, setDocs] = useState([]);
-  // Loading gÃ©rÃ© par le hook temps rÃ©el
+  // Loading géré par le hook temps réel
   const [uploading, setUploading] = useState(false);
   const [files, setFiles] = useState([]);
 
@@ -37,7 +37,7 @@ const MyDocumentsPage = () => {
       for (const f of files) {
         try { await SupabaseDataService.uploadDocument(user.id, f); } catch (err) { /* individual failure logged */ }
       }
-      toast({ title:'Upload terminÃ©', description:'Documents ajoutÃ©s.' });
+      toast({ title:'Upload terminé', description:'Documents ajoutés.' });
       setFiles([]);
       loadDocs();
     } catch (e) {
@@ -54,10 +54,10 @@ const MyDocumentsPage = () => {
         <CardContent className="space-y-4">
           <div className="border-2 border-dashed rounded-md p-6 text-center">
             <UploadCloud className="mx-auto h-10 w-10 text-muted-foreground mb-2"/>
-            <p className="text-sm mb-2">SÃ©lectionnez des documents Ã  tÃ©lÃ©verser (PDF, JPG, PNG)</p>
+            <p className="text-sm mb-2">Sélectionnez des documents à téléverser (PDF, JPG, PNG)</p>
             <Input type="file" multiple onChange={handleFileChange} />
-            {files.length>0 && <p className="text-xs mt-2">{files.length} fichier(s) prÃªt(s).</p>}
-            <Button className="mt-4" disabled={!files.length || uploading} onClick={uploadAll}>{uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2"/>Upload...</> : 'TÃ©lÃ©verser'}</Button>
+            {files.length>0 && <p className="text-xs mt-2">{files.length} fichier(s) prêt(s).</p>}
+            <Button className="mt-4" disabled={!files.length || uploading} onClick={uploadAll}>{uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2"/>Upload...</> : 'Téléverser'}</Button>
           </div>
           <hr />
           {loading ? <p className="text-sm text-muted-foreground">Chargement...</p> : (
@@ -65,9 +65,9 @@ const MyDocumentsPage = () => {
               {docs.map(d => (
                 <div key={d.id} className="border rounded-md p-3 text-sm space-y-1 bg-card shadow-sm">
                   <p className="font-medium truncate" title={d.name}>{d.name}</p>
-                  <p className="text-xs text-muted-foreground">{(d.file_size/1024).toFixed(1)} KB â€¢ {d.mime_type}</p>
-                  <p className="text-xs">CatÃ©gorie: {d.category || 'N/A'}</p>
-                  {d.verified && <p className="text-green-600 text-xs font-semibold">VÃ©rifiÃ©</p>}
+                  <p className="text-xs text-muted-foreground">{(d.file_size/1024).toFixed(1)} KB • {d.mime_type}</p>
+                  <p className="text-xs">Catégorie: {d.category || 'N/A'}</p>
+                  {d.verified && <p className="text-green-600 text-xs font-semibold">Vérifié</p>}
                 </div>
               ))}
               {!docs.length && <p className="col-span-full text-xs text-muted-foreground">Aucun document.</p>}

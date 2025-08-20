@@ -1,4 +1,4 @@
-Ôªøimport React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -28,7 +28,7 @@ const getFavorites = async (userId) => {
     const favorites = await SupabaseDataService.getUserFavorites(userId);
     return favorites || [];
   } catch (error) {
-    console.error('Erreur r√©cup√©ration favoris:', error);
+    console.error('Erreur rÈcupÈration favoris:', error);
     return [];
   }
 };
@@ -61,7 +61,7 @@ const formatPrice = (price) => {
 const getStatusVariant = (status) => {
   switch (status) {
     case 'Disponible': return 'success';
-    case 'R√©serv√©e': return 'warning';
+    case 'RÈservÈe': return 'warning';
     case 'Vendue': return 'destructive';
     default: return 'secondary';
   }
@@ -89,13 +89,13 @@ const FavoriteCard = ({ parcel, onRemove }) => (
         <CardTitle className="text-lg mb-2 truncate">{parcel.location_name}</CardTitle>
         <div className="text-sm text-muted-foreground space-y-1">
           <p className="flex items-center"><MapPin className="h-4 w-4 mr-2 flex-shrink-0"/> Zone: <span className="font-medium text-foreground ml-1">{parcel.zone || 'N/A'}</span></p>
-          <p className="flex items-center"><Maximize className="h-4 w-4 mr-2 flex-shrink-0"/> Surface: <span className="font-medium text-foreground ml-1">{parcel.area_sqm ? `${parcel.area_sqm} m¬≤` : 'N/A'}</span></p>
+          <p className="flex items-center"><Maximize className="h-4 w-4 mr-2 flex-shrink-0"/> Surface: <span className="font-medium text-foreground ml-1">{parcel.area_sqm ? `${parcel.area_sqm} m≤` : 'N/A'}</span></p>
         </div>
       </CardContent>
       <CardFooter className="p-4 border-t flex justify-between items-center">
         <p className="text-lg font-bold text-accent_brand">{formatPrice(parcel.price)}</p>
         <Button size="sm" asChild>
-          <Link to={`/parcelles/${parcel.id}`}>Voir D√©tails</Link>
+          <Link to={`/parcelles/${parcel.id}`}>Voir DÈtails</Link>
         </Button>
       </CardFooter>
        <AlertDialog>
@@ -170,10 +170,10 @@ const MyFavoritesPage = () => {
       }
 
       try {
-        // R√©cup√©rer les favoris de l'utilisateur
+        // RÈcupÈrer les favoris de l'utilisateur
         const favorites = await getFavorites(user.id);
         
-        // R√©cup√©rer les d√©tails des parcelles favorites
+        // RÈcupÈrer les dÈtails des parcelles favorites
         const favoriteDetails = [];
         for (const favorite of favorites) {
           const parcel = await SupabaseDataService.getParcelById(favorite.parcel_id);
@@ -201,9 +201,9 @@ const MyFavoritesPage = () => {
      try {
         const success = await removeFromFavorites(user.id, parcelIdToRemove);
         if (success) {
-          // Mettre √† jour l'√©tat local pour un feedback imm√©diat
+          // Mettre ‡ jour l'Ètat local pour un feedback immÈdiat
           setFavoriteParcels(prevParcels => prevParcels.filter(p => p.id !== parcelIdToRemove));
-          toast({ title: "Retir√© des favoris", description: "La parcelle a √©t√© retir√©e de vos favoris." });
+          toast({ title: "RetirÈ des favoris", description: "La parcelle a ÈtÈ retirÈe de vos favoris." });
         } else {
           toast({ title: "Erreur", description: "Impossible de retirer la parcelle des favoris.", variant: "destructive" });
         }
@@ -222,7 +222,7 @@ const MyFavoritesPage = () => {
     >
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-primary">Mes Favoris</h1>
-        <p className="text-muted-foreground">Retrouvez ici les parcelles que vous avez sauvegard√©es.</p>
+        <p className="text-muted-foreground">Retrouvez ici les parcelles que vous avez sauvegardÈes.</p>
       </div>
 
       {loading ? (
@@ -242,7 +242,7 @@ const MyFavoritesPage = () => {
         <div className="text-center py-16 bg-muted/50 rounded-lg border border-dashed">
           <HeartOff className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold mb-2">Votre liste de favoris est vide</h2>
-          <p className="text-muted-foreground mb-6">Cliquez sur l'ic√¥ne ‚ù§Ô∏è sur une parcelle pour l'ajouter ici.</p>
+          <p className="text-muted-foreground mb-6">Cliquez sur l'icÙne ?? sur une parcelle pour l'ajouter ici.</p>
           <Button asChild>
             <Link to="/parcelles">Explorer les parcelles</Link>
           </Button>

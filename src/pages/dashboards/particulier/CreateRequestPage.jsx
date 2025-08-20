@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,8 +71,8 @@ const CreateRequestPage = () => {
   const usageOptions = [
     { value: 'habitation', label: 'Construction d\'habitation' },
     { value: 'agriculture', label: 'Usage agricole' },
-    { value: 'commerce', label: 'ActivitÃ© commerciale' },
-    { value: 'industrie', label: 'ActivitÃ© industrielle' },
+    { value: 'commerce', label: 'Activité commerciale' },
+    { value: 'industrie', label: 'Activité industrielle' },
     { value: 'autre', label: 'Autre usage' }
   ];
 
@@ -112,8 +112,8 @@ const CreateRequestPage = () => {
       await SupabaseDataService.createRequest(requestData);
       
       toast({
-        title: "Demande crÃ©Ã©e",
-        description: "Votre demande a Ã©tÃ© soumise avec succÃ¨s. Vous recevrez une notification dÃ¨s qu'elle sera traitÃ©e."
+        title: "Demande créée",
+        description: "Votre demande a été soumise avec succès. Vous recevrez une notification dès qu'elle sera traitée."
       });
 
       // Reset form
@@ -138,11 +138,11 @@ const CreateRequestPage = () => {
       setStep(1);
       
     } catch (error) {
-      console.error('Erreur lors de la crÃ©ation de la demande:', error);
+      console.error('Erreur lors de la création de la demande:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de crÃ©er la demande. Veuillez rÃ©essayer."
+        description: "Impossible de créer la demande. Veuillez réessayer."
       });
     } finally {
       setLoading(false);
@@ -202,13 +202,13 @@ const CreateRequestPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="description">Description dÃ©taillÃ©e *</Label>
+              <Label htmlFor="description">Description détaillée *</Label>
               <Textarea
                 id="description"
                 rows={4}
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="DÃ©crivez votre projet en dÃ©tail..."
+                placeholder="Décrivez votre projet en détail..."
               />
             </div>
 
@@ -218,7 +218,7 @@ const CreateRequestPage = () => {
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="Adresse ou zone gÃ©ographique"
+                placeholder="Adresse ou zone géographique"
               />
             </div>
 
@@ -247,10 +247,10 @@ const CreateRequestPage = () => {
           return (
             <div className="space-y-6">
               <div>
-                <Label htmlFor="usage_prevu">Usage prÃ©vu du terrain *</Label>
+                <Label htmlFor="usage_prevu">Usage prévu du terrain *</Label>
                 <Select value={formData.usage_prevu} onValueChange={(value) => setFormData(prev => ({ ...prev, usage_prevu: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="SÃ©lectionnez l'usage prÃ©vu" />
+                    <SelectValue placeholder="Sélectionnez l'usage prévu" />
                   </SelectTrigger>
                   <SelectContent>
                     {usageOptions.map((option) => (
@@ -263,7 +263,7 @@ const CreateRequestPage = () => {
               </div>
 
               <div>
-                <Label htmlFor="surface">Surface souhaitÃ©e (mÂ²)</Label>
+                <Label htmlFor="surface">Surface souhaitée (m²)</Label>
                 <Input
                   id="surface"
                   type="number"
@@ -274,7 +274,7 @@ const CreateRequestPage = () => {
               </div>
 
               <div>
-                <Label htmlFor="duree_souhaitee">DurÃ©e d'occupation souhaitÃ©e</Label>
+                <Label htmlFor="duree_souhaitee">Durée d'occupation souhaitée</Label>
                 <Input
                   id="duree_souhaitee"
                   value={formData.duree_souhaitee}
@@ -299,7 +299,7 @@ const CreateRequestPage = () => {
           return (
             <div className="space-y-6">
               <div>
-                <Label htmlFor="montant_demande">Montant demandÃ© (FCFA) *</Label>
+                <Label htmlFor="montant_demande">Montant demandé (FCFA) *</Label>
                 <Input
                   id="montant_demande"
                   type="number"
@@ -347,7 +347,7 @@ const CreateRequestPage = () => {
                   id="situation_professionnelle"
                   value={formData.situation_professionnelle}
                   onChange={(e) => setFormData(prev => ({ ...prev, situation_professionnelle: e.target.value }))}
-                  placeholder="Ex: Fonctionnaire, CommerÃ§ant, etc."
+                  placeholder="Ex: Fonctionnaire, Commerçant, etc."
                 />
               </div>
             </div>
@@ -370,7 +370,7 @@ const CreateRequestPage = () => {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <FileText className="h-8 w-8" />
-          CrÃ©er une Demande
+          Créer une Demande
         </h1>
         <p className="text-muted-foreground">
           Soumettez votre demande de terrain communal ou de financement
@@ -404,13 +404,13 @@ const CreateRequestPage = () => {
         <CardHeader>
           <CardTitle>
             {step === 1 && "Type de demande"}
-            {step === 2 && "Informations gÃ©nÃ©rales"}
-            {step === 3 && "DÃ©tails spÃ©cifiques"}
+            {step === 2 && "Informations générales"}
+            {step === 3 && "Détails spécifiques"}
           </CardTitle>
           <CardDescription>
-            {step === 1 && "SÃ©lectionnez le type de demande que vous souhaitez faire"}
+            {step === 1 && "Sélectionnez le type de demande que vous souhaitez faire"}
             {step === 2 && "Renseignez les informations de base de votre demande"}
-            {step === 3 && "ComplÃ©tez les informations spÃ©cifiques Ã  votre demande"}
+            {step === 3 && "Complétez les informations spécifiques à votre demande"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -425,7 +425,7 @@ const CreateRequestPage = () => {
           onClick={() => setStep(prev => Math.max(1, prev - 1))}
           disabled={step === 1}
         >
-          PrÃ©cÃ©dent
+          Précédent
         </Button>
         
         {step < 3 ? (
@@ -440,7 +440,7 @@ const CreateRequestPage = () => {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? "CrÃ©ation..." : "CrÃ©er la demande"}
+            {loading ? "Création..." : "Créer la demande"}
           </Button>
         )}
       </div>

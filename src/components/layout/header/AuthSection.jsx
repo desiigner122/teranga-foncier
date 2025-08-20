@@ -1,4 +1,4 @@
-ï»¿// src/components/layout/header/AuthSection.jsx
+// src/components/layout/header/AuthSection.jsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,7 @@ const AuthSection = ({ isScrolled }) => {
 
   const handleLogout = async () => {
     await signOut();
-    toast({ title: "DÃ©connexion rÃ©ussie" });
+    toast({ title: "Déconnexion réussie" });
     navigate('/');
   };
 
@@ -80,10 +80,10 @@ const AuthSection = ({ isScrolled }) => {
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild><Link to="/dashboard"><LayoutGrid className="mr-2 h-4 w-4" /> Tableau de Bord</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/profile"><User className="mr-2 h-4 w-4" /> Mon Profil</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link to="/settings"><Settings className="mr-2 h-4 w-4" /> ParamÃ¨tres</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link to="/settings"><Settings className="mr-2 h-4 w-4" /> Paramètres</Link></DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
-                <LogOut className="mr-2 h-4 w-4" /> DÃ©connexion
+                <LogOut className="mr-2 h-4 w-4" /> Déconnexion
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

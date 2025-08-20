@@ -1,4 +1,4 @@
-ï»¿// src/components/ui/GlobalAIChat.jsx - Chat IA principal Ã  droite
+// src/components/ui/GlobalAIChat.jsx - Chat IA principal à droite
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageSquareText, X, Send, User, Bot, Brain, Sparkles, Trash2 } from 'lucide-react';
@@ -30,21 +30,21 @@ const GlobalAIChat = () => {
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
-    let greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon aprÃ¨s-midi" : "Bonsoir";
+    let greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
     const username = isAuthenticated ? ` ${user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}` : '';
     
-    return `ðŸŒŸ ${greeting}${username} !
+    return `?? ${greeting}${username} !
 
-ðŸ¤– Je suis **Teranga AI Global**, votre assistant intelligent pour la plateforme fonciÃ¨re.
+?? Je suis **Teranga AI Global**, votre assistant intelligent pour la plateforme foncière.
 
-âœ¨ **MES SPÃ‰CIALITÃ‰S :**
-ðŸ  Recherche de propriÃ©tÃ©s personnalisÃ©e
-ðŸ’° Ã‰valuations et conseils de prix  
-ðŸ“‹ ProcÃ©dures et dÃ©marches administratives
-ðŸ’¡ Conseils d'investissement immobilier
-ï¿½ï¸ Navigation et aide sur la plateforme
+? **MES SPÉCIALITÉS :**
+?? Recherche de propriétés personnalisée
+?? Évaluations et conseils de prix  
+?? Procédures et démarches administratives
+?? Conseils d'investissement immobilier
+?? Navigation et aide sur la plateforme
 
-ðŸŽ¯ **COMMENT PUIS-JE VOUS AIDER ?**
+?? **COMMENT PUIS-JE VOUS AIDER ?**
 Posez-moi vos questions en langage naturel !`;
   };
 
@@ -82,7 +82,7 @@ Posez-moi vos questions en langage naturel !`;
       console.error("Erreur IA Global:", error);
       setMessages(prev => [...prev, { 
         sender: 'bot', 
-        text: "DÃ©solÃ©, je rencontre des difficultÃ©s. Veuillez rÃ©essayer.",
+        text: "Désolé, je rencontre des difficultés. Veuillez réessayer.",
         error: true
       }]);
       toast({
@@ -101,7 +101,7 @@ Posez-moi vos questions en langage naturel !`;
 
   return (
     <>
-      {/* Bouton flottant Ã  droite */}
+      {/* Bouton flottant à droite */}
       <motion.div
         className="fixed bottom-6 right-6 z-40"
         whileHover={{ scale: 1.05 }}
@@ -127,7 +127,7 @@ Posez-moi vos questions en langage naturel !`;
         </Button>
       </motion.div>
 
-      {/* FenÃªtre de chat */}
+      {/* Fenêtre de chat */}
       <AnimatePresence>
         {isOpen && (
           <motion.div

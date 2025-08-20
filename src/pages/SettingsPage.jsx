@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,7 +62,7 @@ const SettingsPage = () => {
       }
        if (key === 'language') {
          localStorage.setItem('appLang', value);
-         toast({ title: "Langue", description: `La langue a Ã©tÃ© changÃ©e vers : ${value.toUpperCase()}. Rechargement nÃ©cessaire pour prendre effet.`});
+         toast({ title: "Langue", description: `La langue a été changée vers : ${value.toUpperCase()}. Rechargement nécessaire pour prendre effet.`});
       }
    };
 
@@ -75,8 +75,8 @@ const SettingsPage = () => {
       // Preferences: preferences
       
       toast({ 
-         title: "ParamÃ¨tres SauvegardÃ©s", 
-         description: "Vos prÃ©fÃ©rences ont Ã©tÃ© mises Ã  jour avec succÃ¨s.",
+         title: "Paramètres Sauvegardés", 
+         description: "Vos préférences ont été mises à jour avec succès.",
          className: "bg-green-500 text-white",
       });
       setIsSaving(false);
@@ -85,7 +85,7 @@ const SettingsPage = () => {
    const handleAccountDeletionRequest = () => {
       toast({
          title: "Demande de Suppression de Compte",
-         description: "ðŸš§ Cette fonctionnalitÃ© est en cours de dÃ©veloppement. Pour supprimer votre compte, veuillez contacter le support.",
+         description: "?? Cette fonctionnalité est en cours de développement. Pour supprimer votre compte, veuillez contacter le support.",
          variant: "warning",
          duration: 7000,
       });
@@ -103,22 +103,22 @@ const SettingsPage = () => {
          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
          className="text-3xl md:text-4xl font-bold text-primary text-center"
       >
-         ParamÃ¨tres du Compte
+         Paramètres du Compte
       </motion.h1>
 
       <form onSubmit={handleSaveChanges}>
          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
             <Card className="mb-6 shadow-lg hover:shadow-primary/10 transition-shadow">
                <CardHeader>
-                  <CardTitle className="text-xl flex items-center"><Bell className="mr-2 h-5 w-5 text-primary"/>PrÃ©fÃ©rences de Notification</CardTitle>
-                  <CardDescription>GÃ©rez comment et quand vous recevez des notifications de Teranga Foncier.</CardDescription>
+                  <CardTitle className="text-xl flex items-center"><Bell className="mr-2 h-5 w-5 text-primary"/>Préférences de Notification</CardTitle>
+                  <CardDescription>Gérez comment et quand vous recevez des notifications de Teranga Foncier.</CardDescription>
                </CardHeader>
                <CardContent className="space-y-5">
                   {Object.entries({
-                     emailNewParcel: "Nouvelles parcelles correspondant Ã  mes recherches",
+                     emailNewParcel: "Nouvelles parcelles correspondant à mes recherches",
                      emailPriceChange: "Changements de prix sur mes parcelles favorites",
-                     emailRequestUpdate: "Mises Ã  jour sur mes demandes en cours",
-                     appGeneralUpdates: "Annonces gÃ©nÃ©rales et mises Ã  jour de la plateforme (via notifications internes)",
+                     emailRequestUpdate: "Mises à jour sur mes demandes en cours",
+                     appGeneralUpdates: "Annonces générales et mises à jour de la plateforme (via notifications internes)",
                   }).map(([key, label]) => (
                      <div key={key} className="flex items-center justify-between space-x-2 border p-3 rounded-md hover:bg-muted/30 transition-colors">
                      <Label htmlFor={key} className="flex flex-col space-y-0.5">
@@ -139,20 +139,20 @@ const SettingsPage = () => {
          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{delay: 0.1}}>
             <Card className="mb-6 shadow-lg hover:shadow-primary/10 transition-shadow">
                <CardHeader>
-                  <CardTitle className="text-xl flex items-center"><Palette className="mr-2 h-5 w-5 text-primary"/>PrÃ©fÃ©rences d'Affichage</CardTitle>
+                  <CardTitle className="text-xl flex items-center"><Palette className="mr-2 h-5 w-5 text-primary"/>Préférences d'Affichage</CardTitle>
                   <CardDescription>Personnalisez l'apparence de la plateforme.</CardDescription>
                </CardHeader>
                <CardContent className="space-y-4">
                   <div className="grid gap-2">
-                     <Label htmlFor="theme-select">ThÃ¨me Visuel</Label>
+                     <Label htmlFor="theme-select">Thème Visuel</Label>
                      <Select value={preferences.theme} onValueChange={(value) => handlePreferenceChange('theme', value)}>
                         <SelectTrigger id="theme-select" className="w-full sm:w-[200px]">
-                           <SelectValue placeholder="Choisir un thÃ¨me" />
+                           <SelectValue placeholder="Choisir un thème" />
                         </SelectTrigger>
                         <SelectContent>
                            <SelectItem value="light">Clair</SelectItem>
                            <SelectItem value="dark">Sombre</SelectItem>
-                           <SelectItem value="system">SystÃ¨me</SelectItem>
+                           <SelectItem value="system">Système</SelectItem>
                         </SelectContent>
                      </Select>
                   </div>
@@ -163,13 +163,13 @@ const SettingsPage = () => {
                            <SelectValue placeholder="Choisir une langue" />
                         </SelectTrigger>
                         <SelectContent>
-                           <SelectItem value="fr">FranÃ§ais</SelectItem>
+                           <SelectItem value="fr">Français</SelectItem>
                            <SelectItem value="en">English</SelectItem>
                         </SelectContent>
                      </Select>
                   </div>
                   <div className="grid gap-2">
-                     <Label htmlFor="currency-select">Devise par DÃ©faut</Label>
+                     <Label htmlFor="currency-select">Devise par Défaut</Label>
                      <Select value={preferences.defaultCurrency} onValueChange={(value) => handlePreferenceChange('defaultCurrency', value)}>
                         <SelectTrigger id="currency-select" className="w-full sm:w-[200px]">
                            <SelectValue placeholder="Choisir une devise" />
@@ -188,22 +188,22 @@ const SettingsPage = () => {
          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{delay: 0.2}}>
             <Card className="mb-6 shadow-lg hover:shadow-primary/10 transition-shadow">
                <CardHeader>
-                  <CardTitle className="text-xl flex items-center"><Shield className="mr-2 h-5 w-5 text-primary"/>SÃ©curitÃ© & ConfidentialitÃ©</CardTitle>
-                  <CardDescription>GÃ©rez la sÃ©curitÃ© de votre compte et vos donnÃ©es.</CardDescription>
+                  <CardTitle className="text-xl flex items-center"><Shield className="mr-2 h-5 w-5 text-primary"/>Sécurité & Confidentialité</CardTitle>
+                  <CardDescription>Gérez la sécurité de votre compte et vos données.</CardDescription>
                </CardHeader>
                <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground">
                      Pour changer votre mot de passe, veuillez vous rendre sur votre <Link to="/profile" className="text-primary underline hover:text-primary/80">page de profil</Link>.
                   </p>
                   <div className="border p-3 rounded-md bg-muted/20">
-                     <h4 className="font-medium text-sm mb-1">Authentification Ã  Deux Facteurs (2FA)</h4>
-                     <p className="text-xs text-muted-foreground mb-2">Renforcez la sÃ©curitÃ© de votre compte.</p>
-                     <Button variant="outline" size="sm" onClick={() => toast({ title: "2FA (BientÃ´t disponible)", description: "L'authentification Ã  deux facteurs sera bientÃ´t disponible."})}>Configurer 2FA (BientÃ´t)</Button>
+                     <h4 className="font-medium text-sm mb-1">Authentification à Deux Facteurs (2FA)</h4>
+                     <p className="text-xs text-muted-foreground mb-2">Renforcez la sécurité de votre compte.</p>
+                     <Button variant="outline" size="sm" onClick={() => toast({ title: "2FA (Bientôt disponible)", description: "L'authentification à deux facteurs sera bientôt disponible."})}>Configurer 2FA (Bientôt)</Button>
                   </div>
                   <div className="border p-3 rounded-md bg-muted/20">
-                     <h4 className="font-medium text-sm mb-1">Gestion des DonnÃ©es Personnelles</h4>
-                     <p className="text-xs text-muted-foreground mb-2">Consultez notre <Link to="/privacy" className="text-primary underline hover:text-primary/80">politique de confidentialitÃ©</Link> ou demandez l'export de vos donnÃ©es.</p>
-                     <Button variant="outline" size="sm" onClick={() => toast({ title: "Export de DonnÃ©es", description: "Votre demande d'export a Ã©tÃ© prise en compte. Vous recevrez un email avec vos donnÃ©es."})}>Exporter mes DonnÃ©es</Button>
+                     <h4 className="font-medium text-sm mb-1">Gestion des Données Personnelles</h4>
+                     <p className="text-xs text-muted-foreground mb-2">Consultez notre <Link to="/privacy" className="text-primary underline hover:text-primary/80">politique de confidentialité</Link> ou demandez l'export de vos données.</p>
+                     <Button variant="outline" size="sm" onClick={() => toast({ title: "Export de Données", description: "Votre demande d'export a été prise en compte. Vous recevrez un email avec vos données."})}>Exporter mes Données</Button>
                   </div>
                </CardContent>
             </Card>
@@ -211,7 +211,7 @@ const SettingsPage = () => {
 
          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{delay: 0.3}} className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t">
             <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={isSaving}>
-               <Save className="mr-2 h-4 w-4" /> {isSaving ? "Sauvegarde en cours..." : "Sauvegarder Tous les ParamÃ¨tres"}
+               <Save className="mr-2 h-4 w-4" /> {isSaving ? "Sauvegarde en cours..." : "Sauvegarder Tous les Paramètres"}
             </Button>
             <AlertDialog>
                <AlertDialogTrigger asChild>
@@ -221,10 +221,10 @@ const SettingsPage = () => {
                </AlertDialogTrigger>
                <AlertDialogContent>
                   <AlertDialogHeader>
-                     <AlertDialogTitle className="flex items-center"><AlertCircle className="text-destructive mr-2"/>ÃŠtes-vous absolument sÃ»r ?</AlertDialogTitle>
+                     <AlertDialogTitle className="flex items-center"><AlertCircle className="text-destructive mr-2"/>Êtes-vous absolument sûr ?</AlertDialogTitle>
                      <AlertDialogDescription>
-                        Cette action est irrÃ©versible et supprimera dÃ©finitivement votre compte et toutes vos donnÃ©es associÃ©es de Teranga Foncier.
-                        Cela inclut vos favoris, recherches sauvegardÃ©es, demandes et annonces.
+                        Cette action est irréversible et supprimera définitivement votre compte et toutes vos données associées de Teranga Foncier.
+                        Cela inclut vos favoris, recherches sauvegardées, demandes et annonces.
                      </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

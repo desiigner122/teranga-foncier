@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 const AuthenticationPage = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold">Authentification</h1>

@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,9 +15,9 @@ const formatPrice = (price) => new Intl.NumberFormat('fr-SN', { style: 'currency
 
 const getStatusBadge = (status) => {
   switch (status) {
-    case 'PayÃ©': return <Badge variant="success">{status}</Badge>;
+    case 'Payé': return <Badge variant="success">{status}</Badge>;
     case 'En attente': return <Badge variant="warning">{status}</Badge>;
-    case 'Ã‰chouÃ©': return <Badge variant="destructive">{status}</Badge>;
+    case 'Échoué': return <Badge variant="destructive">{status}</Badge>;
     default: return <Badge variant="secondary">{status}</Badge>;
   }
 };
@@ -26,7 +26,7 @@ const TransactionsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
-  // Loading gÃ©rÃ© par le hook temps rÃ©el
+  // Loading géré par le hook temps réel
   const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -63,8 +63,8 @@ const TransactionsPage = () => {
 
   const handleDownloadInvoice = (transactionId) => {
     toast({
-      title: "TÃ©lÃ©chargement de la facture...",
-      description: `La facture pour la transaction ${transactionId} est en cours de gÃ©nÃ©ration.`,
+      title: "Téléchargement de la facture...",
+      description: `La facture pour la transaction ${transactionId} est en cours de génération.`,
     });
   };
 
@@ -92,7 +92,7 @@ const TransactionsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>Historique des paiements</CardTitle>
-          <CardDescription>Retrouvez ici toutes les transactions effectuÃ©es sur la plateforme.</CardDescription>
+          <CardDescription>Retrouvez ici toutes les transactions effectuées sur la plateforme.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -122,7 +122,7 @@ const TransactionsPage = () => {
                           <Banknote className="mr-2 h-4 w-4"/> Payer
                         </Button>
                       )}
-                      {['PayÃ©','paid','completed'].includes(tx.status) && (
+                      {['Payé','paid','completed'].includes(tx.status) && (
                         <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(tx.id)}>
                           <Download className="mr-2 h-4 w-4"/> Facture
                         </Button>

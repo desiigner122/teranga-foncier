@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -50,7 +50,7 @@ const ProjectsPage = () => {
     try {
       setLoading(true);
       
-      // RÃ©cupÃ©rer les projets du promoteur depuis la table projects ou parcels avec type 'development'
+      // Récupérer les projets du promoteur depuis la table projects ou parcels avec type 'development'
       const { data, error } = await supabase
         .from('parcels')
         .select(`
@@ -63,12 +63,12 @@ const ProjectsPage = () => {
 
       if (error) throw error;
 
-      // Transformer les donnÃ©es pour correspondre au format projet
+      // Transformer les données pour correspondre au format projet
       const projectsData = data.map(parcel => ({
         id: parcel.id,
         name: parcel.name || `Projet ${parcel.reference}`,
         description: parcel.description || 'Aucune description',
-        location: parcel.location_name || parcel.location || 'Non spÃ©cifiÃ©',
+        location: parcel.location_name || parcel.location || 'Non spécifié',
         budget: parcel.price || 0,
         status: parcel.status || 'planning',
         surface_area: parcel.surface_area,
@@ -111,11 +111,11 @@ const ProjectsPage = () => {
       if (error) throw error;
 
       toast({
-        title: "Projet crÃ©Ã©",
-        description: "Votre nouveau projet a Ã©tÃ© crÃ©Ã© avec succÃ¨s"
+        title: "Projet créé",
+        description: "Votre nouveau projet a été créé avec succès"
       });
 
-      // Recharger les donnÃ©es
+      // Recharger les données
       await loadProjects();
       setIsAddModalOpen(false);
       setNewProject({
@@ -127,11 +127,11 @@ const ProjectsPage = () => {
       });
       
     } catch (error) {
-      console.error('Erreur crÃ©ation projet:', error);
+      console.error('Erreur création projet:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de crÃ©er le projet"
+        description: "Impossible de créer le projet"
       });
     } finally {
       setIsProcessing(false);
@@ -142,9 +142,9 @@ const ProjectsPage = () => {
     const labels = {
       'planning': 'Planification',
       'in_progress': 'En cours',
-      'completed': 'TerminÃ©',
+      'completed': 'Terminé',
       'on_hold': 'En attente',
-      'cancelled': 'AnnulÃ©'
+      'cancelled': 'Annulé'
     };
     return labels[status] || status;
   };
@@ -204,7 +204,7 @@ const ProjectsPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold flex items-center">
           <Building className="mr-3 h-8 w-8" />
-          Mes Projets de DÃ©veloppement
+          Mes Projets de Développement
         </h1>
         <Button onClick={() => setIsAddModalOpen(true)}>
           <PlusCircle className="h-4 w-4 mr-2" />
@@ -243,7 +243,7 @@ const ProjectsPage = () => {
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">TerminÃ©s</p>
+                <p className="text-sm font-medium text-muted-foreground">Terminés</p>
                 <p className="text-2xl font-bold">
                   {projects.filter(p => p.status === 'completed').length}
                 </p>
@@ -275,7 +275,7 @@ const ProjectsPage = () => {
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Rechercher par nom, localisation ou rÃ©fÃ©rence..."
+                placeholder="Rechercher par nom, localisation ou référence..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-md"
@@ -289,9 +289,9 @@ const ProjectsPage = () => {
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="planning">Planification</SelectItem>
                 <SelectItem value="in_progress">En cours</SelectItem>
-                <SelectItem value="completed">TerminÃ©</SelectItem>
+                <SelectItem value="completed">Terminé</SelectItem>
                 <SelectItem value="on_hold">En attente</SelectItem>
-                <SelectItem value="cancelled">AnnulÃ©</SelectItem>
+                <SelectItem value="cancelled">Annulé</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -303,20 +303,20 @@ const ProjectsPage = () => {
         <CardHeader>
           <CardTitle>Projets ({filteredProjects.length})</CardTitle>
           <CardDescription>
-            GÃ©rez vos projets de dÃ©veloppement immobilier
+            Gérez vos projets de développement immobilier
           </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredProjects.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Building className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Aucun projet trouvÃ©</p>
+              <p>Aucun projet trouvé</p>
               <Button 
                 variant="outline" 
                 className="mt-4"
                 onClick={() => setIsAddModalOpen(true)}
               >
-                CrÃ©er votre premier projet
+                Créer votre premier projet
               </Button>
             </div>
           ) : (
@@ -327,8 +327,8 @@ const ProjectsPage = () => {
                   <TableHead>Localisation</TableHead>
                   <TableHead>Budget</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead>ProgrÃ¨s</TableHead>
-                  <TableHead>Date de crÃ©ation</TableHead>
+                  <TableHead>Progrès</TableHead>
+                  <TableHead>Date de création</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -353,7 +353,7 @@ const ProjectsPage = () => {
                       </div>
                       {project.surface_area && (
                         <div className="text-sm text-muted-foreground">
-                          {project.surface_area} mÂ²
+                          {project.surface_area} m²
                         </div>
                       )}
                     </TableCell>
@@ -384,7 +384,7 @@ const ProjectsPage = () => {
                         }}
                       >
                         <Eye className="h-4 w-4 mr-1" />
-                        DÃ©tails
+                        Détails
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -399,9 +399,9 @@ const ProjectsPage = () => {
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nouveau Projet de DÃ©veloppement</DialogTitle>
+            <DialogTitle>Nouveau Projet de Développement</DialogTitle>
             <DialogDescription>
-              CrÃ©ez un nouveau projet de dÃ©veloppement immobilier
+              Créez un nouveau projet de développement immobilier
             </DialogDescription>
           </DialogHeader>
           
@@ -412,7 +412,7 @@ const ProjectsPage = () => {
                 id="name"
                 value={newProject.name}
                 onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                placeholder="Ex: RÃ©sidence Les Palmiers"
+                placeholder="Ex: Résidence Les Palmiers"
               />
             </div>
             <div>
@@ -421,7 +421,7 @@ const ProjectsPage = () => {
                 id="description"
                 value={newProject.description}
                 onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                placeholder="DÃ©crivez votre projet..."
+                placeholder="Décrivez votre projet..."
               />
             </div>
             <div>
@@ -473,19 +473,19 @@ const ProjectsPage = () => {
               onClick={createProject}
               disabled={isProcessing || !newProject.name}
             >
-              {isProcessing ? 'CrÃ©ation...' : 'CrÃ©er le projet'}
+              {isProcessing ? 'Création...' : 'Créer le projet'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Modal de dÃ©tails */}
+      {/* Modal de détails */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>DÃ©tails du Projet</DialogTitle>
+            <DialogTitle>Détails du Projet</DialogTitle>
             <DialogDescription>
-              Informations complÃ¨tes sur le projet de dÃ©veloppement
+              Informations complètes sur le projet de développement
             </DialogDescription>
           </DialogHeader>
           
@@ -497,7 +497,7 @@ const ProjectsPage = () => {
                   <p className="font-medium">{selectedProject.name}</p>
                 </div>
                 <div>
-                  <Label>RÃ©fÃ©rence</Label>
+                  <Label>Référence</Label>
                   <p className="font-medium">{selectedProject.reference}</p>
                 </div>
               </div>
@@ -526,7 +526,7 @@ const ProjectsPage = () => {
                   {getStatusBadge(selectedProject.status)}
                 </div>
                 <div>
-                  <Label>ProgrÃ¨s</Label>
+                  <Label>Progrès</Label>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div 
                       className="bg-blue-600 h-2 rounded-full" 
@@ -542,17 +542,17 @@ const ProjectsPage = () => {
               {selectedProject.surface_area && (
                 <div>
                   <Label>Surface</Label>
-                  <p className="font-medium">{selectedProject.surface_area} mÂ²</p>
+                  <p className="font-medium">{selectedProject.surface_area} m²</p>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Date de crÃ©ation</Label>
+                  <Label>Date de création</Label>
                   <p className="text-sm">{new Date(selectedProject.created_at).toLocaleDateString('fr-FR')}</p>
                 </div>
                 <div>
-                  <Label>DerniÃ¨re mise Ã  jour</Label>
+                  <Label>Dernière mise à jour</Label>
                   <p className="text-sm">{new Date(selectedProject.updated_at).toLocaleDateString('fr-FR')}</p>
                 </div>
               </div>

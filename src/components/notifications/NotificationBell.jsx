@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bell, CheckCheck, ExternalLink } from 'lucide-react';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { useAuth } from '@/context/AuthContext';

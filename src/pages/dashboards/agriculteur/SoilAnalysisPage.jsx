@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -38,7 +38,7 @@ const SoilAnalysisPage = () => {
         return;
       }
 
-      // RÃ©cupÃ©rer les analyses de sol depuis la table soil_analyses
+      // Récupérer les analyses de sol depuis la table soil_analyses
       const { data: analysisData, error } = await SupabaseDataService.supabaseClient
         .from('soil_analyses')
         .select(`
@@ -77,7 +77,7 @@ const SoilAnalysisPage = () => {
   const getNutrientLevel = (value, optimal_min, optimal_max) => {
     if (!value || !optimal_min || !optimal_max) return { status: 'unknown', label: 'Inconnu', color: 'secondary' };
     if (value < optimal_min) return { status: 'low', label: 'Faible', color: 'destructive' };
-    if (value > optimal_max) return { status: 'high', label: 'Ã‰levÃ©', color: 'warning' };
+    if (value > optimal_max) return { status: 'high', label: 'Élevé', color: 'warning' };
     return { status: 'optimal', label: 'Optimal', color: 'success' };
   };
 
@@ -103,7 +103,7 @@ const SoilAnalysisPage = () => {
       factors++;
     });
 
-    // MatiÃ¨re organique
+    // Matière organique
     if (analysis.organic_matter) {
       if (analysis.organic_matter >= 3) score += 20;
       else if (analysis.organic_matter >= 2) score += 15;
@@ -146,7 +146,7 @@ const SoilAnalysisPage = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6 p-4 md:p-6"
     >
-      {/* En-tÃªte */}
+      {/* En-tête */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex items-center">
@@ -154,13 +154,13 @@ const SoilAnalysisPage = () => {
             Analyse des Sols
           </h1>
           <p className="text-sm text-muted-foreground max-w-prose mt-1">
-            Surveillez la qualitÃ© de vos sols et obtenez des recommandations personnalisÃ©es
+            Surveillez la qualité de vos sols et obtenez des recommandations personnalisées
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={loadSoilAnalyses} disabled={refreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            RafraÃ®chir
+            Rafraîchir
           </Button>
           <Button size="sm">
             <Beaker className="mr-2 h-4 w-4" />
@@ -204,7 +204,7 @@ const SoilAnalysisPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">NÃ©cessitent attention</p>
+                  <p className="text-sm font-medium text-muted-foreground">Nécessitent attention</p>
                   <p className="text-2xl font-bold text-yellow-600">
                     {analyses.filter(a => {
                       const score = getOverallHealthScore(a);
@@ -221,7 +221,7 @@ const SoilAnalysisPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Sols dÃ©gradÃ©s</p>
+                  <p className="text-sm font-medium text-muted-foreground">Sols dégradés</p>
                   <p className="text-2xl font-bold text-red-600">
                     {analyses.filter(a => getOverallHealthScore(a) < 60).length}
                   </p>
@@ -288,12 +288,12 @@ const SoilAnalysisPage = () => {
             <div className="text-center py-8">
               <Beaker className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {analyses.length === 0 ? 'Aucune analyse de sol' : 'Aucun rÃ©sultat'}
+                {analyses.length === 0 ? 'Aucune analyse de sol' : 'Aucun résultat'}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {analyses.length === 0 
                   ? 'Commencez par faire analyser vos sols'
-                  : 'Essayez de modifier vos critÃ¨res de recherche'
+                  : 'Essayez de modifier vos critères de recherche'
                 }
               </p>
               <Button className="mt-4" size="sm">
@@ -323,7 +323,7 @@ const SoilAnalysisPage = () => {
                           </h3>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <MapPin className="h-3 w-3" />
-                            {analysis.parcels?.location || 'Localisation non spÃ©cifiÃ©e'}
+                            {analysis.parcels?.location || 'Localisation non spécifiée'}
                           </div>
                         </div>
                       </div>
@@ -341,7 +341,7 @@ const SoilAnalysisPage = () => {
                       {/* pH */}
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-sm text-muted-foreground">pH</p>
-                        <p className="text-2xl font-bold">{analysis.ph || 'â€”'}</p>
+                        <p className="text-2xl font-bold">{analysis.ph || '—'}</p>
                         <Badge variant={pHStatus.color} className="text-xs">
                           {pHStatus.label}
                         </Badge>
@@ -350,7 +350,7 @@ const SoilAnalysisPage = () => {
                       {/* Azote */}
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-sm text-muted-foreground">Azote (N)</p>
-                        <p className="text-lg font-bold">{analysis.nitrogen || 'â€”'}</p>
+                        <p className="text-lg font-bold">{analysis.nitrogen || '—'}</p>
                         <Badge variant={getNutrientLevel(
                           analysis.nitrogen, 
                           analysis.nitrogen_optimal_min, 
@@ -367,7 +367,7 @@ const SoilAnalysisPage = () => {
                       {/* Phosphore */}
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-sm text-muted-foreground">Phosphore (P)</p>
-                        <p className="text-lg font-bold">{analysis.phosphorus || 'â€”'}</p>
+                        <p className="text-lg font-bold">{analysis.phosphorus || '—'}</p>
                         <Badge variant={getNutrientLevel(
                           analysis.phosphorus, 
                           analysis.phosphorus_optimal_min, 
@@ -384,7 +384,7 @@ const SoilAnalysisPage = () => {
                       {/* Potassium */}
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-sm text-muted-foreground">Potassium (K)</p>
-                        <p className="text-lg font-bold">{analysis.potassium || 'â€”'}</p>
+                        <p className="text-lg font-bold">{analysis.potassium || '—'}</p>
                         <Badge variant={getNutrientLevel(
                           analysis.potassium, 
                           analysis.potassium_optimal_min, 
@@ -398,10 +398,10 @@ const SoilAnalysisPage = () => {
                         </Badge>
                       </div>
 
-                      {/* MatiÃ¨re organique */}
+                      {/* Matière organique */}
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-sm text-muted-foreground">M.O. (%)</p>
-                        <p className="text-lg font-bold">{analysis.organic_matter || 'â€”'}</p>
+                        <p className="text-lg font-bold">{analysis.organic_matter || '—'}</p>
                         <Badge variant={
                           analysis.organic_matter >= 3 ? 'success' : 
                           analysis.organic_matter >= 2 ? 'warning' : 'destructive'

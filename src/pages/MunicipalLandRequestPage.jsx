@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ const MunicipalLandRequestPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
-  const [step, setStep] = useState(1); // 1: localisation, 2: details, 3: documents, 4: rÃ©vision
+  const [step, setStep] = useState(1); // 1: localisation, 2: details, 3: documents, 4: révision
   const [formData, setFormData] = useState({
     region: '',
     department: '',
@@ -49,7 +49,7 @@ const MunicipalLandRequestPage = () => {
       try {
         const regs = await SupabaseDataService.listRegions();
         if (active) setRegions(regs.map(r=> r.name || r.code || r.id));
-      } catch (e){ if (active) setGeoError('Erreur chargement rÃ©gions'); }
+      } catch (e){ if (active) setGeoError('Erreur chargement régions'); }
       finally { if (active) setGeoLoading(false); }
     })();
     return ()=>{ active=false; };
@@ -118,7 +118,7 @@ const MunicipalLandRequestPage = () => {
         return;
       }
       if (!ACCEPTED_TYPES.includes(f.type)) {
-        errors.push({ name:f.name, error:'Type non autorisÃ© (PDF, JPG, PNG)' });
+        errors.push({ name:f.name, error:'Type non autorisé (PDF, JPG, PNG)' });
         return;
       }
       accepted.push(f);
@@ -156,9 +156,9 @@ const MunicipalLandRequestPage = () => {
     }
     setIsSubmitting(true);
     try {
-      // Upload des fichiers un par un (simple sÃ©quentiel pour MVP)
+      // Upload des fichiers un par un (simple séquentiel pour MVP)
       setUploading(true); setProgress(0);
-      // Upload parallÃ¨le avec suivi simple (incrÃ©mente sur chaque rÃ©solution)
+      // Upload parallèle avec suivi simple (incrémente sur chaque résolution)
       let completed = 0; const total = files.length || 1;
       const uploadedDocIds = [];
       await Promise.allSettled(files.map(async f => {
@@ -186,11 +186,11 @@ const MunicipalLandRequestPage = () => {
         autoResolveMairie: true
       });
       setMairieResolvedId(created.mairie_id || null);
-      toast({ title:'Demande soumise', description:`RÃ©fÃ©rence ${created.reference}`, className:'bg-green-600 text-white' });
+      toast({ title:'Demande soumise', description:`Référence ${created.reference}`, className:'bg-green-600 text-white' });
       navigate('/my-requests');
     } catch (err) {
       console.error(err);
-      toast({ title:'Erreur', description:'Impossible de crÃ©er la demande. RÃ©essayez.', variant:'destructive' });
+      toast({ title:'Erreur', description:'Impossible de créer la demande. Réessayez.', variant:'destructive' });
       setIsSubmitting(false);
     }
   };
@@ -207,7 +207,7 @@ const MunicipalLandRequestPage = () => {
           <Landmark className="h-12 w-12 mx-auto mb-3 text-primary" />
           <CardTitle className="text-3xl font-bold text-foreground">Demande de Terrain Communal</CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
-            SÃ©lectionnez la localisation, prÃ©cisez votre projet et joignez vos piÃ¨ces justificatives.
+            Sélectionnez la localisation, précisez votre projet et joignez vos pièces justificatives.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -222,20 +222,20 @@ const MunicipalLandRequestPage = () => {
               ))}
             </div>
 
-            {/* Ã‰tape 1: Localisation */}
+            {/* Étape 1: Localisation */}
             {step === 1 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Localisation</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <Label>RÃ©gion</Label>
+                    <Label>Région</Label>
                     <Select value={formData.region} onValueChange={v=>handleSelectChange('region', v)}>
                       <SelectTrigger className="h-11"><SelectValue placeholder="Choisir" /></SelectTrigger>
                       <SelectContent>{regions.map(r=><SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>DÃ©partement</Label>
+                    <Label>Département</Label>
                     <Select value={formData.department} onValueChange={v=>handleSelectChange('department', v)} disabled={!formData.region}>
                       <SelectTrigger className="h-11"><SelectValue placeholder="Choisir" /></SelectTrigger>
                       <SelectContent>{departments.map(d=><SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
@@ -255,27 +255,27 @@ const MunicipalLandRequestPage = () => {
               </div>
             )}
 
-            {/* Ã‰tape 2: DÃ©tails */}
+            {/* Étape 2: Détails */}
             {step === 2 && (
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> DÃ©tails de la Demande</h3>
+                <h3 className="text-xl font-semibold flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Détails de la Demande</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label>Type de demande</Label>
                     <Select value={formData.requestType} onValueChange={v=>handleSelectChange('requestType', v)}>
-                      <SelectTrigger className="h-11"><SelectValue placeholder="SÃ©lectionnez" /></SelectTrigger>
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Sélectionnez" /></SelectTrigger>
                       <SelectContent>{requestTypes.map(rt=> <SelectItem key={rt} value={rt}>{rt}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>Superficie souhaitÃ©e (mÂ²)</Label>
+                    <Label>Superficie souhaitée (m²)</Label>
                     <Input type="number" name="areaSqm" value={formData.areaSqm} onChange={handleInputChange} placeholder="Ex: 300" className="h-11" />
                   </div>
                 </div>
                 <div>
                   <Label>Motivation / Description du projet</Label>
-                  <Textarea name="message" value={formData.message} onChange={handleInputChange} rows={6} placeholder="Expliquez votre projet, l'usage prÃ©vu, l'impact Ã©conomique/social..." />
-                  <p className="text-xs text-muted-foreground mt-1">Minimum 20 caractÃ¨res.</p>
+                  <Textarea name="message" value={formData.message} onChange={handleInputChange} rows={6} placeholder="Expliquez votre projet, l'usage prévu, l'impact économique/social..." />
+                  <p className="text-xs text-muted-foreground mt-1">Minimum 20 caractères.</p>
                 </div>
                 <div className="flex justify-between">
                   <Button type="button" variant="outline" onClick={goPrev}><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Button>
@@ -284,20 +284,20 @@ const MunicipalLandRequestPage = () => {
               </div>
             )}
 
-            {/* Ã‰tape 3: Documents */}
+            {/* Étape 3: Documents */}
             {step === 3 && (
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2"><UploadCloud className="h-5 w-5 text-primary" /> PiÃ¨ces Jointes</h3>
-                <p className="text-sm text-muted-foreground">Ajoutez les documents requis (PDF, JPG, PNG, max 5MB). RecommandÃ©: PiÃ¨ce identitÃ©, justificatif domicile, plan sommaire, financement.</p>
+                <h3 className="text-xl font-semibold flex items-center gap-2"><UploadCloud className="h-5 w-5 text-primary" /> Pièces Jointes</h3>
+                <p className="text-sm text-muted-foreground">Ajoutez les documents requis (PDF, JPG, PNG, max 5MB). Recommandé: Pièce identité, justificatif domicile, plan sommaire, financement.</p>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md cursor-pointer hover:border-primary transition-colors border-border">
                   <div className="space-y-1 text-center">
                     <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
                     <div className="flex text-sm text-muted-foreground">
                       <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80">
-                        <span>SÃ©lectionnez des fichiers</span>
+                        <span>Sélectionnez des fichiers</span>
                         <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple onChange={handleFileChange} />
                       </label>
-                      <p className="pl-1">ou glissez-dÃ©posez</p>
+                      <p className="pl-1">ou glissez-déposez</p>
                     </div>
                     <p className="text-xs text-muted-foreground">Max 5MB / fichier</p>
                     {fileErrors.length > 0 && (
@@ -330,24 +330,24 @@ const MunicipalLandRequestPage = () => {
               </div>
             )}
 
-            {/* Ã‰tape 4: RÃ©vision & Soumission */}
+            {/* Étape 4: Révision & Soumission */}
             {step === 4 && (
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /> VÃ©rification Finale</h3>
+                <h3 className="text-xl font-semibold flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /> Vérification Finale</h3>
                 <div className="bg-muted/40 rounded-md p-4 space-y-3 text-sm">
                   <div><strong>Localisation:</strong> {formData.commune}, {formData.department}, {formData.region}</div>
                   <div><strong>Type de demande:</strong> {formData.requestType}</div>
-                  <div><strong>Superficie demandÃ©e:</strong> {formData.areaSqm} mÂ²</div>
+                  <div><strong>Superficie demandée:</strong> {formData.areaSqm} m²</div>
                   <div><strong>Motivation:</strong> {formData.message.slice(0, 200)}{formData.message.length>200 && '...'}</div>
                   <div><strong>Documents:</strong> {files.length} fichier(s) {files.length>0 && `(${files.map(f=>f.name).join(', ')})`}</div>
                 </div>
-                <p className="text-xs text-muted-foreground">En soumettant, vous acceptez le partage de ces informations avec la mairie concernÃ©e selon notre <Link to="/privacy" className="underline">politique de confidentialitÃ©</Link>.</p>
+                <p className="text-xs text-muted-foreground">En soumettant, vous acceptez le partage de ces informations avec la mairie concernée selon notre <Link to="/privacy" className="underline">politique de confidentialité</Link>.</p>
                 {mairieResolvedId === null && isSubmitting && (
-                  <div className="text-xs text-muted-foreground flex items-center gap-2"><Info className="h-4 w-4"/> RÃ©solution de la mairie associÃ©e en cours...</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2"><Info className="h-4 w-4"/> Résolution de la mairie associée en cours...</div>
                 )}
                 <div className="flex justify-between items-center">
                   <Button type="button" variant="outline" onClick={goPrev} disabled={isSubmitting}><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Button>
-                  <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-primary to-green-600 text-white">{isSubmitting ? (uploading ? 'TÃ©lÃ©versement...' : 'Envoi...') : <><Send className="mr-2 h-5 w-5" /> Soumettre la Demande</>}</Button>
+                  <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-primary to-green-600 text-white">{isSubmitting ? (uploading ? 'Téléversement...' : 'Envoi...') : <><Send className="mr-2 h-5 w-5" /> Soumettre la Demande</>}</Button>
                 </div>
               </div>
             )}

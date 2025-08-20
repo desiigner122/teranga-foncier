@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -34,7 +34,7 @@ const InvestmentsPage = () => {
     try {
       setLoading(true);
 
-      // RÃ©cupÃ©rer les investissements (table 'investments' du schÃ©ma AI) rejoints sur parcels si FK (adapter selon schÃ©ma rÃ©el)
+      // Récupérer les investissements (table 'investments' du schéma AI) rejoints sur parcels si FK (adapter selon schéma réel)
       const { data: investmentData, error } = await supabase
         .from('investments')
         .select(`
@@ -50,7 +50,7 @@ const InvestmentsPage = () => {
 
       setInvestments(investmentData || []);
 
-  // Pas de gÃ©nÃ©ration d'exemples: on affiche simplement vide + CTA
+  // Pas de génération d'exemples: on affiche simplement vide + CTA
 
     } catch (error) {
       console.error('Erreur chargement investissements:', error);
@@ -105,7 +105,7 @@ const InvestmentsPage = () => {
     switch (status) {
       case 'active': return 'Actif';
       case 'in_progress': return 'En cours';
-      case 'completed': return 'TerminÃ©';
+      case 'completed': return 'Terminé';
       case 'sold': return 'Vendu';
       default: return status;
     }
@@ -115,7 +115,7 @@ const InvestmentsPage = () => {
     switch (type) {
       case 'purchase': return 'Achat direct';
       case 'rental': return 'Investissement locatif';
-      case 'development': return 'DÃ©veloppement';
+      case 'development': return 'Développement';
       case 'flip': return 'Revente rapide';
       default: return type;
     }
@@ -125,7 +125,7 @@ const InvestmentsPage = () => {
     switch (strategy) {
       case 'value_appreciation': return 'Plus-value';
       case 'rental_income': return 'Revenus locatifs';
-      case 'development': return 'DÃ©veloppement';
+      case 'development': return 'Développement';
       case 'mixed': return 'Mixte';
       default: return strategy;
     }
@@ -150,7 +150,7 @@ const InvestmentsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* En-tÃªte */}
+      {/* En-tête */}
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
@@ -251,7 +251,7 @@ const InvestmentsPage = () => {
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="active">Actif</SelectItem>
                   <SelectItem value="in_progress">En cours</SelectItem>
-                  <SelectItem value="completed">TerminÃ©</SelectItem>
+                  <SelectItem value="completed">Terminé</SelectItem>
                   <SelectItem value="sold">Vendu</SelectItem>
                 </SelectContent>
               </Select>
@@ -265,7 +265,7 @@ const InvestmentsPage = () => {
         <CardHeader>
           <CardTitle>Portefeuille d'Investissements</CardTitle>
           <CardDescription>
-            DÃ©tail de vos investissements immobiliers
+            Détail de vos investissements immobiliers
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -273,12 +273,12 @@ const InvestmentsPage = () => {
             <div className="text-center py-8">
               <TrendingUp className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {investments.length === 0 ? 'Aucun investissement' : 'Aucun rÃ©sultat'}
+                {investments.length === 0 ? 'Aucun investissement' : 'Aucun résultat'}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
                 {investments.length === 0 
                   ? 'Commencez votre premier investissement immobilier'
-                  : 'Essayez de modifier vos critÃ¨res de recherche'
+                  : 'Essayez de modifier vos critères de recherche'
                 }
               </p>
             </div>
@@ -328,14 +328,14 @@ const InvestmentsPage = () => {
                         </div>
 
                         <div>
-                          <span className="text-gray-500">ROI annualisÃ©:</span>
+                          <span className="text-gray-500">ROI annualisé:</span>
                           <p className={`font-medium ${parseFloat(calculateAnnualizedROI(investment)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {calculateAnnualizedROI(investment)}%
                           </p>
                         </div>
 
                         <div>
-                          <span className="text-gray-500">StratÃ©gie:</span>
+                          <span className="text-gray-500">Stratégie:</span>
                           <p className="font-medium">{getStrategyLabel(investment.investment_strategy)}</p>
                         </div>
 

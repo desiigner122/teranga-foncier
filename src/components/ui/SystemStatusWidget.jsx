@@ -1,6 +1,6 @@
 // src/components/ui/SystemStatusWidget.jsx
 import React from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Zap, Shield, CheckCircle, AlertTriangle, Clock } from 'lucide-react';

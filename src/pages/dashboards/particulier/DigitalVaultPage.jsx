@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -78,17 +78,17 @@ const DigitalVaultPage = () => {
       }
       
       toast({
-        title: "Documents tÃ©lÃ©chargÃ©s",
-        description: `${files.length} document(s) ajoutÃ©(s) Ã  votre coffre-fort numÃ©rique`
+        title: "Documents téléchargés",
+        description: `${files.length} document(s) ajouté(s) à votre coffre-fort numérique`
       });
       
       loadDocuments();
     } catch (error) {
-      console.error('Erreur lors du tÃ©lÃ©chargement:', error);
+      console.error('Erreur lors du téléchargement:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de tÃ©lÃ©charger les documents"
+        description: "Impossible de télécharger les documents"
       });
     } finally {
       setUploadLoading(false);
@@ -100,8 +100,8 @@ const DigitalVaultPage = () => {
       await SupabaseDataService.deleteUserDocument(documentId);
       setDocuments(prev => prev.filter(doc => doc.id !== documentId));
       toast({
-        title: "Document supprimÃ©",
-        description: `"${documentName}" a Ã©tÃ© supprimÃ© de votre coffre-fort`
+        title: "Document supprimé",
+        description: `"${documentName}" a été supprimé de votre coffre-fort`
       });
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
@@ -146,10 +146,10 @@ const DigitalVaultPage = () => {
 
   const getCategoryBadge = (category) => {
     const categoryConfig = {
-      'identity': { label: 'IdentitÃ©', variant: 'default' },
-      'property': { label: 'PropriÃ©tÃ©', variant: 'secondary' },
+      'identity': { label: 'Identité', variant: 'default' },
+      'property': { label: 'Propriété', variant: 'secondary' },
       'contracts': { label: 'Contrats', variant: 'outline' },
-      'receipts': { label: 'ReÃ§us', variant: 'default' },
+      'receipts': { label: 'Reçus', variant: 'default' },
       'photos': { label: 'Photos', variant: 'secondary' },
       'other': { label: 'Autre', variant: 'outline' }
     };
@@ -189,10 +189,10 @@ const DigitalVaultPage = () => {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <FolderOpen className="h-8 w-8" />
-          Coffre-fort NumÃ©rique
+          Coffre-fort Numérique
         </h1>
         <p className="text-muted-foreground">
-          Stockez et organisez vos documents importants en toute sÃ©curitÃ©
+          Stockez et organisez vos documents importants en toute sécurité
         </p>
       </div>
 
@@ -204,7 +204,7 @@ const DigitalVaultPage = () => {
             Ajouter des documents
           </CardTitle>
           <CardDescription>
-            TÃ©lÃ©chargez vos documents (PDF, images, Word, Excel) - Maximum 10MB par fichier
+            Téléchargez vos documents (PDF, images, Word, Excel) - Maximum 10MB par fichier
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -225,7 +225,7 @@ const DigitalVaultPage = () => {
                 <div className="text-center">
                   <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
-                    Cliquez pour sÃ©lectionner des fichiers ou glissez-les ici
+                    Cliquez pour sélectionner des fichiers ou glissez-les ici
                   </p>
                 </div>
               </label>
@@ -234,7 +234,7 @@ const DigitalVaultPage = () => {
           {uploadLoading && (
             <div className="mt-4 flex items-center gap-2">
               <LoadingSpinner size="small" />
-              <span className="text-sm text-muted-foreground">TÃ©lÃ©chargement en cours...</span>
+              <span className="text-sm text-muted-foreground">Téléchargement en cours...</span>
             </div>
           )}
         </CardContent>
@@ -260,7 +260,7 @@ const DigitalVaultPage = () => {
           <CardContent className="p-4">
             <div className="text-center">
               <p className="text-2xl font-bold">{documents.length}</p>
-              <p className="text-sm text-muted-foreground">Documents stockÃ©s</p>
+              <p className="text-sm text-muted-foreground">Documents stockés</p>
             </div>
           </CardContent>
         </Card>
@@ -300,8 +300,8 @@ const DigitalVaultPage = () => {
                   <h3 className="text-lg font-semibold mb-2">Aucun document</h3>
                   <p className="text-muted-foreground">
                     {documents.length === 0 
-                      ? "Vous n'avez pas encore tÃ©lÃ©chargÃ© de documents. Commencez par ajouter vos premiers documents."
-                      : "Aucun document ne correspond Ã  vos critÃ¨res de recherche."
+                      ? "Vous n'avez pas encore téléchargé de documents. Commencez par ajouter vos premiers documents."
+                      : "Aucun document ne correspond à vos critères de recherche."
                     }
                   </p>
                 </CardContent>
@@ -334,7 +334,7 @@ const DigitalVaultPage = () => {
                       
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
                         <Calendar className="h-3 w-3" />
-                        <span>AjoutÃ© le {formatDate(document.created_at)}</span>
+                        <span>Ajouté le {formatDate(document.created_at)}</span>
                       </div>
                       
                       <div className="flex gap-1">

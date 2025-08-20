@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { useRealtimeParcelSubmissions, useRealtimeParcels } from '../../hooks/useRealtimeTable';
 import { Button } from '@/components/ui/button';

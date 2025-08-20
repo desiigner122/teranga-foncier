@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -49,11 +49,11 @@ const FundingRequestsPage = () => {
       setLoading(true);
       
       if (user && user.id) {
-        // Utiliser la nouvelle mÃ©thode pour rÃ©cupÃ©rer les demandes destinÃ©es spÃ©cifiquement Ã  cette banque
+        // Utiliser la nouvelle méthode pour récupérer les demandes destinées spécifiquement à cette banque
         const banqueRequests = await SupabaseDataService.getRequestsByRecipient(user.id, 'banque');
         setRequests(banqueRequests);
       } else {
-        // Fallback: rÃ©cupÃ©rer toutes les demandes de financement
+        // Fallback: récupérer toutes les demandes de financement
         const { data, error } = await supabase
           .from('requests')
           .select(`
@@ -95,20 +95,20 @@ const FundingRequestsPage = () => {
       if (error) throw error;
 
       toast({
-        title: "Demande mise Ã  jour",
-        description: `Statut changÃ© vers: ${getStatusLabel(newStatus)}`
+        title: "Demande mise à jour",
+        description: `Statut changé vers: ${getStatusLabel(newStatus)}`
       });
 
-      // Recharger les donnÃ©es
+      // Recharger les données
       await loadFundingRequests();
       setIsDetailModalOpen(false);
       
     } catch (error) {
-      console.error('Erreur mise Ã  jour:', error);
+      console.error('Erreur mise à jour:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de mettre Ã  jour la demande"
+        description: "Impossible de mettre à jour la demande"
       });
     } finally {
       setIsProcessing(false);
@@ -118,9 +118,9 @@ const FundingRequestsPage = () => {
   const getStatusLabel = (status) => {
     const labels = {
       'pending': 'En attente',
-      'approved': 'ApprouvÃ©',
-      'rejected': 'RejetÃ©',
-      'completed': 'ComplÃ©tÃ©'
+      'approved': 'Approuvé',
+      'rejected': 'Rejeté',
+      'completed': 'Complété'
     };
     return labels[status] || status;
   };
@@ -140,7 +140,7 @@ const FundingRequestsPage = () => {
   };
 
   const calculateLoanRisk = (request) => {
-    // Calcul simple du risque basÃ© sur le ratio montant/valeur parcelle
+    // Calcul simple du risque basé sur le ratio montant/valeur parcelle
     const parcelValue = request.parcels?.price || 0;
     const requestedAmount = request.data?.amount || 0;
     
@@ -195,7 +195,7 @@ const FundingRequestsPage = () => {
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Rechercher par nom, email ou rÃ©fÃ©rence parcelle..."
+                placeholder="Rechercher par nom, email ou référence parcelle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-md"
@@ -208,9 +208,9 @@ const FundingRequestsPage = () => {
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="pending">En attente</SelectItem>
-                <SelectItem value="approved">ApprouvÃ©</SelectItem>
-                <SelectItem value="rejected">RejetÃ©</SelectItem>
-                <SelectItem value="completed">ComplÃ©tÃ©</SelectItem>
+                <SelectItem value="approved">Approuvé</SelectItem>
+                <SelectItem value="rejected">Rejeté</SelectItem>
+                <SelectItem value="completed">Complété</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -222,13 +222,13 @@ const FundingRequestsPage = () => {
         <CardHeader>
           <CardTitle>Demandes de Financement ({filteredRequests.length})</CardTitle>
           <CardDescription>
-            GÃ©rez les demandes de financement et Ã©valuez les risques
+            Gérez les demandes de financement et évaluez les risques
           </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredRequests.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Aucune demande de financement trouvÃ©e
+              Aucune demande de financement trouvée
             </div>
           ) : (
             <Table>
@@ -270,7 +270,7 @@ const FundingRequestsPage = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant={risk.level === 'low' ? 'default' : risk.level === 'medium' ? 'secondary' : 'destructive'}>
-                          {risk.level === 'low' ? 'Faible' : risk.level === 'medium' ? 'Moyen' : 'Ã‰levÃ©'} ({risk.score}%)
+                          {risk.level === 'low' ? 'Faible' : risk.level === 'medium' ? 'Moyen' : 'Élevé'} ({risk.score}%)
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -289,7 +289,7 @@ const FundingRequestsPage = () => {
                           }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          DÃ©tails
+                          Détails
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -301,11 +301,11 @@ const FundingRequestsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Modal de dÃ©tails */}
+      {/* Modal de détails */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>DÃ©tails de la Demande de Financement</DialogTitle>
+            <DialogTitle>Détails de la Demande de Financement</DialogTitle>
             <DialogDescription>
               Examinez et traitez cette demande de financement
             </DialogDescription>
@@ -330,7 +330,7 @@ const FundingRequestsPage = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Montant demandÃ©</Label>
+                  <Label>Montant demandé</Label>
                   <p className="font-medium text-lg">
                     {(selectedRequest.data?.amount || 0).toLocaleString('fr-FR')} FCFA
                   </p>

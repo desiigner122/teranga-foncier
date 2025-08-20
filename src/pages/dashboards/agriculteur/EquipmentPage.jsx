@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -38,7 +38,7 @@ const EquipmentPage = () => {
         return;
       }
 
-      // RÃ©cupÃ©rer l'Ã©quipement agricole depuis la table agricultural_equipment
+      // Récupérer l'équipement agricole depuis la table agricultural_equipment
       const { data: equipmentData, error } = await SupabaseDataService.supabaseClient
         .from('agricultural_equipment')
         .select('*')
@@ -46,17 +46,17 @@ const EquipmentPage = () => {
         .order('created_at', { ascending: false });
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Erreur chargement Ã©quipement:', error);
+        console.error('Erreur chargement équipement:', error);
       }
 
       setEquipment(equipmentData || []);
 
     } catch (error) {
-      console.error('Erreur chargement Ã©quipement:', error);
+      console.error('Erreur chargement équipement:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de charger l'inventaire d'Ã©quipement"
+        description: "Impossible de charger l'inventaire d'équipement"
       });
     } finally {
       setLoading(false);
@@ -66,14 +66,14 @@ const EquipmentPage = () => {
 
   const getEquipmentIcon = (type) => {
     switch (type) {
-      case 'tractor': return 'ðŸšœ';
-      case 'plow': return 'ðŸ”¨';
-      case 'seeder': return 'ðŸŒ±';
-      case 'harvester': return 'ðŸŒ¾';
-      case 'irrigation': return 'ðŸ’§';
-      case 'sprayer': return 'ðŸš¿';
-      case 'tools': return 'ðŸ”§';
-      default: return 'âš™ï¸';
+      case 'tractor': return '??';
+      case 'plow': return '??';
+      case 'seeder': return '??';
+      case 'harvester': return '??';
+      case 'irrigation': return '??';
+      case 'sprayer': return '??';
+      case 'tools': return '??';
+      default: return '??';
     }
   };
 
@@ -84,7 +84,7 @@ const EquipmentPage = () => {
       case 'seeder': return 'Semoir';
       case 'harvester': return 'Moissonneuse';
       case 'irrigation': return 'Irrigation';
-      case 'sprayer': return 'PulvÃ©risateur';
+      case 'sprayer': return 'Pulvérisateur';
       case 'tools': return 'Outils';
       default: return 'Autre';
     }
@@ -102,10 +102,10 @@ const EquipmentPage = () => {
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'operational': return 'OpÃ©rationnel';
+      case 'operational': return 'Opérationnel';
       case 'maintenance': return 'En maintenance';
-      case 'broken': return 'DÃ©faillant';
-      case 'retired': return 'RetirÃ©';
+      case 'broken': return 'Défaillant';
+      case 'retired': return 'Retiré';
       default: return status;
     }
   };
@@ -158,25 +158,25 @@ const EquipmentPage = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6 p-4 md:p-6"
     >
-      {/* En-tÃªte */}
+      {/* En-tête */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex items-center">
             <Wrench className="mr-3 h-8 w-8 text-primary"/>
-            MatÃ©riel & Ã‰quipement
+            Matériel & Équipement
           </h1>
           <p className="text-sm text-muted-foreground max-w-prose mt-1">
-            GÃ©rez votre inventaire et suivez la maintenance de vos Ã©quipements agricoles
+            Gérez votre inventaire et suivez la maintenance de vos équipements agricoles
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={loadEquipment} disabled={refreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            RafraÃ®chir
+            Rafraîchir
           </Button>
           <Button size="sm">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Ajouter Ã©quipement
+            Ajouter équipement
           </Button>
         </div>
       </div>
@@ -199,7 +199,7 @@ const EquipmentPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">OpÃ©rationnels</p>
+                <p className="text-sm font-medium text-muted-foreground">Opérationnels</p>
                 <p className="text-2xl font-bold text-green-600">
                   {equipment.filter(e => e.status === 'operational').length}
                 </p>
@@ -231,7 +231,7 @@ const EquipmentPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">DÃ©faillants</p>
+                <p className="text-sm font-medium text-muted-foreground">Défaillants</p>
                 <p className="text-2xl font-bold text-red-600">
                   {equipment.filter(e => e.status === 'broken').length}
                 </p>
@@ -246,7 +246,7 @@ const EquipmentPage = () => {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Filtres et recherche</CardTitle>
-          <CardDescription>Trouvez rapidement vos Ã©quipements</CardDescription>
+          <CardDescription>Trouvez rapidement vos équipements</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -265,10 +265,10 @@ const EquipmentPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="operational">OpÃ©rationnel</SelectItem>
+                <SelectItem value="operational">Opérationnel</SelectItem>
                 <SelectItem value="maintenance">En maintenance</SelectItem>
-                <SelectItem value="broken">DÃ©faillant</SelectItem>
-                <SelectItem value="retired">RetirÃ©</SelectItem>
+                <SelectItem value="broken">Défaillant</SelectItem>
+                <SelectItem value="retired">Retiré</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -291,12 +291,12 @@ const EquipmentPage = () => {
         </CardContent>
       </Card>
 
-      {/* Liste des Ã©quipements */}
+      {/* Liste des équipements */}
       <Card>
         <CardHeader>
-          <CardTitle>Inventaire d'Ã©quipement</CardTitle>
+          <CardTitle>Inventaire d'équipement</CardTitle>
           <CardDescription>
-            {filteredEquipment.length} Ã©quipement(s) dans votre inventaire
+            {filteredEquipment.length} équipement(s) dans votre inventaire
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -304,17 +304,17 @@ const EquipmentPage = () => {
             <div className="text-center py-8">
               <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {equipment.length === 0 ? 'Aucun Ã©quipement enregistrÃ©' : 'Aucun rÃ©sultat'}
+                {equipment.length === 0 ? 'Aucun équipement enregistré' : 'Aucun résultat'}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {equipment.length === 0 
-                  ? 'Commencez par ajouter votre premier Ã©quipement'
-                  : 'Essayez de modifier vos critÃ¨res de recherche'
+                  ? 'Commencez par ajouter votre premier équipement'
+                  : 'Essayez de modifier vos critères de recherche'
                 }
               </p>
               <Button className="mt-4" size="sm">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Ajouter un Ã©quipement
+                Ajouter un équipement
               </Button>
             </div>
           ) : (
@@ -337,7 +337,7 @@ const EquipmentPage = () => {
                         <span className="text-2xl">{getEquipmentIcon(item.equipment_type)}</span>
                         <div>
                           <h3 className="font-medium text-gray-900">
-                            {item.name || 'Ã‰quipement sans nom'}
+                            {item.name || 'Équipement sans nom'}
                           </h3>
                           <p className="text-sm text-muted-foreground">
                             {getTypeLabel(item.equipment_type)}
@@ -362,14 +362,14 @@ const EquipmentPage = () => {
                       
                       {item.model && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">ModÃ¨le:</span>
+                          <span className="text-muted-foreground">Modèle:</span>
                           <span className="font-medium">{item.model}</span>
                         </div>
                       )}
 
                       {item.year && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">AnnÃ©e:</span>
+                          <span className="text-muted-foreground">Année:</span>
                           <span className="font-medium">{item.year}</span>
                         </div>
                       )}

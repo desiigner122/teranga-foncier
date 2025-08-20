@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
@@ -31,7 +31,7 @@ const DigitalVaultPage = () => {
     try {
       setLoading(true);
       
-      // RÃ©cupÃ©rer les documents de l'utilisateur depuis Supabase
+      // Récupérer les documents de l'utilisateur depuis Supabase
       const userDocs = await SupabaseDataService.getUserDocuments(user.id);
       setDocuments(userDocs || []);
       
@@ -49,7 +49,7 @@ const DigitalVaultPage = () => {
 
   const handleDownload = async (documentId, docName) => {
     try {
-      // Obtenir l'URL de tÃ©lÃ©chargement sÃ©curisÃ©e
+      // Obtenir l'URL de téléchargement sécurisée
       const downloadUrl = await SupabaseDataService.getDocumentDownloadUrl(documentId);
       
       if (downloadUrl) {
@@ -61,16 +61,16 @@ const DigitalVaultPage = () => {
         document.body.removeChild(link);
         
         toast({
-          title: "TÃ©lÃ©chargement en cours",
-          description: `Le document ${docName} est en cours de tÃ©lÃ©chargement.`
+          title: "Téléchargement en cours",
+          description: `Le document ${docName} est en cours de téléchargement.`
         });
       }
     } catch (error) {
-      console.error('Erreur tÃ©lÃ©chargement:', error);
+      console.error('Erreur téléchargement:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de tÃ©lÃ©charger le document"
+        description: "Impossible de télécharger le document"
       });
     }
   };
@@ -93,8 +93,8 @@ const DigitalVaultPage = () => {
       
       if (uploadResult) {
         toast({
-          title: "Document tÃ©lÃ©versÃ©",
-          description: `${file.name} a Ã©tÃ© ajoutÃ© Ã  votre coffre-fort.`
+          title: "Document téléversé",
+          description: `${file.name} a été ajouté à votre coffre-fort.`
         });
         
         // Recharger la liste des documents
@@ -106,7 +106,7 @@ const DigitalVaultPage = () => {
       toast({
         variant: "destructive",
         title: "Erreur d'upload",
-        description: error.message || "Impossible de tÃ©lÃ©verser le document"
+        description: error.message || "Impossible de téléverser le document"
       });
     } finally {
       setUploading(false);
@@ -140,8 +140,8 @@ const DigitalVaultPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>Coffre-fort NumÃ©rique - Teranga Foncier</title>
-        <meta name="description" content="AccÃ©dez Ã  tous vos documents fonciers importants (actes de vente, titres de propriÃ©tÃ©, plans) dans un espace sÃ©curisÃ© et confidentiel." />
+        <title>Coffre-fort Numérique - Teranga Foncier</title>
+        <meta name="description" content="Accédez à tous vos documents fonciers importants (actes de vente, titres de propriété, plans) dans un espace sécurisé et confidentiel." />
       </Helmet>
       
       <motion.div
@@ -153,16 +153,16 @@ const DigitalVaultPage = () => {
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-4">
           <div className="text-center sm:text-left">
             <h1 className="text-4xl md:text-5xl font-extrabold text-primary mb-4 flex items-center">
-              <Vault className="h-10 w-10 mr-3" /> Coffre-fort NumÃ©rique
+              <Vault className="h-10 w-10 mr-3" /> Coffre-fort Numérique
             </h1>
             <p className="text-lg text-muted-foreground">
-              Vos documents fonciers, sÃ©curisÃ©s et accessibles Ã  tout moment.
+              Vos documents fonciers, sécurisés et accessibles à tout moment.
             </p>
           </div>
           <div>
             <Button size="lg" onClick={triggerFileUpload} disabled={uploading}>
               <PlusCircle className="mr-2 h-5 w-5" /> 
-              {uploading ? 'TÃ©lÃ©versement...' : 'TÃ©lÃ©verser un Document'}
+              {uploading ? 'Téléversement...' : 'Téléverser un Document'}
             </Button>
             <input
               id="file-upload"
@@ -179,7 +179,7 @@ const DigitalVaultPage = () => {
             <CardHeader>
               <CardTitle>Mes Documents</CardTitle>
               <CardDescription>
-                Retrouvez ici tous les documents liÃ©s Ã  vos transactions fonciÃ¨res.
+                Retrouvez ici tous les documents liés à vos transactions foncières.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -201,7 +201,7 @@ const DigitalVaultPage = () => {
                     <thead>
                       <tr className="border-b">
                         <th className="text-left p-3 font-semibold">Nom du Document</th>
-                        <th className="text-left p-3 font-semibold hidden md:table-cell">CatÃ©gorie</th>
+                        <th className="text-left p-3 font-semibold hidden md:table-cell">Catégorie</th>
                         <th className="text-left p-3 font-semibold hidden sm:table-cell">Date</th>
                         <th className="text-left p-3 font-semibold">Actions</th>
                       </tr>
@@ -233,12 +233,12 @@ const DigitalVaultPage = () => {
                                 size="sm" 
                                 onClick={() => handleDownload(doc.id, doc.name || doc.filename)}
                               >
-                                <Download className="h-4 w-4 mr-1" /> TÃ©lÃ©charger
+                                <Download className="h-4 w-4 mr-1" /> Télécharger
                               </Button>
                               {doc.verified && (
                                 <ShieldCheck 
                                   className="h-5 w-5 text-green-500" 
-                                  title="Document vÃ©rifiÃ© par Teranga Foncier" 
+                                  title="Document vérifié par Teranga Foncier" 
                                 />
                               )}
                             </div>

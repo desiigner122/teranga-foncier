@@ -1,6 +1,6 @@
-ï»¿// src/pages/solutions/dashboards/AgentDashboardPage.jsx
+// src/pages/solutions/dashboards/AgentDashboardPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +40,7 @@ const AgentDashboardPage = () => {
       phone: '+221 77 123 45 67',
       status: 'active',
       lastContact: '2024-01-20',
-      interest: 'Achat terrain rÃ©sidentiel'
+      interest: 'Achat terrain résidentiel'
     },
     {
       id: 2,
@@ -49,7 +49,7 @@ const AgentDashboardPage = () => {
       phone: '+221 76 987 65 43',
       status: 'pending',
       lastContact: '2024-01-18',
-      interest: 'Vente propriÃ©tÃ© commerciale'
+      interest: 'Vente propriété commerciale'
     },
     {
       id: 3,
@@ -124,20 +124,20 @@ const AgentDashboardPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* En-tÃªte de bienvenue */}
+      {/* En-tête de bienvenue */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Bienvenue, {user?.full_name || user?.email} ğŸ‘‹
+            Bienvenue, {user?.full_name || user?.email} ??
           </h1>
           <p className="text-muted-foreground">
-            Voici un aperÃ§u de votre activitÃ© d'agent foncier
+            Voici un aperçu de votre activité d'agent foncier
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Badge variant="outline" className="px-3 py-1">
             <Clock className="h-4 w-4 mr-1" />
-            {stats.pendingTasks} tÃ¢ches en attente
+            {stats.pendingTasks} tâches en attente
           </Badge>
         </div>
       </div>
@@ -179,7 +179,7 @@ const AgentDashboardPage = () => {
                 <ClipboardList className="h-6 w-6 text-orange-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">TÃ¢ches en Cours</p>
+                <p className="text-sm font-medium text-muted-foreground">Tâches en Cours</p>
                 <p className="text-2xl font-bold">{stats.pendingTasks}</p>
               </div>
             </div>
@@ -193,7 +193,7 @@ const AgentDashboardPage = () => {
                 <TrendingUp className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Ventes RÃ©alisÃ©es</p>
+                <p className="text-sm font-medium text-muted-foreground">Ventes Réalisées</p>
                 <p className="text-2xl font-bold">{stats.completedDeals}</p>
               </div>
             </div>
@@ -212,7 +212,7 @@ const AgentDashboardPage = () => {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Ventes rÃ©alisÃ©es</span>
+              <span>Ventes réalisées</span>
               <span>{monthlyTargets.deals.current}/{monthlyTargets.deals.target}</span>
             </div>
             <Progress 
@@ -246,10 +246,10 @@ const AgentDashboardPage = () => {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Clients rÃ©cents */}
+        {/* Clients récents */}
         <Card>
           <CardHeader>
-            <CardTitle>Clients RÃ©cents</CardTitle>
+            <CardTitle>Clients Récents</CardTitle>
             <CardDescription>
               Vos derniers clients et leurs statuts
             </CardDescription>
@@ -294,12 +294,12 @@ const AgentDashboardPage = () => {
           </CardContent>
         </Card>
 
-        {/* TÃ¢ches actives */}
+        {/* Tâches actives */}
         <Card>
           <CardHeader>
-            <CardTitle>TÃ¢ches Ã  Faire</CardTitle>
+            <CardTitle>Tâches à Faire</CardTitle>
             <CardDescription>
-              Vos prochaines tÃ¢ches et rendez-vous
+              Vos prochaines tâches et rendez-vous
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -348,7 +348,7 @@ const AgentDashboardPage = () => {
         <CardHeader>
           <CardTitle>Actions Rapides</CardTitle>
           <CardDescription>
-            AccÃ¨s direct aux fonctionnalitÃ©s principales
+            Accès direct aux fonctionnalités principales
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -363,7 +363,7 @@ const AgentDashboardPage = () => {
             </Button>
             <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
               <ClipboardList className="h-6 w-6" />
-              <span className="text-sm">Nouvelle TÃ¢che</span>
+              <span className="text-sm">Nouvelle Tâche</span>
             </Button>
             <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
               <CalendarDays className="h-6 w-6" />

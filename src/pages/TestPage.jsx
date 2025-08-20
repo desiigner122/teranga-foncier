@@ -1,5 +1,5 @@
-ï»¿import React, { useState, useEffect } from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import React, { useState, useEffect } from 'react';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { useAuth } from '@/context/AuthContext';
 import { useDemo } from '@/context/DemoContext';
@@ -46,13 +46,13 @@ const TestPage = () => {
 
       setConnectionTest({
         status: 'success',
-        message: `âœ… Connexion rÃ©ussie - ${users.length} utilisateurs trouvÃ©s`,
+        message: `? Connexion réussie - ${users.length} utilisateurs trouvés`,
         data: users
       });
     } catch (error) {
       setConnectionTest({
         status: 'error',
-        message: `âŒ Erreur de connexion: ${error.message}`,
+        message: `? Erreur de connexion: ${error.message}`,
         error
       });
     }
@@ -74,13 +74,13 @@ const TestPage = () => {
         ...prev,
         login: {
           status: 'success',
-          message: 'âœ… Connexion utilisateur rÃ©ussie',
+          message: '? Connexion utilisateur réussie',
           user: authData.user,
           session: authData.session
         }
       }));
 
-      // Test de rÃ©cupÃ©ration du profil
+      // Test de récupération du profil
       if (authData.user) {
         const { data: profileData, error: profileError } = await supabase
           .from('users')
@@ -93,7 +93,7 @@ const TestPage = () => {
             ...prev,
             profile: {
               status: 'error',
-              message: `âš ï¸ Erreur profil: ${profileError.message}`,
+              message: `?? Erreur profil: ${profileError.message}`,
               error: profileError
             }
           }));
@@ -102,7 +102,7 @@ const TestPage = () => {
             ...prev,
             profile: {
               status: 'success',
-              message: 'âœ… Profil rÃ©cupÃ©rÃ© avec succÃ¨s',
+              message: '? Profil récupéré avec succès',
               data: profileData
             }
           }));
@@ -114,7 +114,7 @@ const TestPage = () => {
         ...prev,
         login: {
           status: 'error',
-          message: `âŒ Erreur de connexion: ${error.message}`,
+          message: `? Erreur de connexion: ${error.message}`,
           error
         }
       }));
@@ -122,7 +122,7 @@ const TestPage = () => {
     setLoading(false);
   };
 
-  // Test de dÃ©connexion
+  // Test de déconnexion
   const testLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -131,11 +131,11 @@ const TestPage = () => {
       setTestResults({});
       setConnectionTest(null);
     } catch (error) {
-      console.error('Erreur de dÃ©connexion:', error);
+      console.error('Erreur de déconnexion:', error);
     }
   };
 
-  // Activer le mode dÃ©mo et naviguer
+  // Activer le mode démo et naviguer
   const startDemo = (userType) => {
     enableDemoMode(userType);
     navigate('/dashboard');
@@ -149,18 +149,18 @@ const TestPage = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">ðŸ§ª Page de Test - Diagnostic Teranga Foncier</h1>
+        <h1 className="text-3xl font-bold mb-2">?? Page de Test - Diagnostic Teranga Foncier</h1>
         <p className="text-muted-foreground">
-          Cette page permet de diagnostiquer les problÃ¨mes d'authentification et de tester les dashboards.
+          Cette page permet de diagnostiquer les problèmes d'authentification et de tester les dashboards.
         </p>
       </div>
 
-      {/* Mode DÃ©monstration */}
+      {/* Mode Démonstration */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Gamepad2 className="h-5 w-5" />
-            Mode DÃ©monstration
+            Mode Démonstration
           </CardTitle>
           <CardDescription>
             Testez tous les dashboards sans authentification
@@ -170,7 +170,7 @@ const TestPage = () => {
           {demoMode ? (
             <div className="space-y-4">
               <Badge variant="secondary" className="text-green-600">
-                Mode DÃ©mo Actif - {profile?.type}
+                Mode Démo Actif - {profile?.type}
               </Badge>
               <div className="flex gap-2">
                 <Button onClick={() => navigate('/dashboard')} className="flex-1">
@@ -178,7 +178,7 @@ const TestPage = () => {
                   Aller au Dashboard
                 </Button>
                 <Button onClick={disableDemoMode} variant="outline">
-                  DÃ©sactiver le Mode DÃ©mo
+                  Désactiver le Mode Démo
                 </Button>
               </div>
             </div>
@@ -211,23 +211,23 @@ const TestPage = () => {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Ã‰tat du Contexte d'Authentification */}
+        {/* État du Contexte d'Authentification */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              Ã‰tat du Contexte Auth
+              État du Contexte Auth
             </CardTitle>
             <CardDescription>
-              Ã‰tat actuel de l'authentification dans l'application
+              État actuel de l'authentification dans l'application
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Mode DÃ©mo</Label>
+                <Label>Mode Démo</Label>
                 <Badge variant={demoMode ? "default" : "outline"}>
-                  {demoMode ? "ActivÃ©" : "DÃ©sactivÃ©"}
+                  {demoMode ? "Activé" : "Désactivé"}
                 </Badge>
               </div>
               <div>
@@ -237,7 +237,7 @@ const TestPage = () => {
                 </Badge>
               </div>
               <div>
-                <Label>AuthentifiÃ©</Label>
+                <Label>Authentifié</Label>
                 <Badge variant={isAuthenticated ? "default" : "destructive"}>
                   {isAuthenticated ? "Oui" : "Non"}
                 </Badge>
@@ -249,7 +249,7 @@ const TestPage = () => {
                 </Badge>
               </div>
               <div>
-                <Label>VÃ©rifiÃ©</Label>
+                <Label>Vérifié</Label>
                 <Badge variant={isVerified ? "default" : "secondary"}>
                   {isVerified ? "Oui" : "Non"}
                 </Badge>
@@ -269,7 +269,7 @@ const TestPage = () => {
                 <div className="text-sm text-muted-foreground">
                   <p>Nom: {profile.full_name}</p>
                   <p>Type: {profile.type}</p>
-                  <p>RÃ´le: {profile.role}</p>
+                  <p>Rôle: {profile.role}</p>
                   <p>Statut: {profile.verification_status}</p>
                 </div>
               </div>
@@ -277,7 +277,7 @@ const TestPage = () => {
 
             {isAuthenticated && (
               <Button onClick={signOut} variant="outline" size="sm">
-                Se DÃ©connecter
+                Se Déconnecter
               </Button>
             )}
           </CardContent>
@@ -291,7 +291,7 @@ const TestPage = () => {
               Test Connexion Supabase
             </CardTitle>
             <CardDescription>
-              VÃ©rification de la connectivitÃ© avec la base de donnÃ©es
+              Vérification de la connectivité avec la base de données
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -324,7 +324,7 @@ const TestPage = () => {
                   <div className="mt-2 text-xs">
                     <p>Premiers utilisateurs:</p>
                     {connectionTest.data.slice(0, 3).map((user, index) => (
-                      <p key={index}>â€¢ {user.email} ({user.role || 'user'})</p>
+                      <p key={index}>• {user.email} ({user.role || 'user'})</p>
                     ))}
                   </div>
                 )}
@@ -341,7 +341,7 @@ const TestPage = () => {
               Test de Connexion Utilisateur
             </CardTitle>
             <CardDescription>
-              Test de connexion avec un compte spÃ©cifique
+              Test de connexion avec un compte spécifique
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -399,11 +399,11 @@ const TestPage = () => {
               </div>
             </div>
 
-            {/* RÃ©sultats des tests */}
+            {/* Résultats des tests */}
             {(testResults.login || testResults.profile) && (
               <div className="space-y-4">
                 <Separator />
-                <h4 className="font-medium">RÃ©sultats des tests</h4>
+                <h4 className="font-medium">Résultats des tests</h4>
                 
                 {testResults.login && (
                   <div className={`p-3 rounded-md border ${
@@ -429,7 +429,7 @@ const TestPage = () => {
                       <div className="text-xs mt-1">
                         <p>Nom: {testResults.profile.data.full_name}</p>
                         <p>Type: {testResults.profile.data.type}</p>
-                        <p>RÃ´le: {testResults.profile.data.role}</p>
+                        <p>Rôle: {testResults.profile.data.role}</p>
                       </div>
                     )}
                   </div>
@@ -447,13 +447,13 @@ const TestPage = () => {
       {/* Instructions */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>ðŸ“‹ Instructions</CardTitle>
+          <CardTitle>?? Instructions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p><strong>Mode DÃ©monstration :</strong> Testez tous les dashboards immÃ©diatement sans authentification.</p>
-          <p><strong>Test Connexion :</strong> VÃ©rifiez la connectivitÃ© avec Supabase.</p>
-          <p><strong>Test Auth :</strong> Testez la connexion avec des comptes rÃ©els (nÃ©cessite rÃ©solution du problÃ¨me email).</p>
-          <p><strong>ProblÃ¨me actuel :</strong> Les emails Supabase nÃ©cessitent une confirmation. Utilisez le mode dÃ©mo pour tester.</p>
+          <p><strong>Mode Démonstration :</strong> Testez tous les dashboards immédiatement sans authentification.</p>
+          <p><strong>Test Connexion :</strong> Vérifiez la connectivité avec Supabase.</p>
+          <p><strong>Test Auth :</strong> Testez la connexion avec des comptes réels (nécessite résolution du problème email).</p>
+          <p><strong>Problème actuel :</strong> Les emails Supabase nécessitent une confirmation. Utilisez le mode démo pour tester.</p>
         </CardContent>
       </Card>
     </div>

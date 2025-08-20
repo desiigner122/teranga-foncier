@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 const CasesPage = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold">Dossiers Notariaux</h1>

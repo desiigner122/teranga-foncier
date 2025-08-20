@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtime } from '@/context/RealtimeContext.jsx';
 import { useLocation } from 'react-router-dom';
 import HeaderLogo from '@/components/layout/header/HeaderLogo';
 import DesktopNavigation from '@/components/layout/header/DesktopNavigation';

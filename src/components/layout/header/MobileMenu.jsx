@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Building, Landmark, Leaf, Banknote, TrendingUp, ChevronDown, ChevronRight, Scale, Users, HeartHandshake as Handshake, FileSignature, AlertTriangle, Sprout } from 'lucide-react';
@@ -7,19 +7,19 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 
 const solutions = [
-  { title: 'Banques & Finances', href: '/solutions/banques', description: 'Ã‰valuez les garanties et analysez les risques fonciers.', icon: Banknote },
-  { title: 'Promoteurs', href: '/solutions/promoteurs', description: 'Identifiez des opportunitÃ©s et suivez vos projets de construction.', icon: Building },
-  { title: 'Investisseurs', href: '/solutions/investisseurs', description: 'Suivez votre portefeuille et dÃ©tectez les meilleures opportunitÃ©s.', icon: TrendingUp },
-  { title: 'Agriculteurs', href: '/solutions/agriculteurs', description: 'GÃ©rez vos parcelles, suivez la mÃ©tÃ©o et analysez vos sols.', icon: Leaf },
+  { title: 'Banques & Finances', href: '/solutions/banques', description: 'Évaluez les garanties et analysez les risques fonciers.', icon: Banknote },
+  { title: 'Promoteurs', href: '/solutions/promoteurs', description: 'Identifiez des opportunités et suivez vos projets de construction.', icon: Building },
+  { title: 'Investisseurs', href: '/solutions/investisseurs', description: 'Suivez votre portefeuille et détectez les meilleures opportunités.', icon: TrendingUp },
+  { title: 'Agriculteurs', href: '/solutions/agriculteurs', description: 'Gérez vos parcelles, suivez la météo et analysez vos sols.', icon: Leaf },
 ];
 
 const ecosysteme = [
-  { title: 'Mairies', href: '/dashboard', description: 'GÃ©rez le cadastre, les permis et les demandes citoyennes.', icon: Landmark },
-  { title: 'Notaires', href: '/dashboard', description: 'Authentifiez les actes et consultez les archives en toute sÃ©curitÃ©.', icon: Scale },
-  { title: 'Agents Immobiliers', href: '/agent', description: 'GÃ©rez vos clients et mandats.', icon: Handshake },
+  { title: 'Mairies', href: '/dashboard', description: 'Gérez le cadastre, les permis et les demandes citoyennes.', icon: Landmark },
+  { title: 'Notaires', href: '/dashboard', description: 'Authentifiez les actes et consultez les archives en toute sécurité.', icon: Scale },
+  { title: 'Agents Immobiliers', href: '/agent', description: 'Gérez vos clients et mandats.', icon: Handshake },
   { title: 'Particuliers', href: '/dashboard', description: 'Listez votre bien et suivez vos demandes.', icon: Users },
-  { title: 'SÃ©curisation FonciÃ¨re', href: '/how-it-works', description: 'PrÃ©venez les litiges grÃ¢ce Ã  des titres clairs.', icon: FileSignature },
-  { title: 'DÃ©veloppement Agricole', href: '/solutions/agriculteurs', description: 'AccÃ©dez Ã  des donnÃ©es clÃ©s pour vos rendements.', icon: Sprout },
+  { title: 'Sécurisation Foncière', href: '/how-it-works', description: 'Prévenez les litiges grâce à des titres clairs.', icon: FileSignature },
+  { title: 'Développement Agricole', href: '/solutions/agriculteurs', description: 'Accédez à des données clés pour vos rendements.', icon: Sprout },
 ]
 
 const MobileMenu = ({ isOpen, onClose }) => {
@@ -65,7 +65,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
         <NavLink to="/parcelles" className={({isActive}) => mobileNavLinkClass(isActive)} onClick={onClose}>Terrains</NavLink>
         
         <CollapsibleMobileMenu title="Solutions" items={solutions} />
-        <CollapsibleMobileMenu title="Ã‰cosystÃ¨me" items={ecosysteme} />
+        <CollapsibleMobileMenu title="Écosystème" items={ecosysteme} />
 
         <NavLink to="/how-it-works" className={({isActive}) => mobileNavLinkClass(isActive)} onClick={onClose}>Fonctionnement</NavLink>
         <NavLink to="/contact" className={({isActive}) => mobileNavLinkClass(isActive)} onClick={onClose}>Contact</NavLink>

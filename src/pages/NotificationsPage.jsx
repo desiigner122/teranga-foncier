@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -113,7 +113,7 @@ const NotificationsPage = () => {
   const handleMarkRead = async (notificationId) => {
     try {
       await markNotificationAsRead(notificationId);
-      toast({ title: "Notification marquÃ©e comme lue." });
+      toast({ title: "Notification marquée comme lue." });
     } catch (err) {
       console.error("Error marking notification as read:", err);
       toast({ 
@@ -128,7 +128,7 @@ const NotificationsPage = () => {
     if (!user) return;
     try {
       await markAllNotificationsAsRead();
-      toast({ title: "Notifications marquÃ©es comme lues." });
+      toast({ title: "Notifications marquées comme lues." });
     } catch (err) {
       console.error("Error marking all notifications as read:", err);
       toast({ 
@@ -142,7 +142,7 @@ const NotificationsPage = () => {
   const handleDelete = async (notificationId) => {
     try {
       await deleteNotification(notificationId);
-      toast({ title: "Notification supprimÃ©e." });
+      toast({ title: "Notification supprimée." });
     } catch (err) {
       console.error("Error deleting notification:", err);
       toast({ 
@@ -157,7 +157,7 @@ const NotificationsPage = () => {
     if (!user) return;
     try {
       await deleteAllNotifications();
-      toast({ title: "Toutes les notifications ont Ã©tÃ© supprimÃ©es." });
+      toast({ title: "Toutes les notifications ont été supprimées." });
     } catch (err) {
       console.error("Error deleting all notifications:", err);
       toast({ 
@@ -183,7 +183,7 @@ const NotificationsPage = () => {
              <BellRing className="h-7 w-7 mr-2"/> Notifications
              {unreadCount > 0 && <Badge variant="destructive" className="ml-2">{unreadCount}</Badge>}
           </h1>
-          <p className="text-muted-foreground">Restez informÃ© des mises Ã  jour importantes.</p>
+          <p className="text-muted-foreground">Restez informé des mises à jour importantes.</p>
         </div>
          <div className="flex gap-2">
              <Button variant="outline" size="sm" onClick={handleMarkAllRead} disabled={unreadCount === 0}>
