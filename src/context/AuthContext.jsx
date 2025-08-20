@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
         return {
           id: authUser.id,
           email: authUser.email,
-          first_name: authUser.user_metadata?.first_name || split_part(authUser.email, '@', 1),
+          first_name: authUser.user_metadata?.first_name || authUser.email.split('@')[0],
           last_name: authUser.user_metadata?.last_name || '',
           user_type: authUser.user_metadata?.user_type || 'particulier',
           status: 'active',
@@ -69,54 +69,8 @@ export const AuthProvider = ({ children }) => {
         return data;
       }
       
-      console.log('Profil introuvable, création d\'un profil par défaut');
-      
-      // Tenter de créer un profil dans la base de données
-      try {
-        const newProfile = {
-          id: authUser.id,
-          email: authUser.email,
-          first_name: authUser.user_metadata?.first_name || authUser.email.split('@')[0],
-          last_name: authUser.user_metadata?.last_name || '',
-          user_type: authUser.user_metadata?.user_type || 'particulier',
-          status: 'active',
-          email_verified: !!authUser.email_confirmed_at,
-          phone_verified: false,
-          identity_verified: false,
-          created_at: authUser.created_at,
-          updated_at: new Date().toISOString()
-        };
-
-        const { data: createdProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert([newProfile])
-          .select()
-          .single();
-
-        if (createError) {
-          console.error("Erreur lors de la création du profil:", createError);
-          return newProfile; // Retourner le profil local même si l'insertion échoue
-        }
-
-        console.log("Profil créé avec succès:", createdProfile);
-        return createdProfile;
-      } catch (createErr) {
-        console.error("Erreur lors de la création du profil:", createErr);
-        // Retourner un profil par défaut
-        return {
-          id: authUser.id,
-          email: authUser.email,
-          first_name: authUser.email.split('@')[0],
-          last_name: '',
-          user_type: 'particulier',
-          status: 'active',
-          email_verified: !!authUser.email_confirmed_at,
-          phone_verified: false,
-          identity_verified: false,
-          created_at: authUser.created_at,
-          updated_at: new Date().toISOString()
-        };
-      }
+  console.log('Profil introuvable après tentatives ID/email; arrêt sans insertion (RLS)');
+  return null;
 
     } catch (err) {
       console.error("Erreur inattendue lors de la récupération du profil:", err);

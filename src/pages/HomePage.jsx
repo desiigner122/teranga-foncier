@@ -4,6 +4,7 @@ import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParc
 import { Link } from 'react-router-dom';
 // Importation de Button est toujours nécessaire pour les import { Button } from '@/components/ui/button'; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Search, MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, Users, FileText, DollarSign,
