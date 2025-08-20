@@ -236,7 +236,7 @@ const TypeSpecificUserCreation = () => {
           isOpen={true}
           onClose={closeModal}
           userType={selectedType.id}
-          onSuccess={() => {
+          onUserCreated={() => {
             closeModal();
             // Rafraîchir la liste si nécessaire
           }}

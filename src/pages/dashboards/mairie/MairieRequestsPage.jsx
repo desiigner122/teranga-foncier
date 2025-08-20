@@ -6,7 +6,7 @@ import { FileSignature, Search, Filter, CheckCircle, XCircle } from 'lucide-reac
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
 import { useAuth } from '@/context/AuthContext';
 
@@ -15,6 +15,8 @@ const MairieRequestsPage = () => {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     const loadMairieRequests = async () => {
@@ -52,24 +54,19 @@ const MairieRequestsPage = () => {
 
   const handleRequestAction = async (requestId, action, status) => {
     try {
-      await SupabaseDataService.updateRequestStatus(requestId, status);
-      toast({ 
-        title: `Demande ${action}`, 
-        description: `La demande a été ${action.toLowerCase()}` 
-      });
-      
-      // Recharger les demandes
-      setRequests(prev => prev.map(r => 
-        r.id === requestId ? { ...r, status } : r
-      ));
+      const updated = await SupabaseDataService.updateRequestStatus(requestId, status);
+      toast({ title: `Demande ${action}`, description: `Statut: ${updated.status}` });
+      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: updated.status } : r));
     } catch (error) {
-      toast({ 
-        variant: "destructive",
-        title: "Erreur", 
-        description: `Impossible de ${action.toLowerCase()} la demande` 
-      });
+      toast({ variant: 'destructive', title: 'Erreur', description: `Action impossible (${error.message})` });
     }
   };
+
+  const filtered = requests.filter(r => {
+    const matchSearch = !search || (r.user_name || r.full_name || '').toLowerCase().includes(search.toLowerCase()) || (r.request_type || '').toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === 'all' || (r.status || '').toLowerCase() === statusFilter;
+    return matchSearch && matchStatus;
+  });
 
   if (loading) {
     return (
@@ -94,9 +91,14 @@ const MairieRequestsPage = () => {
           <div className="flex space-x-2 pt-2">
             <div className="relative flex-grow">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Rechercher par demandeur, parcelle..." className="pl-8" />
+              <Input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher par demandeur ou type..." className="pl-8" />
             </div>
-            <Button variant="outline" onClick={() => handleAction("Filtres de demandes appliqués.")}><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
+            <select className="border rounded px-2 text-sm" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
+              <option value="all">Tous statuts</option>
+              <option value="pending">En attente</option>
+              <option value="approved">Approuvé</option>
+              <option value="rejected">Rejeté</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent>
@@ -112,7 +114,7 @@ const MairieRequestsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {requests.map(req => (
+                {filtered.map(req => (
                     <tr key={req.id} className="border-b hover:bg-muted/30">
                       <td className="p-2">{req.user_name || req.full_name || 'Utilisateur inconnu'}</td>
                       <td className="p-2 capitalize">{req.request_type || req.type}</td>
@@ -127,13 +129,13 @@ const MairieRequestsPage = () => {
                         </Badge>
                       </td>
                       <td className="p-2 text-right space-x-1">
-                        <Button variant="outline" size="sm" onClick={() => handleRealAction('instruction', `Instruction du dossier ${req.id}.`)}>
+                        <Button variant="outline" size="sm" onClick={() => handleRequestAction(req.id,'Instruite','in_review')}>
                           Instruire
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleRealAction('approval', `Approbation du dossier ${req.id}.`)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'Approuvée','approved')}>
                           <CheckCircle className="h-4 w-4 text-green-500"/>
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleRealAction('rejection', `Rejet du dossier ${req.id}.`)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'Rejetée','rejected')}>
                           <XCircle className="h-4 w-4 text-red-500"/>
                         </Button>
                       </td>

@@ -28,6 +28,7 @@ import { motion } from 'framer-motion';
 import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
 
 const VendeurDashboard = () => {
@@ -47,9 +48,13 @@ const VendeurDashboard = () => {
     conversionRate: 0,
     topPerformingListing: null
   });
-  const [marketInsights, setMarketInsights] = useState([]);
+  const [marketInsights, setMarketInsights] = useState([]); // sera alimenté par analyse IA marché réelle
   const [loading, setLoading] = useState(true);
   const [inquiriesByListing, setInquiriesByListing] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingListing, setEditingListing] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' });
 
   useEffect(() => {
     loadUserData();
@@ -141,8 +146,8 @@ const VendeurDashboard = () => {
         return listingViews > topViews ? listing : top;
       }, null);
 
-      // Insights de marché IA
-      const insights = await generateMarketInsights(userListings);
+  // Insights de marché IA (basé sur données réelles uniquement)
+  const insights = await generateMarketInsights(userListings);
 
       setStats({
         totalListings,
@@ -328,6 +333,48 @@ const VendeurDashboard = () => {
     }
   };
 
+  const openCreate = () => { setEditingListing(null); setForm({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' }); setShowModal(true); };
+  const openEdit = (listing) => { setEditingListing(listing); setForm({ reference:listing.reference||'', location:listing.location||'', type:listing.type||'terrain', price:listing.price||'', surface: listing.surface || listing.area_sqm ||'', status: listing.status||'available' }); setShowModal(true); };
+  const saveListing = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      setSaving(true);
+      const payload = {
+        reference: form.reference.trim(),
+        location: form.location.trim(),
+        type: form.type,
+        price: form.price? Number(form.price):0,
+        surface: form.surface? Number(form.surface): null,
+        status: form.status,
+        owner_id: user.id,
+        owner_type: 'vendeur'
+      };
+      if (editingListing) {
+        const updated = await SupabaseDataService.updateProperty(editingListing.id, payload);
+        setListings(ls => ls.map(l=> l.id===updated.id? {...l, ...updated}: l));
+        toast({ title:'Annonce mise à jour', description: updated.reference });
+      } else {
+        const created = await SupabaseDataService.createProperty(payload);
+        setListings(ls => [created, ...ls]);
+        toast({ title:'Annonce créée', description: created.reference });
+      }
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+      toast({ variant:'destructive', title:'Erreur', description:'Impossible d\'enregistrer l\'annonce' });
+    } finally {
+      setSaving(false);
+    }
+  };
+  const withdrawListing = async (listing) => {
+    try {
+      const updated = await SupabaseDataService.updateProperty(listing.id, { status:'withdrawn' });
+      setListings(ls=> ls.map(l=> l.id===listing.id? {...l, ...updated}: l));
+      toast({ title:'Annonce retirée' });
+    } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Retrait impossible'}); }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -346,7 +393,7 @@ const VendeurDashboard = () => {
               <BarChart3 className="h-4 w-4 mr-2" />
               Analyser les Prix
             </Button>
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button className="bg-green-600 hover:bg-green-700" onClick={openCreate}>
               <Upload className="h-4 w-4 mr-2" />
               Nouvelle Annonce
             </Button>
@@ -563,8 +610,11 @@ const VendeurDashboard = () => {
                           <Zap className="h-4 w-4 mr-1" />
                           Optimiser
                         </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
+                        <Button size="sm" variant="outline" onClick={()=>openEdit(listing)}>
+                          Éditer
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={()=>withdrawListing(listing)} disabled={listing.status==='withdrawn'}>
+                          {listing.status==='withdrawn'? 'Retirée':'Retirer'}
                         </Button>
                       </div>
                     </div>
@@ -574,6 +624,56 @@ const VendeurDashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {showModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+              <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={()=>!saving && setShowModal(false)}>✕</button>
+              <h2 className="text-xl font-semibold mb-4">{editingListing? 'Modifier l\'annonce':'Nouvelle annonce'}</h2>
+              <form onSubmit={saveListing} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium">Référence</label>
+                    <input className="w-full border rounded px-2 py-2 text-sm" value={form.reference} onChange={e=>setForm(f=>({...f, reference:e.target.value}))} required />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Localisation</label>
+                    <input className="w-full border rounded px-2 py-2 text-sm" value={form.location} onChange={e=>setForm(f=>({...f, location:e.target.value}))} required />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Type</label>
+                    <select className="w-full border rounded px-2 py-2 text-sm" value={form.type} onChange={e=>setForm(f=>({...f, type:e.target.value}))}>
+                      <option value="terrain">Terrain</option>
+                      <option value="maison">Maison</option>
+                      <option value="appartement">Appartement</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Prix (XOF)</label>
+                    <input type="number" min="0" className="w-full border rounded px-2 py-2 text-sm" value={form.price} onChange={e=>setForm(f=>({...f, price:e.target.value}))} required />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Surface (m²)</label>
+                    <input type="number" min="0" className="w-full border rounded px-2 py-2 text-sm" value={form.surface} onChange={e=>setForm(f=>({...f, surface:e.target.value}))} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Statut</label>
+                    <select className="w-full border rounded px-2 py-2 text-sm" value={form.status} onChange={e=>setForm(f=>({...f, status:e.target.value}))}>
+                      <option value="available">Disponible</option>
+                      <option value="reserved">Réservée</option>
+                      <option value="sold">Vendue</option>
+                      <option value="withdrawn">Retirée</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button type="button" variant="ghost" disabled={saving} onClick={()=>setShowModal(false)}>Annuler</Button>
+                  <Button type="submit" disabled={saving}>{saving? 'Enregistrement...':'Enregistrer'}</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Demandes reçues */}
         <Card>

@@ -47,53 +47,7 @@ export class SupabaseDataService {
   }
   
   // ============== ADMIN DASHBOARD METRICS ==============
-  static async getAdminDashboardMetrics() {
-    try {
-      // Récupération des données pour le dashboard admin
-      const [users, parcels, requests, transactions, userRegistrations] = await Promise.all([
-        this.getUsers(),
-        this.getAllParcels(),
-        this.getAllRequests?.() || Promise.resolve([]),
-        this.getAllTransactions?.() || Promise.resolve([]),
-        this.getUserRegistrationsByMonth()
-      ]);
-      
-      // Calcul des ventes mensuelles
-      const monthlySales = this.calculateMonthlySales(transactions);
-      
-      // Statut des parcelles
-      const parcelStatus = this.calculateParcelStatus(parcels);
-      
-      // Types de demandes
-      const requestTypes = this.calculateRequestTypes(requests);
-      
-      // Statistiques par type d'acteur
-      const actorStats = this.calculateActorStats(users, parcels, requests, transactions);
-      
-      // Événements à venir
-      const upcomingEvents = await this.getUpcomingEvents();
-      
-      return {
-        totals: {
-          totalUsers: users.length,
-          totalParcels: parcels.length,
-          totalRequests: requests.length,
-          totalSalesAmount: transactions.reduce((sum, tx) => sum + (tx.amount || 0), 0)
-        },
-        charts: {
-          userRegistrations,
-          parcelStatus,
-          requestTypes,
-          monthlySales
-        },
-        actorStats,
-        upcomingEvents
-      };
-    } catch (error) {
-      console.error('Erreur lors de la récupération des métriques du dashboard:', error);
-      return null;
-    }
-  }
+  // Suppressed legacy getAdminDashboardMetrics (duplicate) – use unified implementation plus events table lookup.
   
   static async getUserRegistrationsByMonth() {
     try {
@@ -1042,21 +996,36 @@ export class SupabaseDataService {
       userData.type = normalizedType;
       
       // 1. Créer l'utilisateur dans Auth avec mot de passe
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      let { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
-        options: {
-          data: {
-            full_name: userData.full_name,
-            type: normalizedType,
-            role: userData.role || 'user'
-          }
-        }
+        options: { data: { full_name: userData.full_name, type: normalizedType, role: userData.role || 'user' } }
       });
 
-      if (authError) {
-        console.error('Erreur création Auth:', authError);
-        throw new Error(`Erreur d'authentification: ${authError.message}`);
+      // Fallback edge function si signUp échoue (ex: rate limit, policy)
+      if (authError || !authData?.user) {
+        console.warn('SignUp direct échoué, tentative via edge function create-user-with-password:', authError?.message);
+        try {
+          const resp = await fetch('/functions/v1/create-user-with-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: userData.email,
+              password: userData.password,
+              full_name: userData.full_name,
+              type: normalizedType,
+              role: userData.role || 'user'
+            })
+          });
+          const edgeJson = await resp.json().catch(()=>({}));
+          if (!resp.ok || edgeJson.error) {
+            throw new Error(edgeJson.error || `Edge function status ${resp.status}`);
+          }
+          authData = { user: { id: edgeJson.user?.id, email: userData.email } };
+        } catch (edgeErr) {
+          console.error('Fallback edge function échoué:', edgeErr);
+          throw new Error(`Erreur d'authentification: ${authError?.message || edgeErr.message}`);
+        }
       }
 
       // 2. Créer le profil complet dans la table users
@@ -1120,6 +1089,18 @@ export class SupabaseDataService {
       };
     } catch (error) {
       console.error('Erreur création utilisateur:', error);
+      // Journaliser l'échec de création utilisateur
+      try {
+        await this.logEvent({
+          entityType: 'user',
+          entityId: null,
+          eventType: 'user.create_failed',
+          actorUserId: null,
+            importance: 80,
+          source: 'admin_dashboard',
+          data: { email: userData?.email, type: userData?.type, error: error.message }
+        });
+      } catch {/* ignore */}
       throw error;
     }
   }
@@ -1339,6 +1320,118 @@ export class SupabaseDataService {
     }
     this.logEvent({ entityType:'transaction', entityId:data.id, eventType:'transaction.created', actorUserId:data.user_id || null, data:{ amount:data.amount, status:data.status } });
     return data;
+  }
+
+  // ============== VENDEUR (SELLER) OPERATIONS (NEW) ==============
+  static async getVendeurProperties(ownerId) {
+    try {
+      const { data, error } = await supabase
+        .from('parcels')
+        .select('*')
+        .eq('owner_id', ownerId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error('Erreur récupération biens vendeur:', e.message||e);
+      return [];
+    }
+  }
+
+  static async createProperty(propertyData) {
+    try {
+      const insert = { ...propertyData, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      const { data, error } = await supabase
+        .from('parcels')
+        .insert([insert])
+        .select()
+        .single();
+      if (error) throw error;
+      this.logEvent({ entityType:'parcel', entityId:data.id, eventType:'parcel.created', actorUserId:data.owner_id, data:{ status:data.status, price:data.price } });
+      return data;
+    } catch (e) {
+      console.error('Erreur création bien vendeur:', e.message||e);
+      throw e;
+    }
+  }
+
+  static async updateProperty(id, updates) {
+    try {
+      const { data, error } = await supabase
+        .from('parcels')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      this.logEvent({ entityType:'parcel', entityId:id, eventType:'parcel.updated', actorUserId:data.owner_id, data:{ status:data.status, price:data.price } });
+      return data;
+    } catch (e) {
+      console.error('Erreur mise à jour bien vendeur:', e.message||e);
+      throw e;
+    }
+  }
+
+  // ============== AGENT OPERATIONS (NEW) ==============
+  static async getAgentClients(agentId) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, email, type, created_at')
+        .eq('assigned_agent_id', agentId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error('Erreur récupération clients agent:', e.message||e);
+      return [];
+    }
+  }
+
+  static async getAgentProperties(agentId) {
+    try {
+      const { data, error } = await supabase
+        .from('parcels')
+        .select('*')
+        .eq('assigned_agent_id', agentId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error('Erreur récupération propriétés agent:', e.message||e);
+      return [];
+    }
+  }
+
+  static async getAgentSales(agentId) {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('agent_id', agentId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error('Erreur récupération ventes agent:', e.message||e);
+      return [];
+    }
+  }
+
+  static async getAgentAppointments(agentId) {
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('agent_id', agentId)
+        .gte('date', new Date(Date.now() - 90*24*60*60*1000).toISOString())
+        .order('date', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error('Erreur récupération rendez-vous agent:', e.message||e);
+      return [];
+    }
   }
 
   // ============== REQUEST ROUTING METHODS ==============
@@ -1619,6 +1712,59 @@ export class SupabaseDataService {
       });
     } catch {/* silent */}
     return data;
+  }
+
+  // ============== BANKING OPERATIONS (NEW) ==============
+  static async updateBankGuaranteeStatus(id, status, reviewerId=null) {
+    try {
+      const { data, error } = await supabase
+        .from('bank_guarantees')
+        .update({ status, reviewed_at: new Date().toISOString(), reviewer_id: reviewerId || null, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      this.logEvent({ entityType:'bank_guarantee', entityId:id, eventType:'bank_guarantee.status_updated', actorUserId: reviewerId, data:{ new_status: status } });
+      if (data?.user_id) {
+        this.createNotification({ userId:data.user_id, type:'guarantee_status', title:'Garantie mise à jour', body:`Votre garantie #${id} est maintenant ${status}.`, data:{ guarantee_id:id, status } });
+      }
+      return data;
+    } catch (e) { console.error('updateBankGuaranteeStatus failed', e.message||e); throw e; }
+  }
+
+  static async updateFinancingRequestStatus(id, status, reviewerId=null, decisionNote=null) {
+    try {
+      const { data, error } = await supabase
+        .from('financing_requests')
+        .update({ status, decision_note: decisionNote, decided_at: new Date().toISOString(), reviewer_id: reviewerId || null, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      this.logEvent({ entityType:'financing_request', entityId:id, eventType:'financing_request.status_updated', actorUserId: reviewerId, data:{ new_status: status } });
+      if (data?.user_id) {
+        this.createNotification({ userId:data.user_id, type:'financing_status', title:'Demande de financement', body:`Votre demande #${id} est ${status}.`, data:{ financing_request_id:id, status } });
+      }
+      return data;
+    } catch (e) { console.error('updateFinancingRequestStatus failed', e.message||e); throw e; }
+  }
+
+  static async completeLandEvaluation(id, evaluatorId=null, newValue=null, reportData=null) {
+    try {
+      const update = { status:'completed', completed_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      if (newValue!==null) update.estimated_value = newValue;
+      if (reportData) update.report = reportData;
+      if (evaluatorId) update.evaluator_id = evaluatorId;
+      const { data, error } = await supabase
+        .from('land_evaluations')
+        .update(update)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      this.logEvent({ entityType:'land_evaluation', entityId:id, eventType:'land_evaluation.completed', actorUserId:evaluatorId, data:{ estimated_value: data?.estimated_value } });
+      return data;
+    } catch (e) { console.error('completeLandEvaluation failed', e.message||e); throw e; }
   }
 
   // ============== FAVORITES ==============
@@ -2065,11 +2211,25 @@ export class SupabaseDataService {
         },
       };
 
-      // Placeholder upcoming events (until events table exists)
-      const upcomingEvents = [
-        { title: 'Réunion de conformité', date: '2025-08-05', time: '10:00' },
-        { title: 'Audit foncier annuel', date: '2025-08-15', time: '09:00' },
-      ];
+      // Essayer de récupérer des events réels si table events existe
+      let upcomingEvents = [];
+      try {
+        const { data: eventsData, error: eventsError } = await supabase
+          .from('events')
+          .select('id,title,start_time,location,type')
+          .gte('start_time', new Date().toISOString())
+          .order('start_time', { ascending: true })
+          .limit(5);
+        if (!eventsError && eventsData) {
+          upcomingEvents = eventsData.map(e => ({
+            id: e.id,
+            title: e.title,
+            date: e.start_time,
+            location: e.location,
+            type: e.type
+          }));
+        }
+      } catch (e) { /* silencieux: table peut ne pas exister */ }
 
       return {
         totals: { totalUsers, totalParcels, totalRequests, totalSalesAmount },

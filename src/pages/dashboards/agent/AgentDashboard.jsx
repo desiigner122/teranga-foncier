@@ -12,6 +12,9 @@ import {
   Users
 } from 'lucide-react';
 import { SupabaseDataService } from '@/services/supabaseDataService';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -25,6 +28,9 @@ const AgentDashboard = () => {
     appointments: []
   });
   const [loading, setLoading] = useState(true);
+  const [showNewAppt, setShowNewAppt] = useState(false);
+  const [apptForm, setApptForm] = useState({ client_name:'', property_title:'', date:'', notes:'' });
+  const { toast } = useToast();
 
   useEffect(() => {
     loadDashboardData();
@@ -35,7 +41,7 @@ const AgentDashboard = () => {
     
     try {
       setLoading(true);
-      const [clients, properties, sales, appointments] = await Promise.all([
+  const [clients, properties, sales, appointments] = await Promise.all([
         SupabaseDataService.getAgentClients(user.id),
         SupabaseDataService.getAgentProperties(user.id),
         SupabaseDataService.getAgentSales(user.id),
@@ -89,6 +95,25 @@ const AgentDashboard = () => {
 
   const monthStats = getThisMonthStats();
 
+  const overdueAppointments = dashboardData.appointments.filter(a=> new Date(a.date) < new Date());
+
+  const saveAppointment = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      const { data, error } = await window.supabase
+        .from('appointments')
+        .insert([{ agent_id:user.id, client_name: apptForm.client_name, property_title: apptForm.property_title, date: apptForm.date, notes: apptForm.notes, created_at: new Date().toISOString() }])
+        .select()
+        .single();
+      if (error) throw error;
+      setDashboardData(d => ({ ...d, appointments:[data, ...d.appointments] }));
+      toast({ title:'RDV créé' });
+      setShowNewAppt(false);
+      setApptForm({ client_name:'', property_title:'', date:'', notes:'' });
+    } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Création RDV impossible'}); }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -104,7 +129,7 @@ const AgentDashboard = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6 p-4 md:p-6 lg:p-8"
     >
-      <div>
+      <div className="flex justify-between items-start flex-wrap gap-4">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <UserCheck className="h-8 w-8" />
           Dashboard Agent Immobilier
@@ -112,6 +137,7 @@ const AgentDashboard = () => {
         <p className="text-muted-foreground">
           Bienvenue {user?.full_name || user?.email}, voici votre vue d'ensemble
         </p>
+        <Button size="sm" onClick={()=>setShowNewAppt(true)}>Nouveau RDV</Button>
       </div>
 
       {/* Main Stats */}
@@ -200,7 +226,7 @@ const AgentDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+    <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -213,7 +239,7 @@ const AgentDashboard = () => {
                 <p className="text-muted-foreground text-sm">Aucun rendez-vous prévu</p>
               ) : (
                 dashboardData.appointments.slice(0, 3).map((appointment, index) => (
-                  <div key={index} className="flex justify-between items-center text-sm">
+          <div key={index} className={`flex justify-between items-center text-sm ${new Date(appointment.date) < new Date()? 'bg-red-50 border border-red-200 rounded px-2 py-1':''}`}>
                     <div>
                       <p className="font-medium">{appointment.client_name}</p>
                       <p className="text-muted-foreground">{appointment.property_title}</p>
@@ -227,6 +253,7 @@ const AgentDashboard = () => {
                   </div>
                 ))
               )}
+        {overdueAppointments.length>0 && <p className="text-xs text-red-600">{overdueAppointments.length} RDV en retard</p>}
             </div>
           </CardContent>
         </Card>
@@ -270,6 +297,36 @@ const AgentDashboard = () => {
           </CardContent>
         </Card>
       </div>
+      {showNewAppt && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow w-full max-w-md p-6 relative">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={()=>setShowNewAppt(false)}>✕</button>
+            <h2 className="text-lg font-semibold mb-4">Nouveau Rendez-vous</h2>
+            <form onSubmit={saveAppointment} className="space-y-3">
+              <div>
+                <label className="text-xs font-medium">Client</label>
+                <Input value={apptForm.client_name} onChange={e=>setApptForm(f=>({...f, client_name:e.target.value}))} required />
+              </div>
+              <div>
+                <label className="text-xs font-medium">Propriété</label>
+                <Input value={apptForm.property_title} onChange={e=>setApptForm(f=>({...f, property_title:e.target.value}))} required />
+              </div>
+              <div>
+                <label className="text-xs font-medium">Date</label>
+                <Input type="datetime-local" value={apptForm.date} onChange={e=>setApptForm(f=>({...f, date:e.target.value}))} required />
+              </div>
+              <div>
+                <label className="text-xs font-medium">Notes</label>
+                <Input value={apptForm.notes} onChange={e=>setApptForm(f=>({...f, notes:e.target.value}))} />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="ghost" onClick={()=>setShowNewAppt(false)}>Annuler</Button>
+                <Button type="submit">Enregistrer</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

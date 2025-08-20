@@ -27,6 +27,7 @@ import { motion } from 'framer-motion';
 import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
 
 const BanqueDashboard = () => {
@@ -38,7 +39,7 @@ const BanqueDashboard = () => {
     fundingRequests: 0,
     complianceRate: 0,
     totalExposure: 0,
-    securityScore: 92
+    securityScore: 0
   });
   const [guarantees, setGuarantees] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
@@ -46,11 +47,24 @@ const BanqueDashboard = () => {
   const [riskAnalysis, setRiskAnalysis] = useState([]);
   const [marketTrends, setMarketTrends] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionBusy, setActionBusy] = useState(null); // composite key like type-id
 
   useEffect(() => {
     loadUserData();
     loadBankDashboardData();
   }, []);
+  // Realtime subscriptions
+  useEffect(()=>{
+    const channels = [];
+    try {
+      const ch1 = supabase.channel('financing_requests_changes').on('postgres_changes',{ event:'*', schema:'public', table:'financing_requests', filter:`bank_id=eq.${user?.id||'000'}`}, ()=> loadBankDashboardData());
+      const ch2 = supabase.channel('bank_guarantees_changes').on('postgres_changes',{ event:'*', schema:'public', table:'bank_guarantees', filter:`bank_id=eq.${user?.id||'000'}`}, ()=> loadBankDashboardData());
+      const ch3 = supabase.channel('land_evaluations_changes').on('postgres_changes',{ event:'*', schema:'public', table:'land_evaluations', filter:`evaluator_id=eq.${user?.id||'000'}`}, ()=> loadBankDashboardData());
+      channels.push(ch1, ch2, ch3);
+      channels.forEach(c=> c.subscribe());
+    } catch(e){ /* silent */ }
+    return ()=> { channels.forEach(c=> { try { supabase.removeChannel(c);} catch{} }); };
+  }, [user]);
 
   const loadUserData = async () => {
     try {
@@ -367,6 +381,32 @@ const BanqueDashboard = () => {
     }
   };
 
+  const act = async (kind, id, extra={}) => {
+    if (!user) return;
+    const key = `${kind}-${id}`;
+    try {
+      setActionBusy(key);
+      let updated;
+      if (kind==='financing-approve') updated = await SupabaseDataService.updateFinancingRequestStatus(id, 'approved', user.id, extra.note||null);
+      if (kind==='financing-reject') updated = await SupabaseDataService.updateFinancingRequestStatus(id, 'rejected', user.id, extra.note||null);
+      if (kind==='guarantee-activate') updated = await SupabaseDataService.updateBankGuaranteeStatus(id, 'active', user.id);
+      if (kind==='guarantee-close') updated = await SupabaseDataService.updateBankGuaranteeStatus(id, 'closed', user.id);
+      if (kind==='evaluation-complete') updated = await SupabaseDataService.completeLandEvaluation(id, user.id, extra.value||null, extra.report||null);
+      // Refresh local arrays
+      if (updated) {
+        if (updated.guarantee_amount !== undefined || kind.startsWith('guarantee')) setGuarantees(gs=> gs.map(g=> g.id===id? {...g, ...updated}: g));
+        if (updated.decision_note !== undefined || kind.startsWith('financing')) setFundingRequests(rs=> rs.map(r=> r.id===id? {...r, ...updated}: r));
+        if (updated.estimated_value !== undefined || kind.startsWith('evaluation')) setEvaluations(ev=> ev.map(e=> e.id===id? {...e, ...updated}: e));
+      }
+      toast({ title:'Action effectuée', description: key });
+    } catch(e) {
+      console.error(e);
+      toast({ variant:'destructive', title:'Erreur', description:'Action impossible'});
+    } finally {
+      setActionBusy(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -575,6 +615,80 @@ const BanqueDashboard = () => {
             totalExposure: stats.totalExposure
           }} 
         />
+
+        {/* Listes opérationnelles */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Demandes de financement */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Demandes de Financement</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {fundingRequests.length===0? <p className="text-sm text-gray-500">Aucune demande</p> : (
+                <div className="space-y-3">
+                  {fundingRequests.slice(0,6).map(fr => (
+                    <div key={fr.id} className="border rounded p-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-medium">#{fr.id}</span>
+                        <Badge variant={fr.status==='approved'? 'success': fr.status==='rejected'? 'destructive':'secondary'}>{fr.status}</Badge>
+                      </div>
+                      <p className="text-xs text-gray-500">{fr.parcels?.reference} • {fr.amount?.toLocaleString()} XOF</p>
+                      {fr.status==='pending' && (
+                        <div className="flex gap-2 mt-2">
+                          <Button size="xs" disabled={actionBusy===`financing-approve-${fr.id}`} onClick={()=>act('financing-approve', fr.id)}>Approuver</Button>
+                          <Button size="xs" variant="destructive" disabled={actionBusy===`financing-reject-${fr.id}`} onClick={()=>act('financing-reject', fr.id)}>Refuser</Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          {/* Garanties bancaires */}
+          <Card>
+            <CardHeader><CardTitle>Garanties</CardTitle></CardHeader>
+            <CardContent>
+              {guarantees.length===0? <p className="text-sm text-gray-500">Aucune garantie</p> : (
+                <div className="space-y-3">
+                  {guarantees.slice(0,6).map(g => (
+                    <div key={g.id} className="border rounded p-3 text-sm">
+                      <div className="flex justify-between"><span>#{g.id}</span><Badge variant={g.status==='active'? 'success': g.status==='closed'?'secondary':'outline'}>{g.status}</Badge></div>
+                      <p className="text-xs text-gray-500">{g.parcels?.reference} • {g.guarantee_amount?.toLocaleString()} XOF</p>
+                      {g.status!=='closed' && (
+                        <div className="flex gap-2 mt-2">
+                          {g.status!=='active' && <Button size="xs" disabled={actionBusy===`guarantee-activate-${g.id}`} onClick={()=>act('guarantee-activate', g.id)}>Activer</Button>}
+                          <Button size="xs" variant="outline" disabled={actionBusy===`guarantee-close-${g.id}`} onClick={()=>act('guarantee-close', g.id)}>Clore</Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          {/* Evaluations foncières */}
+            <Card>
+              <CardHeader><CardTitle>Évaluations Foncières</CardTitle></CardHeader>
+              <CardContent>
+                {evaluations.length===0? <p className="text-sm text-gray-500">Aucune évaluation</p> : (
+                  <div className="space-y-3">
+                    {evaluations.slice(0,6).map(ev => (
+                      <div key={ev.id} className="border rounded p-3 text-sm">
+                        <div className="flex justify-between"><span>#{ev.id}</span><Badge variant={ev.status==='completed'? 'success':'secondary'}>{ev.status}</Badge></div>
+                        <p className="text-xs text-gray-500">{ev.parcels?.reference} • {ev.estimated_value? ev.estimated_value.toLocaleString()+' XOF':'—'}</p>
+                        {ev.status==='pending' && (
+                          <div className="mt-2">
+                            <Button size="xs" disabled={actionBusy===`evaluation-complete-${ev.id}`} onClick={()=>act('evaluation-complete', ev.id)}>Clôturer</Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+        </div>
 
         {/* Assistant IA spécialisé banque */}
         <AIAssistantWidget 

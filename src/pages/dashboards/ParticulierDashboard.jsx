@@ -29,6 +29,7 @@ import { motion } from 'framer-motion';
 import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
 
 const ParticulierDashboard = () => {
@@ -38,17 +39,24 @@ const ParticulierDashboard = () => {
     favoritesCounted: 0,
     savedSearches: 0,
     transactionsInProgress: 0,
-    securityScore: 85
+    securityScore: 0
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [recommendedParcels, setRecommendedParcels] = useState([]);
   const [securityAlerts, setSecurityAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [favoriteBusy, setFavoriteBusy] = useState(null); // parcel id if toggling
 
   useEffect(() => {
     loadUserData();
     loadDashboardData();
   }, []);
+  useEffect(()=>{
+    if(!user) return; 
+    const favChannel = supabase.channel('favorites_changes').on('postgres_changes',{ event:'*', schema:'public', table:'favorites', filter:`user_id=eq.${user.id}`}, ()=> loadDashboardData());
+    favChannel.subscribe();
+    return ()=> { try { supabase.removeChannel(favChannel);} catch{} };
+  }, [user]);
 
   const loadUserData = async () => {
     try {
@@ -86,10 +94,7 @@ const ParticulierDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       // Charger les favoris
-      const { data: favorites } = await supabase
-        .from('user_favorites')
-        .select('*, parcels(*)')
-        .eq('user_id', user.id);
+  const favorites = await SupabaseDataService.getUserFavorites(user.id);
 
       // Charger les recherches sauvegardées
       const { data: searches } = await supabase
@@ -113,7 +118,7 @@ const ParticulierDashboard = () => {
         .limit(10);
 
       // Recommandations IA personnalisées
-      const recommendations = await generateAIRecommendations(user.id, favorites);
+  const recommendations = await generateAIRecommendations(user.id, favorites);
 
       // Alertes de sécurité personnalisées
       const alerts = await loadSecurityAlerts(user.id);
@@ -140,10 +145,10 @@ const ParticulierDashboard = () => {
     try {
       // Analyser les préférences de l'utilisateur
       const preferences = favorites?.map(f => ({
-        location: f.parcels.location,
-        price: f.parcels.price,
-        type: f.parcels.type,
-        surface: f.parcels.surface
+  location: f.parcels?.location,
+  price: f.parcels?.price,
+  type: f.parcels?.type,
+  surface: f.parcels?.surface
       }));
 
       if (!preferences || preferences.length === 0) {
@@ -282,6 +287,28 @@ const ParticulierDashboard = () => {
         title: "Erreur",
         description: "Impossible d'effectuer l'analyse de sécurité",
       });
+    }
+  };
+
+  const toggleFavorite = async (parcelId) => {
+    if (!user) return;
+    try {
+      setFavoriteBusy(parcelId);
+      const isFav = await SupabaseDataService.isParcelFavorite(user.id, parcelId);
+      if (isFav) {
+        await SupabaseDataService.removeFromFavorites(user.id, parcelId);
+        toast({ title: 'Retiré des favoris' });
+      } else {
+        await SupabaseDataService.addToFavorites(user.id, parcelId);
+        toast({ title: 'Ajouté aux favoris' });
+      }
+      // Refresh favorites count & recommendations
+      loadDashboardData();
+    } catch (e) {
+      console.error(e);
+      toast({ variant:'destructive', title:'Erreur', description:'Impossible de mettre à jour les favoris' });
+    } finally {
+      setFavoriteBusy(null);
     }
   };
 
@@ -439,8 +466,8 @@ const ParticulierDashboard = () => {
                             <Eye className="h-3 w-3 mr-1" />
                             Voir
                           </Button>
-                          <Button size="sm" variant="outline">
-                            <Heart className="h-3 w-3" />
+                          <Button size="sm" variant={favoriteBusy===parcel.id? 'secondary':'outline'} disabled={favoriteBusy===parcel.id} onClick={()=>toggleFavorite(parcel.id)}>
+                            <Heart className={`h-3 w-3 ${favoriteBusy===parcel.id?'animate-pulse':''}`} />
                           </Button>
                         </div>
                       </motion.div>

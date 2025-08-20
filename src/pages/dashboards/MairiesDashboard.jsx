@@ -62,145 +62,28 @@ const CadastreMapReal = ({ onAction }) => (
   </div>
 );
 
-// Données pour les graphiques de taxes
-const taxData = [
-  { name: 'Jan', 'Taxe Foncière': 4000000, 'Timbres': 240000 },
-  { name: 'Fev', 'Taxe Foncière': 3000000, 'Timbres': 139800 },
-  { name: 'Mar', 'Taxe Foncière': 2000000, 'Timbres': 980000 },
-  { name: 'Avr', 'Taxe Foncière': 2780000, 'Timbres': 390800 },
-  { name: 'Mai', 'Taxe Foncière': 1890000, 'Timbres': 480000 },
-  { name: 'Juin', 'Taxe Foncière': 2390000, 'Timbres': 380000 },
-];
-
 const MairiesDashboard = () => {
   const [loading, setLoading] = useState(true);
+  // Etat initial vide (plus de données simulées)
   const [dashboardData, setDashboardData] = useState({
-    totalRequests: 156,
-    approvedRequests: 89,
-    pendingRequests: 45,
-    totalRevenue: 85000000,
-    taxCollection: 72000000,
-    municipalLands: 320,
-    buildingPermits: 28,
-    disputes: 12,
-    securityScore: 94,
-    revenueGrowth: 8.2,
-    requestsGrowth: 12.5,
-    landsGrowth: 3.1,
-    permitsGrowth: 15.8,
-    aiInsights: [
-      {
-        icon: TrendingUp,
-        title: "Augmentation des demandes de terrain",
-        description: "Les demandes ont augmenté de 12% ce mois. Envisager l'ouverture de nouvelles zones.",
-        confidence: 88,
-        priority: "high"
-      },
-      {
-        icon: DollarSign,
-        title: "Optimisation de la collecte fiscale",
-        description: "Potentiel d'amélioration de 15% avec digitalisation complète.",
-        confidence: 92,
-        priority: "medium"
-      },
-      {
-        icon: Shield,
-        title: "Sécurité des transactions",
-        description: "Aucune anomalie détectée. Système de sécurité performant.",
-        confidence: 96,
-        priority: "low"
-      }
-    ],
-    recentRequests: [
-      {
-        id: "MUN-2024-001",
-        type: "Attribution terrain",
-        applicant: "DIOP Amadou",
-        status: "En instruction",
-        surface: "500 m²",
-        priority: "high",
-        date: "2024-01-15",
-        location: "Zone résidentielle Nord"
-      },
-      {
-        id: "MUN-2024-002",
-        type: "Permis de construire",
-        applicant: "SARR Fatou",
-        status: "Approuvé",
-        surface: "200 m²",
-        priority: "medium",
-        date: "2024-01-14",
-        location: "Centre-ville"
-      },
-      {
-        id: "MUN-2024-003",
-        type: "Recours litige",
-        applicant: "FALL Moussa",
-        status: "En attente",
-        surface: "1200 m²",
-        priority: "urgent",
-        date: "2024-01-13",
-        location: "Zone commerciale"
-      }
-    ],
-    landDistribution: [
-      { name: "Résidentiel", value: 45, color: "#3B82F6" },
-      { name: "Commercial", value: 25, color: "#10B981" },
-      { name: "Industriel", value: 15, color: "#F59E0B" },
-      { name: "Public", value: 10, color: "#8B5CF6" },
-      { name: "Agriculture", value: 5, color: "#EF4444" }
-    ],
-    monthlyRevenue: [
-      { month: "Jan", taxes: 12000000, permits: 2500000, other: 1800000 },
-      { month: "Fev", taxes: 11500000, permits: 3200000, other: 2100000 },
-      { month: "Mar", taxes: 13200000, permits: 2800000, other: 1900000 },
-      { month: "Avr", taxes: 14100000, permits: 3500000, other: 2300000 },
-      { month: "Mai", taxes: 12800000, permits: 2900000, other: 2000000 },
-      { month: "Juin", taxes: 13500000, permits: 3100000, other: 2200000 }
-    ],
-    municipalAssets: [
-      {
-        category: "Terrains disponibles",
-        count: 45,
-        value: 2250000000,
-        icon: LandPlot,
-        change: 3.2
-      },
-      {
-        category: "Bâtiments publics",
-        count: 28,
-        value: 1800000000,
-        icon: Building,
-        change: 1.5
-      },
-      {
-        category: "Infrastructures",
-        count: 156,
-        value: 4500000000,
-        icon: MapPin,
-        change: 2.8
-      }
-    ],
-    digitalServices: [
-      {
-        service: "Demandes en ligne",
-        usage: 78,
-        satisfaction: 4.2,
-        totalUsers: 1250
-      },
-      {
-        service: "Paiement digital",
-        usage: 65,
-        satisfaction: 4.0,
-        totalUsers: 980
-      },
-      {
-        service: "Suivi de dossier",
-        usage: 82,
-        satisfaction: 4.4,
-        totalUsers: 1420
-      }
-    ]
+    totalRequests: 0,
+    approvedRequests: 0,
+    pendingRequests: 0,
+    totalRevenue: 0,
+    municipalLands: 0,
+    buildingPermits: 0,
+    disputes: 0,
+    securityScore: 0,
+    revenueGrowth: 0,
+    requestsGrowth: 0,
+    landsGrowth: 0,
+    permitsGrowth: 0,
+    aiInsights: [],
+    recentRequests: [],
+    landDistribution: [],
+    monthlyRevenue: [],
+    municipalAssets: [],
+    digitalServices: []
   });
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -251,7 +134,7 @@ const MairiesDashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Charger toutes les données municipales avec jointures avancées
+  // Charger toutes les données municipales avec jointures avancées
       const [
         { data: municipalRequests },
         { data: municipalLands },
@@ -281,23 +164,83 @@ const MairiesDashboard = () => {
           .gte('collection_date', new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString())
       ]);
 
-      // Calculer les statistiques avec données réelles
+      // Calculer les statistiques (uniquement données réelles)
       const totalRequests = municipalRequests?.length || 0;
       const approvedRequests = municipalRequests?.filter(req => req.status === 'approved').length || 0;
-      const pendingRequests = municipalRequests?.filter(req => req.status === 'pending').length || 0;
-      const totalRevenue = taxRevenue?.reduce((sum, tax) => sum + (tax.amount || 0), 0) || 85000000;
-      const municipalLandsCount = municipalLands?.filter(land => land.status === 'available').length || 320;
-      const buildingPermitsCount = buildingPermits?.length || 28;
-      const disputesCount = landDisputes?.length || 12;
+      const pendingRequests = municipalRequests?.filter(req => ['pending','en_attente','in_review'].includes((req.status||'').toLowerCase())).length || 0;
+      const totalRevenue = taxRevenue?.reduce((sum, tax) => sum + (tax.amount || 0), 0) || 0;
+      const municipalLandsAvailable = municipalLands?.filter(land => (land.status||'').toLowerCase() === 'available').length || 0;
+      const buildingPermitsCount = buildingPermits?.length || 0;
+      const disputesCount = landDisputes?.length || 0;
 
-      // Mettre à jour avec les données réelles
+      // Répartition terrains (à partir des zones ou surface)
+      let landDistribution = [];
+      if (municipalLands && municipalLands.length) {
+        const byZone = municipalLands.reduce((acc, l) => {
+          const zone = (l.zone || 'Inconnu').trim();
+          acc[zone] = (acc[zone] || 0) + 1;
+          return acc;
+        }, {});
+        const total = Object.values(byZone).reduce((a,b)=>a+b,0) || 1;
+        landDistribution = Object.entries(byZone).slice(0,8).map(([name, count]) => ({
+          name,
+            value: Math.round((count/total)*100),
+            color: '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')
+        }));
+      }
+
+      // Revenus mensuels (agrégation tax_collections + frais permis si colonne amount/fee) des 6 derniers mois
+      let monthlyRevenue = [];
+      if (taxRevenue && taxRevenue.length) {
+        const byMonth = {};
+        taxRevenue.forEach(tr => {
+          const d = new Date(tr.collection_date || tr.created_at || Date.now());
+          const key = d.getFullYear()+ '-' + (d.getMonth()+1).toString().padStart(2,'0');
+          byMonth[key] = byMonth[key] || { month: d.toLocaleString('fr-FR',{ month: 'short'}), taxes: 0, permits: 0, other: 0 };
+          byMonth[key].taxes += (tr.amount || 0);
+        });
+        // Ajouter revenus permis (si champ fee/amount)
+        if (buildingPermits && buildingPermits.length) {
+          buildingPermits.forEach(bp => {
+            const d = new Date(bp.created_at || Date.now());
+            const key = d.getFullYear()+ '-' + (d.getMonth()+1).toString().padStart(2,'0');
+            byMonth[key] = byMonth[key] || { month: d.toLocaleString('fr-FR',{ month: 'short'}), taxes: 0, permits: 0, other: 0 };
+            const permitVal = bp.fee || bp.amount || 0;
+            byMonth[key].permits += permitVal;
+          });
+        }
+        monthlyRevenue = Object.keys(byMonth).sort().slice(-6).map(k => byMonth[k]);
+      }
+
+      // Patrimoine municipal (terrains + permis) sans valeurs simulées
+      const municipalAssets = [
+        {
+          category: 'Terrains disponibles',
+          count: municipalLandsAvailable,
+          value: municipalLands?.reduce((sum,l)=> sum + (l.price || l.estimated_value || 0),0) || 0,
+          icon: LandPlot,
+          change: 0
+        },
+        {
+          category: 'Permis de construire',
+          count: buildingPermitsCount,
+          value: buildingPermits?.reduce((s,b)=> s + (b.fee || b.amount || 0),0) || 0,
+          icon: Building,
+          change: 0
+        }
+      ].filter(a => a.count > 0);
+
+      // Services numériques (laisser vide tant qu'aucune table dédiée n'est disponible)
+      const digitalServices = [];
+
+      // Mettre à jour avec les données réelles uniquement
       setDashboardData(prev => ({
         ...prev,
         totalRequests,
         approvedRequests,
         pendingRequests,
         totalRevenue,
-        municipalLands: municipalLandsCount,
+        municipalLands: municipalLandsAvailable,
         buildingPermits: buildingPermitsCount,
         disputes: disputesCount,
         recentRequests: municipalRequests?.slice(0, 3).map(req => ({
@@ -309,7 +252,11 @@ const MairiesDashboard = () => {
           priority: req.priority || 'medium',
           date: req.created_at,
           location: req.location || 'Non spécifiée'
-        })) || prev.recentRequests
+        })) || prev.recentRequests,
+        landDistribution,
+        monthlyRevenue,
+        municipalAssets,
+        digitalServices
       }));
 
       // Générer insights IA
@@ -320,7 +267,7 @@ const MairiesDashboard = () => {
       toast({
         variant: "destructive",
         title: "Erreur de chargement",
-        description: "Utilisation des données de démonstration",
+        description: "Certaines données municipales n'ont pas pu être chargées (aucune donnée simulée utilisée)",
       });
     } finally {
       setLoading(false);

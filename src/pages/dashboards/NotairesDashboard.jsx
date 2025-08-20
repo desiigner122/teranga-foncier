@@ -27,8 +27,11 @@ import {
   Zap,
   Shield,
   AlertTriangle,
-  TrendingUp
+  TrendingUp,
+  CheckSquare,
+  FileDown
 } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/context/AuthContext';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
@@ -46,15 +49,35 @@ const NotairesDashboard = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
   const [dossiers, setDossiers] = useState([]);
-  const [stats, setStats] = useState([
-    { title: "Dossiers à Vérifier", value: 0, icon: FileClock, color: "text-yellow-500", trend: 0 },
-    { title: "Actes Authentifiés (Mois)", value: 0, icon: Gavel, color: "text-green-500", trend: 0 },
-    { title: "Procédures en Attente", value: 0, icon: History, color: "text-blue-500", trend: 0 },
-    { title: "Vérifications de Conformité", value: 0, icon: Scale, color: "text-indigo-500", trend: 0 },
-  ]);
+  const [stats, setStats] = useState([]); // construit dynamiquement après fetch
   const [recentActivities, setRecentActivities] = useState([]);
   const [aiInsights, setAiInsights] = useState(null);
   const [documentAnalysis, setDocumentAnalysis] = useState(null);
+  const [authenticating, setAuthenticating] = useState(null); // dossier id
+  const realStatusOptions = [
+    'pending','pending_notary','awaiting_verification','in_progress','under_review','authenticated','notarized','completed','verified','rejected'
+  ];
+
+  const exportDossierPDF = (dossier) => {
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(14);
+      doc.text(`Acte / Dossier ${dossier.reference || dossier.id}`, 14, 18);
+      doc.setFontSize(10);
+      const lines = [
+        `Statut: ${dossier.status}`,
+        `Valeur: ${dossier.valuation? dossier.valuation.toLocaleString()+' XOF':'N/A'}`,
+        `Client: ${dossier.users?.full_name || dossier.client_name || 'N/A'}`,
+        `Parcelle: ${dossier.parcels?.reference || dossier.parcel_reference || 'N/A'}`,
+        `Créé le: ${new Date(dossier.created_at).toLocaleDateString('fr-FR')}`,
+        `Maj le: ${new Date(dossier.updated_at).toLocaleDateString('fr-FR')}`
+      ];
+      let y=28;
+      lines.forEach(l=> { doc.text(l,14,y); y+=6; });
+      doc.save(`dossier_${dossier.reference||dossier.id}.pdf`);
+      toast({ title:'PDF généré', description:`dossier_${dossier.reference||dossier.id}.pdf` });
+    } catch(e){ toast({ variant:'destructive', title:'Erreur PDF'}); }
+  };
 
   // Charger les données réelles depuis Supabase
   useEffect(() => {
@@ -249,6 +272,28 @@ const NotairesDashboard = () => {
   };
 
   // Analyser un document avec l'IA
+  const authenticateDossier = async (dossier) => {
+    if (!profile?.id) return;
+    try {
+      setAuthenticating(dossier.id);
+      // Mettre à jour la transaction comme authentifiée
+      const { data, error } = await supabase
+        .from('transactions')
+        .update({ status:'authenticated', authenticated_at: new Date().toISOString(), updated_at: new Date().toISOString(), assigned_notary: profile.id })
+        .eq('id', dossier.id)
+        .select()
+        .single();
+      if (error) throw error;
+      setDossiers(ds => ds.map(d=> d.id===dossier.id? { ...d, ...data }: d));
+      toast({ title:'Acte authentifié', description:`Dossier ${dossier.reference || dossier.id}` });
+    } catch (e) {
+      console.error(e);
+      toast({ variant:'destructive', title:'Erreur', description:'Authentification impossible' });
+    } finally {
+      setAuthenticating(null);
+    }
+  };
+
   const analyzeDocumentWithAI = async (dossier) => {
     try {
       setDocumentAnalysis({ loading: true, dossierId: dossier.id });
@@ -495,14 +540,12 @@ Fournis une réponse structurée avec score et recommandations.`;
                 />
               </div>
               <select 
-                className="border rounded-md px-3 py-2"
+                className="border rounded-md px-3 py-2 text-sm"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
-                <option value="all">Tous les statuts</option>
-                <option value="pending">En attente</option>
-                <option value="progress">En cours</option>
-                <option value="completed">Terminé</option>
+                <option value="all">Tous</option>
+                {realStatusOptions.map(s=> <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 
@@ -580,6 +623,12 @@ Fournis une réponse structurée avec score et recommandations.`;
                             >
                               <FileText className="h-4 w-4 mr-1" />
                               Vérifier
+                            </Button>
+                            <Button size="sm" variant="secondary" disabled={authenticating===dossier.id || ['authenticated','notarized','completed'].includes(dossier.status)} onClick={()=>authenticateDossier(dossier)}>
+                              {authenticating===dossier.id? '...':'Authentifier'}
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={()=>exportDossierPDF(dossier)}>
+                              <FileDown className="h-4 w-4 mr-1" />PDF
                             </Button>
                             <Button
                               size="sm"
