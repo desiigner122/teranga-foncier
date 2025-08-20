@@ -115,6 +115,31 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Table messages
+CREATE TABLE IF NOT EXISTS messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sender_id UUID REFERENCES profiles(id),
+  recipient_id UUID REFERENCES profiles(id),
+  conversation_id UUID,
+  content TEXT NOT NULL,
+  read BOOLEAN DEFAULT false,
+  read_at TIMESTAMPTZ,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Table conversations
+CREATE TABLE IF NOT EXISTS conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT,
+  participants JSONB DEFAULT '[]',
+  last_message TEXT,
+  last_message_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Table transactions
 CREATE TABLE IF NOT EXISTS transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -201,6 +226,20 @@ CREATE POLICY "Users can view own transactions" ON transactions
 ALTER TABLE feature_flags ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can read feature flags" ON feature_flags
   FOR SELECT USING (true);
+
+-- RLS pour les messages
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own messages" ON messages
+  FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = recipient_id);
+CREATE POLICY "Users can insert own messages" ON messages
+  FOR INSERT WITH CHECK (auth.uid() = sender_id);
+
+-- RLS pour les conversations
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own conversations" ON conversations
+  FOR SELECT USING (participants::jsonb @> jsonb_build_array(auth.uid()));
+CREATE POLICY "Users can manage own conversations" ON conversations
+  FOR ALL USING (participants::jsonb @> jsonb_build_array(auth.uid()));
 
 -- =================================================================
 -- 🔧 5. FONCTION AUTO-CREATION PROFIL

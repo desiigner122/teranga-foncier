@@ -1,4 +1,4 @@
-// src/components/ui/GlobalAIChat.jsx - Chat IA principal à droite
+// src/components/ui/GlobalAIChat.jsx - Chat IA principal Ã  droite
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageSquareText, X, Send, User, Bot, Brain, Sparkles, Trash2 } from 'lucide-react';
@@ -10,19 +10,31 @@ import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { hybridAI } from '@/lib/hybridAI';
+// Import correct hook
+import { useRealtimeMessages } from '@/hooks/useRealtimeTable';
 
 const GlobalAIChat = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const { data: messages, loading: messagesLoading, error: messagesError, refetch } = useRealtimeTable();
+  const { data: messagesFromDB, loading: messagesLoading, error: messagesError } = useRealtimeMessages();
   const [filteredData, setFilteredData] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+  
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   
   useEffect(() => {
-    if (messages) {
-      setFilteredData(messages);
+    if (messagesFromDB) {
+      setFilteredData(messagesFromDB);
     }
-  }, [messages]);
+  }, [messagesFromDB]);
   
   useEffect(() => {
     scrollToBottom();
@@ -30,17 +42,17 @@ const GlobalAIChat = () => {
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
-    let greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+    let greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon aprï¿½s-midi" : "Bonsoir";
     const username = isAuthenticated ? ` ${user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}` : '';
     
     return `?? ${greeting}${username} !
 
-?? Je suis **Teranga AI Global**, votre assistant intelligent pour la plateforme foncière.
+?? Je suis **Teranga AI Global**, votre assistant intelligent pour la plateforme fonciï¿½re.
 
-? **MES SPÉCIALITÉS :**
-?? Recherche de propriétés personnalisée
-?? Évaluations et conseils de prix  
-?? Procédures et démarches administratives
+? **MES SPï¿½CIALITï¿½S :**
+?? Recherche de propriï¿½tï¿½s personnalisï¿½e
+?? ï¿½valuations et conseils de prix  
+?? Procï¿½dures et dï¿½marches administratives
 ?? Conseils d'investissement immobilier
 ?? Navigation et aide sur la plateforme
 
@@ -82,7 +94,7 @@ Posez-moi vos questions en langage naturel !`;
       console.error("Erreur IA Global:", error);
       setMessages(prev => [...prev, { 
         sender: 'bot', 
-        text: "Désolé, je rencontre des difficultés. Veuillez réessayer.",
+        text: "Dï¿½solï¿½, je rencontre des difficultï¿½s. Veuillez rï¿½essayer.",
         error: true
       }]);
       toast({
@@ -92,6 +104,7 @@ Posez-moi vos questions en langage naturel !`;
       });
     } finally {
       setIsTyping(false);
+      setTimeout(scrollToBottom, 100);
     }
   };
 
@@ -101,7 +114,7 @@ Posez-moi vos questions en langage naturel !`;
 
   return (
     <>
-      {/* Bouton flottant à droite */}
+      {/* Bouton flottant ï¿½ droite */}
       <motion.div
         className="fixed bottom-6 right-6 z-40"
         whileHover={{ scale: 1.05 }}
@@ -127,7 +140,7 @@ Posez-moi vos questions en langage naturel !`;
         </Button>
       </motion.div>
 
-      {/* Fenêtre de chat */}
+      {/* Fenï¿½tre de chat */}
       <AnimatePresence>
         {isOpen && (
           <motion.div

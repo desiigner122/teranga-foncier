@@ -234,6 +234,241 @@ export class SupabaseDataService {
     });
     return byStatus;
   }
+
+  /**
+   * Notifications
+   */
+  static async listNotifications(userId, options = { unreadOnly: false, limit: 50 }) {
+    try {
+      if (!userId) return [];
+      
+      // Si la table n'existe pas encore
+      const { error: checkError } = await supabase
+        .from('notifications')
+        .select('id')
+        .limit(1);
+      
+      if (checkError && checkError.code === '42P01') {
+        console.warn('Table notifications does not exist yet');
+        return [];
+      }
+      
+      let query = supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (options.unreadOnly) {
+        query = query.eq('read', false);
+      }
+      
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+      }
+      
+      return data || [];
+    } catch (err) {
+      console.error('Exception in listNotifications:', err);
+      return [];
+    }
+  }
+
+  static async markNotificationRead(notificationId) {
+    try {
+      if (!notificationId) return false;
+      
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true, read_at: new Date().toISOString() })
+        .eq('id', notificationId);
+      
+      if (error) {
+        console.error('Error marking notification as read:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (err) {
+      console.error('Exception in markNotificationRead:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Conversations et Messages
+   */
+  static async listConversations(userId, options = {}) {
+    try {
+      if (!userId) return [];
+      
+      // Si la table n'existe pas encore
+      const { error: checkError } = await supabase
+        .from('conversations')
+        .select('id')
+        .limit(1);
+      
+      if (checkError && checkError.code === '42P01') {
+        console.warn('Table conversations does not exist yet');
+        return [];
+      }
+      
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .filter('participants', 'cs', `{"${userId}"}`)
+        .order('updated_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching conversations:', error);
+        return [];
+      }
+      
+      return data || [];
+    } catch (err) {
+      console.error('Exception in listConversations:', err);
+      return [];
+    }
+  }
+
+  static async getMessages(conversationId, options = { limit: 50 }) {
+    try {
+      if (!conversationId) return [];
+      
+      // Si la table n'existe pas encore
+      const { error: checkError } = await supabase
+        .from('messages')
+        .select('id')
+        .limit(1);
+      
+      if (checkError && checkError.code === '42P01') {
+        console.warn('Table messages does not exist yet');
+        return [];
+      }
+      
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+        .limit(options.limit || 50);
+      
+      if (error) {
+        console.error('Error fetching messages:', error);
+        return [];
+      }
+      
+      return data || [];
+    } catch (err) {
+      console.error('Exception in getMessages:', err);
+      return [];
+    }
+  }
+
+  static async listConversationMessages(conversationId, limit = 50) {
+    return this.getMessages(conversationId, { limit });
+  }
+
+  static async sendMessage({ conversationId, senderId, content }) {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .insert([{
+          conversation_id: conversationId,
+          sender_id: senderId,
+          content,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select();
+      
+      if (error) {
+        console.error('Error sending message:', error);
+        return null;
+      }
+      
+      return data?.[0] || null;
+    } catch (err) {
+      console.error('Exception in sendMessage:', err);
+      return null;
+    }
+  }
+
+  static async createConversation({ subject, creatorId, participantIds }) {
+    try {
+      // Ensure creator is included in participants
+      const allParticipants = [...new Set([...participantIds, creatorId])];
+      
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert([{
+          title: subject || 'Nouvelle conversation',
+          participants: allParticipants,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select();
+      
+      if (error) {
+        console.error('Error creating conversation:', error);
+        return null;
+      }
+      
+      return data?.[0] || null;
+    } catch (err) {
+      console.error('Exception in createConversation:', err);
+      return null;
+    }
+  }
+
+  static async markConversationMessagesRead({ conversationId, userId }) {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ read: true, read_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .neq('sender_id', userId)
+        .eq('read', false);
+      
+      if (error) {
+        console.error('Error marking messages as read:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (err) {
+      console.error('Exception in markConversationMessagesRead:', err);
+      return false;
+    }
+  }
+
+  static async getConversationUnreadCount({ conversationId, userId }) {
+    try {
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('conversation_id', conversationId)
+        .neq('sender_id', userId)
+        .eq('read', false);
+      
+      if (error) {
+        console.error('Error getting unread count:', error);
+        return 0;
+      }
+      
+      return count || 0;
+    } catch (err) {
+      console.error('Exception in getConversationUnreadCount:', err);
+      return 0;
+    }
+  }
 }
 
 // Export par défaut pour compatibilité
