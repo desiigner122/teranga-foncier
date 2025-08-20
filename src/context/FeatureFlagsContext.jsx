@@ -5,7 +5,7 @@ const FeatureFlagsContext = createContext({ flags:{}, loading:true });
 
 export function FeatureFlagsProvider({ children }) {
   const [flags, setFlags] = useState({});
-  // Loading géré par le hook temps réel
+  const [loading, setLoading] = useState(true);
 
   const loadFlags = async () => {
     try {
@@ -15,7 +15,13 @@ export function FeatureFlagsProvider({ children }) {
         data.forEach(f => { map[f.key] = f.enabled; });
         setFlags(map);
       }
-    } finally { setLoading(false); }
+    } catch (error) {
+      console.warn('FeatureFlags table not found or error loading flags:', error);
+      // Set default flags if table doesn't exist
+      setFlags({});
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   useEffect(()=>{ loadFlags(); }, []);
