@@ -1,53 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
-import { Alert, AlertDescription } from '../../components/ui/alert';
-import { 
-  LayoutDashboard, 
-  Leaf,
-  Tractor,
-  Scale,
-  CloudSun,
-  BookOpen,
-  Sprout,
-  Droplets,
-  Thermometer,
-  Calendar,
-  TrendingUp,
-  MapPin,
-  AlertTriangle,
-  CheckCircle,
-  Plus,
-  BarChart3,
-  PieChart as PieChartIcon,
-  Activity,
-  Brain,
-  Zap,
-  Shield,
-  Eye,
-  Star,
-  Beaker,
-  Truck,
-  Users
-} from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Cell, AreaChart, Area } from 'recharts';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import AIAssistantWidget from '../../components/ui/AIAssistantWidget';
-import AntiFraudDashboard from '../../components/ui/AntiFraudDashboard';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { hybridAI } from '../../lib/hybridAI';
-import { antiFraudAI } from '../../lib/antiFraudAI';
-
 const AgriculteurDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  // Loading géré par le hook temps réel
+  // Loading gÃ©rÃ© par le hook temps rÃ©el
   const { data: lands, loading: landsLoading, error: landsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -69,7 +24,7 @@ const AgriculteurDashboard = () => {
     try {
       setLoading(true);
 
-      // Récupérer les terres de l'agriculteur avec détails complets
+      // RÃ©cupÃ©rer les terres de l'agriculteur avec dÃ©tails complets
       const { data: landsData, error: landsError } = await supabase
         .from('agricultural_lands')
         .select(`
@@ -96,7 +51,7 @@ const AgriculteurDashboard = () => {
 
       if (landsError) throw landsError;
 
-      // Récupérer les cultures actives avec détails
+      // RÃ©cupÃ©rer les cultures actives avec dÃ©tails
       const { data: cropsData, error: cropsError } = await supabase
         .from('crops')
         .select(`
@@ -109,7 +64,7 @@ const AgriculteurDashboard = () => {
 
       if (cropsError) throw cropsError;
 
-      // Récupérer les équipements agricoles
+      // RÃ©cupÃ©rer les Ã©quipements agricoles
       const { data: equipmentData, error: equipmentError } = await supabase
         .from('agricultural_equipment')
         .select('*')
@@ -117,7 +72,7 @@ const AgriculteurDashboard = () => {
 
       if (equipmentError) throw equipmentError;
 
-      // Récupérer les données financières
+      // RÃ©cupÃ©rer les donnÃ©es financiÃ©res
       const { data: financialData, error: financialError } = await supabase
         .from('agricultural_finances')
         .select('*')
@@ -126,7 +81,7 @@ const AgriculteurDashboard = () => {
 
       if (financialError) throw financialError;
 
-      // Récupérer les données météorologiques locales
+      // RÃ©cupÃ©rer les donnÃ©es mÃ©tÃ©orologiques locales
       const { data: weatherHistoryData, error: weatherError } = await supabase
         .from('weather_data')
         .select('*')
@@ -135,27 +90,27 @@ const AgriculteurDashboard = () => {
 
       if (weatherError) throw weatherError;
 
-      // Calculer les statistiques avec données réelles
+      // Calculer les statistiques avec donnÃ©es rÃ©elles
       const totalLands = landsData?.length || 0;
       const totalArea = landsData?.reduce((sum, land) => sum + (land.area || 0), 0) || 0;
       const activeCrops = cropsData?.length || 0;
       const harvestReady = cropsData?.filter(crop => crop.growth_stage === 'harvest_ready').length || 0;
 
-      // Calculer revenus, dépenses et profits
+      // Calculer revenus, dÃ©penses et profits
       const revenue = financialData?.filter(f => f.transaction_type === 'income')
         ?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0;
       const expenses = financialData?.filter(f => f.transaction_type === 'expense')
         ?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0;
       const profit = revenue - expenses;
 
-      // Calculer efficacité irrigation et usage eau
+      // Calculer efficacitÃ© irrigation et usage eau
       const waterUsage = calculateWaterUsage(landsData, cropsData);
       const irrigationEfficiency = calculateIrrigationEfficiency(landsData, waterUsage);
 
-      // Évaluer qualité du sol moyenne
+      // Ã©valuer qualitÃ© du sol moyenne
       const avgSoilQuality = assessAverageSoilQuality(landsData);
 
-      // Calculer productivité moyenne
+      // Calculer productivitÃ© moyenne
       const productivity = calculateProductivity(cropsData, landsData);
 
       setStats({
@@ -174,15 +129,13 @@ const AgriculteurDashboard = () => {
 
       setLands(landsData || []);
 
-      // Analyser les données pour recommandations IA
+      // Analyser les donnÃ©es pour recommandations IA
       await analyzeCropRecommendations(landsData, cropsData, weatherHistoryData);
       
-      // Récupérer prix du marché
+      // RÃ©cupÃ©rer prix du marchÃ©
       await fetchMarketPrices();
 
-    } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
-      // Fallback avec données de démonstration enrichies
+    } catch (error) {      // Fallback avec donnÃ©es de dÃ©monstration enrichies
       setStats({
         totalLands: 8,
         totalArea: 120,
@@ -208,18 +161,18 @@ const AgriculteurDashboard = () => {
     }
   };
 
-  // Récupérer données météorologiques en temps réel
+  // RÃ©cupÃ©rer donnÃ©es mÃ©tÃ©orologiques en temps rÃ©el
   const fetchWeatherData = async () => {
     try {
-      // En production, intégrer avec une API météo réelle
-      // Pour la démo, utiliser données simulées enrichies
+      // En production, intÃ©grer avec une API mÃ©tÃ©o rÃ©elle
+      // Pour la dÃ©mo, utiliser donnÃ©es simulÃ©es enrichies
       const weatherAlerts = [];
       
       if (weatherData.temperature > 35) {
         weatherAlerts.push({
           type: 'heat',
           severity: 'high',
-          message: 'Alerte canicule - Protection des cultures recommandée'
+          message: 'Alerte canicule - Protection des cultures recommandÃ©e'
         });
       }
       
@@ -227,17 +180,15 @@ const AgriculteurDashboard = () => {
         weatherAlerts.push({
           type: 'drought',
           severity: 'medium',
-          message: 'Niveau de précipitations faible - Irrigation nécessaire'
+          message: 'Niveau de prÃ©cipitations faible - Irrigation nÃ©cessaire'
         });
       }
 
       setWeatherAlerts(weatherAlerts);
-    } catch (error) {
-      console.error('Erreur données météo:', error);
-    }
+    } catch (error) {    }
   };
 
-  // Générer recommandations de cultures avec IA
+  // GÃ©nÃ©rer recommandations de cultures avec IA
   const analyzeCropRecommendations = async (lands, crops, weather) => {
     try {
       const context = {
@@ -248,12 +199,12 @@ const AgriculteurDashboard = () => {
         season: getCurrentSeason()
       };
 
-      const query = `En tant qu'expert agronome au Sénégal, analyse mes ${context.landArea} hectares de terres agricoles:
+      const query = `En tant qu'expert agronome au SÃ©nÃ©gal, analyse mes ${context.landArea} hectares de terres agricoles:
       - Cultures actuelles: ${context.currentCrops.join(', ')}
       - Types de sol: ${context.soilTypes.join(', ')}
       - Saison: ${context.season}
       
-      Recommande 3 cultures optimales pour maximiser le rendement et la durabilité, en tenant compte du climat local et de la rotation des cultures.`;
+      Recommande 3 cultures optimales pour maximiser le rendement et la durabilitÃ©, en tenant compte du climat local et de la rotation des cultures.`;
 
       const response = await hybridAI.generateResponse(query, [], { 
         role: 'agricultural_expert', 
@@ -262,12 +213,10 @@ const AgriculteurDashboard = () => {
       });
       
       setCropRecommendations(response.suggestions || []);
-    } catch (error) {
-      console.error('Erreur recommandations IA:', error);
-    }
+    } catch (error) {    }
   };
 
-  // Générer insights IA pour l'agriculture
+  // GÃ©nÃ©rer insights IA pour l'agriculture
   const generateAIInsights = async () => {
     try {
       const context = {
@@ -278,13 +227,13 @@ const AgriculteurDashboard = () => {
         totalArea: stats.totalArea
       };
 
-      const query = `Analyse ma ferme agricole au Sénégal:
-      - Productivité: ${context.productivity}%
-      - Marge bénéficiaire: ${context.profitMargin.toFixed(1)}%
-      - Efficacité hydrique: ${context.waterEfficiency}%
+      const query = `Analyse ma ferme agricole au SÃ©nÃ©gal:
+      - ProductivitÃ©: ${context.productivity}%
+      - Marge bÃ©nÃ©ficiaire: ${context.profitMargin.toFixed(1)}%
+      - EfficacitÃ© hydrique: ${context.waterEfficiency}%
       - ${context.activeCrops} cultures sur ${context.totalArea} hectares
       
-      Fournis 3 recommandations pour optimiser la production et 2 alertes importantes à surveiller.`;
+      Fournis 3 recommandations pour optimiser la production et 2 alertes importantes Ã© surveiller.`;
 
       const response = await hybridAI.generateResponse(query, [], { 
         role: 'agricultural_advisor', 
@@ -292,12 +241,10 @@ const AgriculteurDashboard = () => {
       });
       
       setAiInsights(response);
-    } catch (error) {
-      console.error('Erreur génération insights IA:', error);
-    }
+    } catch (error) {    }
   };
 
-  // Récupérer prix du marché en temps réel
+  // RÃ©cupÃ©rer prix du marchÃ© en temps rÃ©el
   const fetchMarketPrices = async () => {
     try {
       const { data: pricesData, error } = await supabase
@@ -309,18 +256,16 @@ const AgriculteurDashboard = () => {
       if (!error && pricesData) {
         setMarketPrices(pricesData);
       } else {
-        // Fallback avec données simulées
+        // Fallback avec donnÃ©es simulÃ©es
         setMarketPrices(marketAnalysis);
       }
-    } catch (error) {
-      console.error('Erreur prix marché:', error);
-      setMarketPrices(marketAnalysis);
+    } catch (error) {      setMarketPrices(marketAnalysis);
     }
   };
 
   // Fonctions utilitaires
   const calculateWaterUsage = (lands, crops) => {
-    // Calcul basé sur superficie et types de cultures
+    // Calcul basÃ© sur superficie et types de cultures
     return lands?.reduce((sum, land) => {
       const cropWaterNeed = crops?.filter(c => c.land_id === land.id)
         ?.reduce((cropSum, crop) => cropSum + getCropWaterNeed(crop.crop_type), 0) || 0;
@@ -329,7 +274,7 @@ const AgriculteurDashboard = () => {
   };
 
   const calculateIrrigationEfficiency = (lands, waterUsage) => {
-    // Efficacité basée sur systèmes d'irrigation et consommation
+    // EfficacitÃ© basÃ©e sur systÃ©mes d'irrigation et consommation
     const avgEfficiency = lands?.reduce((sum, land) => {
       const systemEfficiency = getIrrigationSystemEfficiency(land.irrigation_system);
       return sum + systemEfficiency;
@@ -341,7 +286,7 @@ const AgriculteurDashboard = () => {
     if (!lands || lands.length === 0) return 'Bon';
     
     const qualityScores = lands.map(land => {
-      const soilAnalysis = land.soil_analyses?.[0]; // Plus récente
+      const soilAnalysis = land.soil_analyses?.[0]; // Plus rÃ©cente
       if (!soilAnalysis) return 3; // Score moyen
       
       let score = 0;
@@ -412,7 +357,7 @@ const AgriculteurDashboard = () => {
   const getCurrentSeason = () => {
     const month = new Date().getMonth();
     if (month >= 5 && month <= 10) return 'Hivernage';
-    return 'Saison sèche';
+    return 'Saison sÃ©che';
   };
 
   const formatCurrency = (amount) => {
@@ -433,15 +378,15 @@ const AgriculteurDashboard = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'Opérationnel': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
+      'OpÃ©rationnel': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
       'Maintenance': { color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle },
       'Panne': { color: 'bg-red-100 text-red-800', icon: AlertTriangle },
-      'Terminé': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
+      'TerminÃ©': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
       'En cours': { color: 'bg-blue-100 text-blue-800', icon: Activity },
-      'Planifié': { color: 'bg-gray-100 text-gray-800', icon: Calendar }
+      'PlanifiÃ©': { color: 'bg-gray-100 text-gray-800', icon: Calendar }
     };
     
-    const config = statusConfig[status] || statusConfig['Planifié'];
+    const config = statusConfig[status] || statusConfig['PlanifiÃ©'];
     return <Badge className={config.color}>{status}</Badge>;
   };
 
@@ -457,7 +402,7 @@ const AgriculteurDashboard = () => {
 
   const getWeatherIcon = (forecast) => {
     switch (forecast.toLowerCase()) {
-      case 'ensoleillé':
+      case 'ensoleillÃ©':
         return <CloudSun className="h-8 w-8 text-yellow-500" />;
       case 'nuageux':
         return <CloudSun className="h-8 w-8 text-gray-500" />;
@@ -474,10 +419,10 @@ const AgriculteurDashboard = () => {
   };
 
   const getMarketSentiment = (weekChange) => {
-    if (weekChange > 5) return { text: 'Très positif', color: 'text-green-600' };
+    if (weekChange > 5) return { text: 'TrÃ©s positif', color: 'text-green-600' };
     if (weekChange > 0) return { text: 'Positif', color: 'text-blue-600' };
     if (weekChange > -5) return { text: 'Stable', color: 'text-gray-600' };
-    return { text: 'Négatif', color: 'text-red-600' };
+    return { text: 'NÃ©gatif', color: 'text-red-600' };
   };
 
   const getSustainabilityBadge = (rating) => {
@@ -489,7 +434,7 @@ const AgriculteurDashboard = () => {
     };
     
     const config = ratingConfig[rating] || ratingConfig['C'];
-    return <Badge className={config.color}>Durabilité {rating}</Badge>;
+    return <Badge className={config.color}>DurabilitÃ© {rating}</Badge>;
   };
 
   const handleAIAction = async (actionType, result) => {
@@ -503,9 +448,7 @@ const AgriculteurDashboard = () => {
       case 'MARKET_FORECAST':
         await fetchMarketPrices();
         break;
-      default:
-        console.log('Action IA:', actionType, result);
-    }
+      default:    }
   };
 
   if (loading || dataLoading) {
@@ -536,7 +479,7 @@ const AgriculteurDashboard = () => {
             Tableau de Bord Agriculteur
           </h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Gérez vos exploitations avec des insights IA avancés et un suivi en temps réel
+            GÃ©rez vos exploitations avec des insights IA avancÃ©s et un suivi en temps rÃ©el
           </p>
         </motion.div>
 
@@ -551,7 +494,7 @@ const AgriculteurDashboard = () => {
               color: "from-green-500 to-emerald-600"
             },
             {
-              title: "Surface Cultivée",
+              title: "Surface CultivÃ©e",
               value: `${formatNumber(dashboardData.totalArea)} ha`,
               change: dashboardData.areaGrowth,
               icon: TreePine,
@@ -565,7 +508,7 @@ const AgriculteurDashboard = () => {
               color: "from-purple-500 to-pink-600"
             },
             {
-              title: "Durabilité",
+              title: "DurabilitÃ©",
               value: dashboardData.sustainabilityScore,
               change: dashboardData.sustainabilityGrowth,
               icon: Leaf,
@@ -614,7 +557,7 @@ const AgriculteurDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CloudSun className="h-5 w-5" />
-                  Conditions Météorologiques
+                  Conditions MÃ©tÃ©orologiques
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -624,7 +567,7 @@ const AgriculteurDashboard = () => {
                       {getWeatherIcon(day.forecast)}
                       <p className="font-medium mt-2">{day.day}</p>
                       <p className="text-sm text-gray-600">{day.forecast}</p>
-                      <p className="text-lg font-bold">{day.temperature}°C</p>
+                      <p className="text-lg font-bold">{day.temperature}Ã©C</p>
                       <p className="text-xs text-blue-600">{day.rainfall}mm</p>
                     </div>
                   ))}
@@ -693,11 +636,11 @@ const AgriculteurDashboard = () => {
                         <span className="text-sm font-medium">{crop.area} ha</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Rendement prévu:</span>
+                        <span className="text-sm text-gray-600">Rendement prÃ©vu:</span>
                         <span className="text-sm font-medium">{crop.expectedYield} T/ha</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Valeur estimée:</span>
+                        <span className="text-sm text-gray-600">Valeur estimÃ©e:</span>
                         <span className="text-sm font-medium">{formatCurrency(crop.estimatedValue)}</span>
                       </div>
                       <div className="mt-3">
@@ -769,7 +712,7 @@ const AgriculteurDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Truck className="h-5 w-5" />
-                  État des Équipements
+                  Ã©tat des Ã©quipements
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -786,7 +729,7 @@ const AgriculteurDashboard = () => {
                       <div className="text-right">
                         {getStatusBadge(item.status)}
                         <p className="text-xs text-gray-500 mt-1">
-                          Dernière maintenance: {item.lastMaintenance}
+                          DerniÃ©re maintenance: {item.lastMaintenance}
                         </p>
                       </div>
                     </div>
@@ -807,7 +750,7 @@ const AgriculteurDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
-                Prix du Marché
+                Prix du MarchÃ©
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -852,7 +795,7 @@ const AgriculteurDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Leaf className="h-5 w-5" />
-                Métriques de Durabilité
+                MÃ©triques de DurabilitÃ©
               </CardTitle>
             </CardHeader>
             <CardContent>

@@ -1,15 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ShieldCheck, Search, FileText, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const ComplianceCheckPage = () => {
   const { toast } = useToast();
   const [parcelId, setParcelId] = useState('');
@@ -71,9 +60,7 @@ const ComplianceCheckPage = () => {
         description: `Résultats pour la parcelle ${parcelId} affichés.` 
       });
 
-    } catch (error) {
-      console.error('Erreur vérification conformité:', error);
-      toast({ 
+    } catch (error) {      toast({ 
         variant: 'destructive', 
         title: 'Erreur', 
         description: 'Impossible de vérifier la conformité.' 

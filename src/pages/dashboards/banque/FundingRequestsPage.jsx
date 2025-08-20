@@ -1,33 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
-import { 
-  DollarSign, 
-  Search, 
-  Filter, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
-  Clock,
-  FileText,
-  User,
-  MapPin
-} from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useAuth } from '@/context/AuthContext';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-
 const FundingRequestsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -49,11 +20,11 @@ const FundingRequestsPage = () => {
       setLoading(true);
       
       if (user && user.id) {
-        // Utiliser la nouvelle méthode pour récupérer les demandes destinées spécifiquement à cette banque
+        // Utiliser la nouvelle mÃ©thode pour rÃ©cupÃ©rer les demandes destinÃ©es spÃ©cifiquement Ã© cette banque
         const banqueRequests = await SupabaseDataService.getRequestsByRecipient(user.id, 'banque');
         setRequests(banqueRequests);
       } else {
-        // Fallback: récupérer toutes les demandes de financement
+        // Fallback: rÃ©cupÃ©rer toutes les demandes de financement
         const { data, error } = await supabase
           .from('requests')
           .select(`
@@ -67,9 +38,7 @@ const FundingRequestsPage = () => {
         if (error) throw error;
         setRequests(data || []);
       }
-    } catch (error) {
-      console.error('Erreur chargement demandes:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les demandes de financement"
@@ -95,20 +64,18 @@ const FundingRequestsPage = () => {
       if (error) throw error;
 
       toast({
-        title: "Demande mise à jour",
-        description: `Statut changé vers: ${getStatusLabel(newStatus)}`
+        title: "Demande mise Ã© jour",
+        description: `Statut changÃ© vers: ${getStatusLabel(newStatus)}`
       });
 
-      // Recharger les données
+      // Recharger les donnÃ©es
       await loadFundingRequests();
       setIsDetailModalOpen(false);
       
-    } catch (error) {
-      console.error('Erreur mise à jour:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de mettre à jour la demande"
+        description: "Impossible de mettre Ã© jour la demande"
       });
     } finally {
       setIsProcessing(false);
@@ -118,9 +85,9 @@ const FundingRequestsPage = () => {
   const getStatusLabel = (status) => {
     const labels = {
       'pending': 'En attente',
-      'approved': 'Approuvé',
-      'rejected': 'Rejeté',
-      'completed': 'Complété'
+      'approved': 'ApprouvÃ©',
+      'rejected': 'RejetÃ©',
+      'completed': 'ComplÃ©tÃ©'
     };
     return labels[status] || status;
   };
@@ -140,7 +107,7 @@ const FundingRequestsPage = () => {
   };
 
   const calculateLoanRisk = (request) => {
-    // Calcul simple du risque basé sur le ratio montant/valeur parcelle
+    // Calcul simple du risque basÃ© sur le ratio montant/valeur parcelle
     const parcelValue = request.parcels?.price || 0;
     const requestedAmount = request.data?.amount || 0;
     
@@ -195,7 +162,7 @@ const FundingRequestsPage = () => {
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Rechercher par nom, email ou référence parcelle..."
+                placeholder="Rechercher par nom, email ou rÃ©fÃ©rence parcelle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-md"
@@ -208,9 +175,9 @@ const FundingRequestsPage = () => {
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="pending">En attente</SelectItem>
-                <SelectItem value="approved">Approuvé</SelectItem>
-                <SelectItem value="rejected">Rejeté</SelectItem>
-                <SelectItem value="completed">Complété</SelectItem>
+                <SelectItem value="approved">ApprouvÃ©</SelectItem>
+                <SelectItem value="rejected">RejetÃ©</SelectItem>
+                <SelectItem value="completed">ComplÃ©tÃ©</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -222,13 +189,13 @@ const FundingRequestsPage = () => {
         <CardHeader>
           <CardTitle>Demandes de Financement ({filteredRequests.length})</CardTitle>
           <CardDescription>
-            Gérez les demandes de financement et évaluez les risques
+            GÃ©rez les demandes de financement et Ã©valuez les risques
           </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredRequests.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Aucune demande de financement trouvée
+              Aucune demande de financement trouvÃ©e
             </div>
           ) : (
             <Table>
@@ -270,7 +237,7 @@ const FundingRequestsPage = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant={risk.level === 'low' ? 'default' : risk.level === 'medium' ? 'secondary' : 'destructive'}>
-                          {risk.level === 'low' ? 'Faible' : risk.level === 'medium' ? 'Moyen' : 'Élevé'} ({risk.score}%)
+                          {risk.level === 'low' ? 'Faible' : risk.level === 'medium' ? 'Moyen' : 'Ã©levÃ©'} ({risk.score}%)
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -289,7 +256,7 @@ const FundingRequestsPage = () => {
                           }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          Détails
+                          DÃ©tails
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -301,11 +268,11 @@ const FundingRequestsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Modal de détails */}
+      {/* Modal de dÃ©tails */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Détails de la Demande de Financement</DialogTitle>
+            <DialogTitle>DÃ©tails de la Demande de Financement</DialogTitle>
             <DialogDescription>
               Examinez et traitez cette demande de financement
             </DialogDescription>
@@ -330,7 +297,7 @@ const FundingRequestsPage = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Montant demandé</Label>
+                  <Label>Montant demandÃ©</Label>
                   <p className="font-medium text-lg">
                     {(selectedRequest.data?.amount || 0).toLocaleString('fr-FR')} FCFA
                   </p>

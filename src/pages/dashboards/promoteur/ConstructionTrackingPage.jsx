@@ -1,18 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ClipboardList, Search, Filter, Calendar, HardHat, RefreshCw } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Link } from 'react-router-dom';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-
 // Helper to compute progress placeholder until a dedicated progress tracking table exists
 const deriveProgress = (project) => {
   // If units_total available, approximate progress by units_sold ratio
@@ -21,10 +7,10 @@ const deriveProgress = (project) => {
   }
   // Map status to rough progression
   const statusMap = {
-    'Faisabilité': 10,
+    'FaisabilitÃ©': 10,
     'Planification': 25,
     'En construction': 60,
-    'Achevé': 100
+    'AchevÃ©': 100
   };
   return statusMap[project.status] ?? 0;
 };
@@ -45,21 +31,21 @@ const ConstructionTrackingPage = () => {
 
   const handleStatusAdvance = async (project) => {
     // Simple linear advancement through statuses; adjust as needed
-    const order = ['Faisabilité','Planification','En construction','Achevé'];
+    const order = ['FaisabilitÃ©','Planification','En construction','AchevÃ©'];
     const idx = order.indexOf(project.status);
     const next = idx >=0 && idx < order.length -1 ? order[idx+1] : null;
     if (!next) {
-      toast({ title: 'Statut', description: 'Projet déjà au dernier statut.' });
+      toast({ title: 'Statut', description: 'Projet dÃ©jÃ© au dernier statut.' });
       return;
     }
     try {
       const updated = await SupabaseDataService.updatePromoteurProjectStatus(project.id, next);
       if (updated) {
         setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: next, progress: deriveProgress({ ...p, status: next }) } : p));
-        toast({ title: 'Statut mis à jour', description: `${project.name}: ${next}` });
+        toast({ title: 'Statut mis Ã© jour', description: `${project.name}: ${next}` });
       }
     } catch (e) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour le statut.' });
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre Ã© jour le statut.' });
     }
   };
   
@@ -67,7 +53,7 @@ const ConstructionTrackingPage = () => {
     switch (status) {
         case 'En construction': return 'warning';
         case 'Planification': return 'default';
-        case 'Faisabilité': return 'secondary';
+        case 'FaisabilitÃ©': return 'secondary';
         default: return 'outline';
     }
   }
@@ -90,7 +76,7 @@ const ConstructionTrackingPage = () => {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl md:text-3xl font-bold flex items-center"><ClipboardList className="mr-3 h-8 w-8 text-primary"/>Suivi de Construction</h1>
         <Button variant="outline" size="sm" onClick={loadProjects} disabled={refreshing} className="flex items-center">
-          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Rafraîchir
+          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> RafraÃ©chir
         </Button>
       </div>
       
@@ -102,14 +88,14 @@ const ConstructionTrackingPage = () => {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Rechercher un projet..." className="pl-8" />
             </div>
-            <Button variant="outline" onClick={() => handleAction("Filtres de projets appliqués.")}><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
+            <Button variant="outline" onClick={() => handleAction("Filtres de projets appliquÃ©s.")}><Filter className="mr-2 h-4 w-4" /> Filtrer</Button>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {projects.length === 0 && (
               <div className="text-sm text-muted-foreground p-4 border rounded-md">
-                Aucun projet trouvé. Créez un projet dans la base (table promoteur_projects) pour le voir ici.
+                Aucun projet trouvÃ©. CrÃ©ez un projet dans la base (table promoteur_projects) pour le voir ici.
               </div>
             )}
             {projects.map(p => (
@@ -130,10 +116,10 @@ const ConstructionTrackingPage = () => {
                       <div className="bg-primary h-2.5 rounded-full" style={{ width: `${p.progress}%` }}></div>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">Prochaine étape: {p.nextMilestone} (Échéance: {p.dueDate})</p>
+                  <p className="text-sm text-muted-foreground">Prochaine Ã©tape: {p.nextMilestone} (Ã©chÃ©ance: {p.dueDate})</p>
                   <div className="flex flex-wrap space-x-2 mt-4">
                     <Button variant="outline" size="sm" onClick={() => handleStatusAdvance(p)}><HardHat className="mr-1 h-4 w-4" /> Avancer statut</Button>
-                    <Button variant="outline" size="sm" disabled><Calendar className="mr-1 h-4 w-4" /> Calendrier (bientôt)</Button>
+                    <Button variant="outline" size="sm" disabled><Calendar className="mr-1 h-4 w-4" /> Calendrier (bientÃ©t)</Button>
                      <Button asChild variant="link" size="sm" className="p-0 h-auto"><Link to="/dashboard/sales">Voir les ventes</Link></Button>
                   </div>
                 </CardContent>

@@ -1,16 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PlusCircle, Search, Eye, Edit, CalendarPlus } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabaseClient';
-import { Link } from 'react-router-dom';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const AgentParcelsPage = () => {
   const { toast } = useToast();
   const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
@@ -33,10 +21,8 @@ const AgentParcelsPage = () => {
           .eq('agent_assigned', user.id)
           .order('created_at', { ascending: false });
 
-        setParcels(parcels || []);
-      } catch (error) {
-        console.error('Erreur chargement parcelles:', error);
-        setParcels([]);
+        setParcels(parcels || [data, error]);
+      } catch (error) {        setParcels([]);
       } finally {
         setLoading(false);
       }
@@ -44,7 +30,6 @@ const AgentParcelsPage = () => {
 
     loadParcels();
   }, []);
-
 
   const filteredParcels = parcels.filter(parcel => 
     parcel.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

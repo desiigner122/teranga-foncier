@@ -1,31 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { useRealtimeParcelSubmissions, useRealtimeParcels } from '../../hooks/useRealtimeTable';
+
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
-import { 
-  Shield, 
-  TrendingUp, 
-  Eye, 
-  Users, 
-  DollarSign, 
-  FileText,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  MapPin,
-  Camera,
-  Upload,
-  Star,
-  MessageSquare,
-  Calendar,
-  BarChart3,
-  Zap,
-  Target,
-  Inbox
-} from 'lucide-react';
+import { Shield, TrendingUp, Eye, DollarSign, FileText, AlertTriangle, CheckCircle, MapPin, Upload, Star, BarChart3, Zap, Target, Inbox } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
@@ -33,7 +13,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import ParcelSubmissionModal from '@/components/vendeur/ParcelSubmissionModal';
 import { antiFraudAI } from '@/lib/antiFraudAI';
-
 const VendeurDashboard = () => {
   const { toast } = useToast();
   const [user, setUser] = useState(null);
@@ -50,7 +29,17 @@ const VendeurDashboard = () => {
     conversionRate: 0,
     topPerformingListing: null
   });
-  const { data: marketInsights, loading: marketInsightsLoading, error: marketInsightsError, refetch } = useRealtimeTable();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [listings, setListings] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [editingListing, setEditingListing] = useState(null);
+  const [form, setForm] = useState({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' });
+  const [inquiriesByListing, setInquiriesByListing] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [selectedInquiry, setSelectedInquiry] = useState(null);
+  const [marketInsights, setMarketInsights] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   
   // Chargement géré par les hooks temps réel
@@ -94,7 +83,6 @@ const VendeurDashboard = () => {
       }));
 
     } catch (error) {
-      console.error('Erreur chargement utilisateur:', error);
     }
   };
 
@@ -120,7 +108,6 @@ const VendeurDashboard = () => {
       setStats(currentStats);
       
     } catch (error) {
-      console.error('Erreur chargement market data:', error);
     }
   };
 
@@ -164,7 +151,6 @@ const VendeurDashboard = () => {
       }));
 
     } catch (error) {
-      console.error('Erreur chargement utilisateur:', error);
     }
   };
 
@@ -190,7 +176,6 @@ const VendeurDashboard = () => {
       });
 
     } catch (error) {
-      console.error('Erreur optimisation annonce:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -213,7 +198,6 @@ const VendeurDashboard = () => {
       });
 
     } catch (error) {
-      console.error('Erreur analyse prix:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -270,7 +254,6 @@ const VendeurDashboard = () => {
       }
       setShowModal(false);
     } catch (err) {
-      console.error(err);
       toast({ variant:'destructive', title:'Erreur', description:'Impossible d\'enregistrer l\'annonce' });
     } finally {
       setSaving(false);

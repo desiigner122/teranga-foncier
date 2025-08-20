@@ -1,5 +1,4 @@
-// src/lib/supabaseClient.js
-import { createClient } from '@supabase/supabase-js';
+// src/lib/supabaseClient.import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -26,8 +25,6 @@ let supabaseClient;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   if (import.meta.env.DEV) {
-    console.warn("Variables d'environnement Supabase manquantes. Utilisation du client mock pour le développement.");
-    console.warn("Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY pour une fonctionnalité complète.");
   }
   supabaseClient = createMockClient();
 } else {

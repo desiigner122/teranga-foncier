@@ -1,14 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Archive, Search, Filter, Download } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/lib/supabaseClient';
-import { Input } from '@/components/ui/input';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 // Source: documents table categories actes
 
 const ArchivesPage = () => {
@@ -33,7 +23,7 @@ const ArchivesPage = () => {
           .limit(300);
         if (error) throw error;
         const mapCategory = (c) => c==='acte_vente' ? 'Vente' : c==='acte_succession' ? 'Succession' : 'Autre';
-        const mapped = (data||[]).map(d=>({ id:d.id, acteId:d.title || d.id, type:mapCategory(d.category), date:d.created_at?.split('T')[0]||'', parties:d.parties||'—' }));
+        const mapped = (data||[data, error]).map(d=>({ id:d.id, acteId:d.title || d.id, type:mapCategory(d.category), date:d.created_at?.split('T')[0]||'', parties:d.parties||'—' }));
         setArchives(mapped);
       } catch(e) {
         if (process.env.NODE_ENV !== 'production') console.warn('Archives non chargées', e.message||e);

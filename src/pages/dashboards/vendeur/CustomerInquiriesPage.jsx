@@ -1,32 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  MessageSquare, 
-  Search, 
-  Filter,
-  Eye,
-  Reply,
-  Calendar,
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  DollarSign,
-  Clock,
-  CheckCircle,
-  AlertCircle
-} from 'lucide-react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const CustomerInquiriesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -50,9 +22,7 @@ const CustomerInquiriesPage = () => {
       setLoading(true);
       const vendeurInquiries = await SupabaseDataService.getVendeurInquiries(user.id);
       setInquiries(vendeurInquiries || []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des demandes:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les demandes clients"
@@ -72,15 +42,13 @@ const CustomerInquiriesPage = () => {
       ));
       
       toast({
-        title: "Statut mis à jour",
-        description: `La demande a été marquée comme ${getStatusLabel(newStatus)}`
+        title: "Statut mis Ã© jour",
+        description: `La demande a Ã©tÃ© marquÃ©e comme ${getStatusLabel(newStatus)}`
       });
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de mettre à jour le statut"
+        description: "Impossible de mettre Ã© jour le statut"
       });
     }
   };
@@ -89,9 +57,9 @@ const CustomerInquiriesPage = () => {
     const statusConfig = {
       'new': { label: 'Nouveau', variant: 'default', color: 'bg-blue-500' },
       'read': { label: 'Lu', variant: 'secondary', color: 'bg-gray-500' },
-      'replied': { label: 'Répondu', variant: 'success', color: 'bg-green-500' },
+      'replied': { label: 'RÃ©pondu', variant: 'success', color: 'bg-green-500' },
       'in_progress': { label: 'En cours', variant: 'default', color: 'bg-yellow-500' },
-      'closed': { label: 'Fermé', variant: 'outline', color: 'bg-gray-600' }
+      'closed': { label: 'FermÃ©', variant: 'outline', color: 'bg-gray-600' }
     };
 
     const config = statusConfig[status] || { label: status, variant: 'default', color: 'bg-gray-500' };
@@ -102,9 +70,9 @@ const CustomerInquiriesPage = () => {
     const labels = {
       'new': 'nouveau',
       'read': 'lu',
-      'replied': 'répondu',
+      'replied': 'rÃ©pondu',
       'in_progress': 'en cours',
-      'closed': 'fermé'
+      'closed': 'fermÃ©'
     };
     return labels[status] || status;
   };
@@ -137,7 +105,7 @@ const CustomerInquiriesPage = () => {
   };
 
   const formatPrice = (price) => {
-    if (!price) return 'Prix non spécifié';
+    if (!price) return 'Prix non spÃ©cifiÃ©';
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'XOF',
@@ -189,7 +157,7 @@ const CustomerInquiriesPage = () => {
           Demandes Clients
         </h1>
         <p className="text-muted-foreground">
-          Gérez les demandes d'informations de vos clients potentiels
+          GÃ©rez les demandes d'informations de vos clients potentiels
         </p>
       </div>
 
@@ -236,7 +204,7 @@ const CustomerInquiriesPage = () => {
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Répondues</p>
+                <p className="text-sm text-muted-foreground">RÃ©pondues</p>
                 <p className="text-2xl font-bold">{stats.replied}</p>
               </div>
             </div>
@@ -249,7 +217,7 @@ const CustomerInquiriesPage = () => {
           <TabsTrigger value="all">Toutes les demandes</TabsTrigger>
           <TabsTrigger value="new">Nouvelles</TabsTrigger>
           <TabsTrigger value="in_progress">En cours</TabsTrigger>
-          <TabsTrigger value="replied">Répondues</TabsTrigger>
+          <TabsTrigger value="replied">RÃ©pondues</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -295,7 +263,7 @@ const CustomerInquiriesPage = () => {
                     size="sm"
                     onClick={() => setStatusFilter('replied')}
                   >
-                    Répondues
+                    RÃ©pondues
                   </Button>
                 </div>
               </div>
@@ -308,11 +276,11 @@ const CustomerInquiriesPage = () => {
               <Card>
                 <CardContent className="p-8 text-center">
                   <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Aucune demande trouvée</h3>
+                  <h3 className="text-lg font-semibold mb-2">Aucune demande trouvÃ©e</h3>
                   <p className="text-muted-foreground">
                     {inquiries.length === 0 
-                      ? "Vous n'avez pas encore reçu de demandes clients."
-                      : "Aucune demande ne correspond à vos critères de recherche."
+                      ? "Vous n'avez pas encore reÃ©u de demandes clients."
+                      : "Aucune demande ne correspond Ã© vos critÃ©res de recherche."
                     }
                   </p>
                 </CardContent>
@@ -327,7 +295,7 @@ const CustomerInquiriesPage = () => {
                         <div>
                           <h4 className="font-semibold">{inquiry.client_name || 'Client anonyme'}</h4>
                           <p className="text-sm text-muted-foreground">
-                            {inquiry.property_title || 'Demande générale'}
+                            {inquiry.property_title || 'Demande gÃ©nÃ©rale'}
                           </p>
                         </div>
                       </div>
@@ -373,7 +341,7 @@ const CustomerInquiriesPage = () => {
                       {inquiry.visit_date && (
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span>Visite souhaitée: {formatDate(inquiry.visit_date)}</span>
+                          <span>Visite souhaitÃ©e: {formatDate(inquiry.visit_date)}</span>
                         </div>
                       )}
                     </div>
@@ -385,7 +353,7 @@ const CustomerInquiriesPage = () => {
                         onClick={() => setSelectedInquiry(inquiry)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        Voir détails
+                        Voir dÃ©tails
                       </Button>
                       
                       <Button
@@ -395,7 +363,7 @@ const CustomerInquiriesPage = () => {
                         disabled={inquiry.status === 'replied'}
                       >
                         <Reply className="h-4 w-4 mr-2" />
-                        Répondre
+                        RÃ©pondre
                       </Button>
                       
                       {inquiry.status !== 'closed' && (
@@ -454,7 +422,7 @@ const CustomerInquiriesPage = () => {
                             <div>
                               <h4 className="font-semibold">{inquiry.client_name || 'Client anonyme'}</h4>
                               <p className="text-sm text-muted-foreground">
-                                {inquiry.property_title || 'Demande générale'}
+                                {inquiry.property_title || 'Demande gÃ©nÃ©rale'}
                               </p>
                             </div>
                           </div>
@@ -473,7 +441,7 @@ const CustomerInquiriesPage = () => {
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <Reply className="h-4 w-4 mr-2" />
-                            Répondre
+                            RÃ©pondre
                           </Button>
                         </div>
                       </CardContent>

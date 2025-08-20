@@ -1,17 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { BookOpen, PlusCircle, Calendar, RefreshCw, Filter, Search } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/context/AuthContext';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const LogbookPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -38,7 +25,7 @@ const LogbookPage = () => {
         return;
       }
 
-      // Récupérer les entrées du journal agricole depuis la table agricultural_logs
+      // RÃ©cupÃ©rer les entrÃ©es du journal agricole depuis la table agricultural_logs
       const { data: logEntries, error } = await SupabaseDataService.supabaseClient
         .from('agricultural_logs')
         .select(`
@@ -48,15 +35,11 @@ const LogbookPage = () => {
         .eq('farmer_id', user.id)
         .order('activity_date', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erreur chargement journal:', error);
-      }
+      if (error && error.code !== 'PGRST116') {      }
 
       setEntries(logEntries || []);
 
-    } catch (error) {
-      console.error('Erreur chargement journal:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger le journal d'exploitation"
@@ -84,7 +67,7 @@ const LogbookPage = () => {
       case 'planting': return 'Plantation';
       case 'irrigation': return 'Irrigation';
       case 'fertilizing': return 'Fertilisation';
-      case 'harvesting': return 'Récolte';
+      case 'harvesting': return 'RÃ©colte';
       case 'treatment': return 'Traitement';
       case 'maintenance': return 'Maintenance';
       default: return 'Autre';
@@ -102,9 +85,9 @@ const LogbookPage = () => {
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'completed': return 'Terminé';
+      case 'completed': return 'TerminÃ©';
       case 'in_progress': return 'En cours';
-      case 'planned': return 'Planifié';
+      case 'planned': return 'PlanifiÃ©';
       default: return status;
     }
   };
@@ -136,7 +119,7 @@ const LogbookPage = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6 p-4 md:p-6"
     >
-      {/* En-tête */}
+      {/* En-tÃ©te */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex items-center">
@@ -144,17 +127,17 @@ const LogbookPage = () => {
             Journal d'Exploitation
           </h1>
           <p className="text-sm text-muted-foreground max-w-prose mt-1">
-            Suivez toutes vos activités agricoles et gardez un historique détaillé
+            Suivez toutes vos activitÃ©s agricoles et gardez un historique dÃ©taillÃ©
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={loadLogbookEntries} disabled={refreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Rafraîchir
+            RafraÃ©chir
           </Button>
           <Button size="sm">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Nouvelle entrée
+            Nouvelle entrÃ©e
           </Button>
         </div>
       </div>
@@ -163,7 +146,7 @@ const LogbookPage = () => {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Filtres et recherche</CardTitle>
-          <CardDescription>Trouvez rapidement vos activités agricoles</CardDescription>
+          <CardDescription>Trouvez rapidement vos activitÃ©s agricoles</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -178,14 +161,14 @@ const LogbookPage = () => {
             </div>
             <Select value={activityFilter} onValueChange={setActivityFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Type d'activité" />
+                <SelectValue placeholder="Type d'activitÃ©" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes les activités</SelectItem>
+                <SelectItem value="all">Toutes les activitÃ©s</SelectItem>
                 <SelectItem value="planting">Plantation</SelectItem>
                 <SelectItem value="irrigation">Irrigation</SelectItem>
                 <SelectItem value="fertilizing">Fertilisation</SelectItem>
-                <SelectItem value="harvesting">Récolte</SelectItem>
+                <SelectItem value="harvesting">RÃ©colte</SelectItem>
                 <SelectItem value="treatment">Traitement</SelectItem>
                 <SelectItem value="maintenance">Maintenance</SelectItem>
               </SelectContent>
@@ -214,12 +197,12 @@ const LogbookPage = () => {
         </CardContent>
       </Card>
 
-      {/* Liste des entrées */}
+      {/* Liste des entrÃ©es */}
       <Card>
         <CardHeader>
-          <CardTitle>Historique des activités</CardTitle>
+          <CardTitle>Historique des activitÃ©s</CardTitle>
           <CardDescription>
-            {filteredEntries.length} entrée(s) dans votre journal
+            {filteredEntries.length} entrÃ©e(s) dans votre journal
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -227,17 +210,17 @@ const LogbookPage = () => {
             <div className="text-center py-8">
               <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {entries.length === 0 ? 'Aucune entrée dans le journal' : 'Aucun résultat'}
+                {entries.length === 0 ? 'Aucune entrÃ©e dans le journal' : 'Aucun rÃ©sultat'}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {entries.length === 0 
-                  ? 'Commencez à enregistrer vos activités agricoles'
-                  : 'Essayez de modifier vos critères de recherche'
+                  ? 'Commencez Ã© enregistrer vos activitÃ©s agricoles'
+                  : 'Essayez de modifier vos critÃ©res de recherche'
                 }
               </p>
               <Button className="mt-4" size="sm">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Ajouter une entrée
+                Ajouter une entrÃ©e
               </Button>
             </div>
           ) : (
@@ -281,14 +264,14 @@ const LogbookPage = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     {entry.duration_hours && (
                       <div>
-                        <span className="text-muted-foreground">Durée:</span>
+                        <span className="text-muted-foreground">DurÃ©e:</span>
                         <p className="font-medium">{entry.duration_hours}h</p>
                       </div>
                     )}
                     
                     {entry.cost && (
                       <div>
-                        <span className="text-muted-foreground">Coût:</span>
+                        <span className="text-muted-foreground">CoÃ©t:</span>
                         <p className="font-medium text-red-600">
                           {entry.cost.toLocaleString()} FCFA
                         </p>
@@ -297,14 +280,14 @@ const LogbookPage = () => {
 
                     {entry.weather_conditions && (
                       <div>
-                        <span className="text-muted-foreground">Météo:</span>
+                        <span className="text-muted-foreground">MÃ©tÃ©o:</span>
                         <p className="font-medium">{entry.weather_conditions}</p>
                       </div>
                     )}
 
                     {entry.equipment_used && (
                       <div>
-                        <span className="text-muted-foreground">Équipement:</span>
+                        <span className="text-muted-foreground">Ã©quipement:</span>
                         <p className="font-medium">{entry.equipment_used}</p>
                       </div>
                     )}

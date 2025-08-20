@@ -1,25 +1,5 @@
 // src/pages/admin/AdminDashboardPageNew.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { motion } from 'framer-motion';
-import {
-  Users, MapPin, FileCheck, DollarSign, UserCheck, Activity, FileText, BarChart, CalendarDays,
-  ShieldCheck, LandPlot, Building, Banknote, Leaf, TrendingUp, Scale, Gavel,
-  Home, Store, LayoutDashboard, User, Landmark, Handshake, MessageSquare, PieChart as PieChartIcon,
-  Settings, Bell, Database, Briefcase, TrendingDown, Menu
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useToast } from "@/components/ui/use-toast";
-import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Bar } from 'recharts';
-import { Badge } from '@/components/ui/badge';
-import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
-import { Separator } from '@/components/ui/separator';
-
 // Navigation Items pour le sidebar admin
 const ADMIN_NAV_ITEMS = [
   {
@@ -302,9 +282,7 @@ const AdminDashboardPage = () => {
         }
       });
 
-    } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
-      toast({
+    } catch (error) {      toast({
         title: "Erreur",
         description: "Impossible de charger les données du dashboard",
         variant: "destructive"
@@ -314,9 +292,7 @@ const AdminDashboardPage = () => {
     }
   }, [toast]);
 
-  const handleAIAction = (action, data) => {
-    console.log('Action IA:', action, data);
-    toast({
+  const handleAIAction = (action, data) => {    toast({
       title: "Action IA",
       description: `Action ${action} exécutée avec succès`,
     });

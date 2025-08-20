@@ -49,7 +49,6 @@ const ContactPage = () => {
       setFormData({ name: '', email: '', subject: '', message: '' });
 
     } catch (error) {
-      console.error('Error sending contact form:', error);
       toast({
         title: "Erreur d'envoi",
         description: "Une erreur est survenue. Veuillez réessayer plus tard.",

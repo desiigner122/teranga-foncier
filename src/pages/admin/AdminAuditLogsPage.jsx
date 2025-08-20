@@ -1,11 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { supabase } from '@/lib/supabaseClient';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,9 +14,25 @@ export default function AdminAuditLogsPage() {
   const [createdBefore, setCreatedBefore] = useState('');
   const channelRef = useRef(null);
 
+  // Fonction de défilement vers le bas
+  const scrollToBottom = () => {
+    if (channelRef.current) {
+      channelRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const load = async () => {
     setLoading(true);
-  const { data, total: t } = await SupabaseDataService.listAuditLogs({ page, pageSize, eventType: eventType||null, actorUserId: actor||null, targetUserId: target||null, sortDir, createdAfter: createdAfter||null, createdBefore: createdBefore||null });
+    const { data, total: t } = await SupabaseDataService.listAuditLogs({ 
+      page, 
+      pageSize, 
+      eventType: eventType||null, 
+      actorUserId: actor||null, 
+      targetUserId: target||null, 
+      sortDir, 
+      createdAfter: createdAfter||null, 
+      createdBefore: createdBefore||null 
+    });
     setLogs(data);
     setTotal(t);
     setLoading(false);

@@ -5,6 +5,7 @@ import { SupabaseDataService } from '@/services/supabaseDataService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from "@/components/ui/use-toast";
 
+import { useContext, useEffect, useCallback, useState } from 'react';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -16,10 +17,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = useCallback(async (authUser) => {
     if (!authUser) return null;
-    try {
-      console.log("Récupération du profil pour:", authUser.email, "ID:", authUser.id);
-      
-      // Première tentative par ID
+    try {      // Première tentative par ID
       let { data, error } = await supabase
         .from('users')
         .select('*')
@@ -27,9 +25,7 @@ export const AuthProvider = ({ children }) => {
         .maybeSingle();
       
       // Si pas trouvé par ID, essayer par email
-      if (!data && !error) {
-        console.log("Profil non trouvé par ID, tentative par email...");
-        const result = await supabase
+      if (!data && !error) {        const result = await supabase
           .from('users')
           .select('*')
           .eq('email', authUser.email)
@@ -39,13 +35,8 @@ export const AuthProvider = ({ children }) => {
         error = result.error;
       }
       
-      if (error) {
-        console.error("Erreur lors de la récupération du profil:", error.message);
-        
-        // Si l'erreur est 406, on crée un profil de base à partir des métadonnées user
-        if (error.code === 'PGRST301' || error.message.includes('406')) {
-          console.log("Création d'un profil de base à partir des métadonnées utilisateur");
-          return {
+      if (error) {        // Si l'erreur est 406, on crée un profil de base à partir des métadonnées user
+        if (error.code === 'PGRST301' || error.message.includes('406')) {          return {
             id: authUser.id,
             email: authUser.email,
             full_name: authUser.user_metadata?.full_name || authUser.email,
@@ -59,12 +50,8 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
       
-      if (data) {
-        console.log("Profil récupéré:", { email: data.email, type: data.type, role: data.role, verification_status: data.verification_status });
-        return data;
-      }
-      console.log('Profil introuvable, tentative ensureUserProfile');
-      const ensured = await SupabaseDataService.ensureUserProfile?.(authUser);
+      if (data) {        return data;
+      }      const ensured = await SupabaseDataService.ensureUserProfile?.(authUser);
       if (ensured) return ensured;
       return {
         id: authUser.id,
@@ -77,9 +64,7 @@ export const AuthProvider = ({ children }) => {
         updated_at: new Date().toISOString()
       };
 
-    } catch (err) {
-      console.error("Erreur inattendue lors de la récupération du profil:", err);
-      // En cas d'erreur complète, créer un profil de base
+    } catch (err) {      // En cas d'erreur complète, créer un profil de base
       return {
         id: authUser.id,
         email: authUser.email,
@@ -152,9 +137,7 @@ export const AuthProvider = ({ children }) => {
         // Déconnexion Supabase
         const { error } = await supabase.auth.signOut({ scope: 'global' });
         
-        if (error) {
-          console.error('Erreur lors de la déconnexion:', error);
-          // Même avec une erreur, on force la déconnexion côté client
+        if (error) {          // Même avec une erreur, on force la déconnexion côté client
         }
         
         toast({ 
@@ -166,9 +149,7 @@ export const AuthProvider = ({ children }) => {
         // Redirection forcée vers la page d'accueil
         window.location.href = '/';
         
-      } catch (err) {
-        console.error('Erreur signOut:', err);
-        toast({ 
+      } catch (err) {        toast({ 
           variant: "destructive", 
           title: "Erreur de déconnexion", 
           description: "Déconnexion forcée effectuée",

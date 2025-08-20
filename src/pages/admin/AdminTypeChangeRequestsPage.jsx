@@ -1,25 +1,5 @@
 // src/pages/admin/AdminTypeChangeRequestsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  RefreshCw, FileText, UserCog, CheckCircle2, XCircle, Eye, Users, Search 
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/components/ui/use-toast";
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
-} from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SupabaseDataService } from '@/services/supabaseDataService';
-
 const AdminTypeChangeRequestsPage = () => {
   const { toast } = useToast();
   const { data: typeChangeRequests, loading: typeChangeRequestsLoading, error: typeChangeRequestsError, refetch } = useRealtimeTable();
@@ -65,9 +45,7 @@ const AdminTypeChangeRequestsPage = () => {
         title: "Demande approuvée",
         description: `${request.user_name} est maintenant ${request.requested_type}`
       });
-    } catch (error) {
-      console.error('Erreur lors de l\'approbation:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible d'approuver la demande de changement de type"
@@ -117,9 +95,7 @@ const AdminTypeChangeRequestsPage = () => {
       
       setIsRejectReasonModalOpen(false);
       setSelectedRequest(null);
-    } catch (error) {
-      console.error('Erreur lors du rejet:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de rejeter la demande"

@@ -1,6 +1,6 @@
-// src/lib/realtimeStore.js
-import { supabase } from './supabaseClient';
+// src/lib/realtimeStore.import { supabase } from './supabaseClient';
 
+import { supabase } from '../lib/supabaseClient';
 /**
  * Gestionnaire centralisé des données temps réel et cache
  * - Cache unifié pour toutes les entités
@@ -52,21 +52,15 @@ class RealtimeStore {
   _setupConnectionMonitoring() {
     // Écoute les changements de statut réseau
     window.addEventListener('online', () => {
-      if (!this.connected) {
-        console.log('[RealtimeStore] Reconnexion détectée');
-        this._reconnectAll();
+      if (!this.connected) {        this._reconnectAll();
       }
     });
 
-    window.addEventListener('offline', () => {
-      console.log('[RealtimeStore] Connexion perdue');
-      this.connected = false;
+    window.addEventListener('offline', () => {      this.connected = false;
     });
   }
 
-  async _reconnectAll() {
-    console.log('[RealtimeStore] Reconnexion de tous les channels...');
-    this.stats.reconnections++;
+  async _reconnectAll() {    this.stats.reconnections++;
     
     // Fermer tous les channels existants
     for (const [table, channel] of this.channels) {
@@ -98,9 +92,7 @@ class RealtimeStore {
       }
     }
     
-    if (promises.length > 0) {
-      console.log(`[RealtimeStore] Refresh ${promises.length} cached datasets`);
-      await Promise.allSettled(promises);
+    if (promises.length > 0) {      await Promise.allSettled(promises);
     }
   }
 
@@ -143,9 +135,7 @@ class RealtimeStore {
       for (const callback of listeners) {
         try {
           callback(data);
-        } catch (error) {
-          console.error(`[RealtimeStore] Erreur callback pour ${key}:`, error);
-        }
+        } catch (error) {        }
       }
     }
   }
@@ -204,21 +194,14 @@ class RealtimeStore {
 
       const { data, error } = await query;
 
-      if (error) {
-        console.error(`[RealtimeStore] Erreur fetch ${table}:`, error);
-        return { data: null, error };
+      if (error) {        return { data: null, error };
       }
 
       const cacheKey = this._getCacheKey(table, filter);
       this.cache.set(cacheKey, data || []);
-      this._notify(cacheKey, data || []);
+      this._notify(cacheKey, data || []);      return { data, error: null };
 
-      console.log(`[RealtimeStore] Cached ${(data || []).length} rows for ${cacheKey}`);
-      return { data, error: null };
-
-    } catch (error) {
-      console.error(`[RealtimeStore] Exception fetch ${table}:`, error);
-      return { data: null, error };
+    } catch (error) {      return { data: null, error };
     }
   }
 
@@ -232,11 +215,7 @@ class RealtimeStore {
   _ensureChannel(table) {
     if (this.channels.has(table)) {
       return this.channels.get(table);
-    }
-
-    console.log(`[RealtimeStore] Création channel pour ${table}`);
-    
-    const channel = supabase
+    }    const channel = supabase
       .channel(`realtime_${table}_${Date.now()}`)
       .on(
         'postgres_changes',
@@ -248,12 +227,8 @@ class RealtimeStore {
         (payload) => this._handleRealtimeEvent(table, payload)
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log(`[RealtimeStore] Channel ${table} souscrit`);
-          this.connected = true;
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error(`[RealtimeStore] Erreur channel ${table}`);
-          this._scheduleRetry(table);
+        if (status === 'SUBSCRIBED') {          this.connected = true;
+        } else if (status === 'CHANNEL_ERROR') {          this._scheduleRetry(table);
         }
       });
 
@@ -262,17 +237,13 @@ class RealtimeStore {
   }
 
   _scheduleRetry(table) {
-    if (this.retryCount >= this.maxRetries) {
-      console.error(`[RealtimeStore] Max retries atteint pour ${table}`);
-      return;
+    if (this.retryCount >= this.maxRetries) {      return;
     }
 
     this.retryCount++;
     const delay = Math.min(1000 * Math.pow(2, this.retryCount), 30000);
     
-    setTimeout(() => {
-      console.log(`[RealtimeStore] Retry ${this.retryCount} pour ${table}`);
-      const oldChannel = this.channels.get(table);
+    setTimeout(() => {      const oldChannel = this.channels.get(table);
       if (oldChannel) {
         supabase.removeChannel(oldChannel);
       }
@@ -285,10 +256,7 @@ class RealtimeStore {
    * Gestionnaire d'événements Realtime
    */
   _handleRealtimeEvent(table, payload) {
-    this.stats.realtimeEvents++;
-    console.log(`[RealtimeStore] Event ${payload.eventType} sur ${table}:`, payload);
-
-    const config = this.tableConfigs.get(table);
+    this.stats.realtimeEvents++;    const config = this.tableConfigs.get(table);
     if (!config) return;
 
     const pk = config.pk;
@@ -373,9 +341,7 @@ class RealtimeStore {
   /**
    * Invalider tout le cache
    */
-  async invalidateAll() {
-    console.log('[RealtimeStore] Invalidation complète du cache');
-    await this._refreshAllCachedData();
+  async invalidateAll() {    await this._refreshAllCachedData();
   }
 
   /**
@@ -412,10 +378,7 @@ class RealtimeStore {
   /**
    * Nettoyage
    */
-  async destroy() {
-    console.log('[RealtimeStore] Destruction...');
-    
-    // Nettoyer les intervals
+  async destroy() {    // Nettoyer les intervals
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }

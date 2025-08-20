@@ -1,34 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  Plus, 
-  MapPin, 
-  DollarSign, 
-  Camera,
-  Upload,
-  Eye,
-  Edit,
-  Trash2,
-  Home,
-  Building2,
-  TreePine,
-  Search,
-  Filter
-} from 'lucide-react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const MyPropertiesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -52,9 +22,7 @@ const MyPropertiesPage = () => {
       setLoading(true);
       const userProperties = await SupabaseDataService.getVendeurProperties(user.id);
       setProperties(userProperties || []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des biens:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger vos biens"
@@ -89,8 +57,8 @@ const MyPropertiesPage = () => {
       await SupabaseDataService.createProperty(propertyData);
       
       toast({
-        title: "Bien ajoutÈ",
-        description: "Votre bien a ÈtÈ ajoutÈ avec succËs"
+        title: "Bien ajout√©",
+        description: "Votre bien a √©t√© ajout√© avec succ√©s"
       });
 
       setFormData({
@@ -108,9 +76,7 @@ const MyPropertiesPage = () => {
       });
       setShowAddForm(false);
       loadProperties();
-    } catch (error) {
-      console.error('Erreur lors de la crÈation du bien:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible d'ajouter le bien"
@@ -132,12 +98,10 @@ const MyPropertiesPage = () => {
       await SupabaseDataService.deleteProperty(propertyId);
       setProperties(prev => prev.filter(p => p.id !== propertyId));
       toast({
-        title: "Bien supprimÈ",
-        description: `"${propertyTitle}" a ÈtÈ supprimÈ`
+        title: "Bien supprim√©",
+        description: `"${propertyTitle}" a √©t√© supprim√©`
       });
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de supprimer ce bien"
@@ -201,7 +165,7 @@ const MyPropertiesPage = () => {
             Mes Biens
           </h1>
           <p className="text-muted-foreground">
-            GÈrez votre portefeuille immobilier
+            G√©rez votre portefeuille immobilier
           </p>
         </div>
         <Button onClick={() => setShowAddForm(true)}>
@@ -236,7 +200,7 @@ const MyPropertiesPage = () => {
                   <Label htmlFor="type">Type de bien *</Label>
                   <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="SÈlectionnez le type" />
+                      <SelectValue placeholder="S√©lectionnez le type" />
                     </SelectTrigger>
                     <SelectContent>
                       {propertyTypes.map((type) => (
@@ -260,7 +224,7 @@ const MyPropertiesPage = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="surface">Surface (m≤)</Label>
+                  <Label htmlFor="surface">Surface (m√©)</Label>
                   <Input
                     id="surface"
                     type="number"
@@ -299,12 +263,12 @@ const MyPropertiesPage = () => {
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="DÈcrivez votre bien..."
+                  placeholder="D√©crivez votre bien..."
                 />
               </div>
 
               <div>
-                <Label>…quipements et caractÈristiques</Label>
+                <Label>√©quipements et caract√©ristiques</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                   {featuresOptions.map((feature) => (
                     <div key={feature} className="flex items-center space-x-2">
@@ -419,7 +383,7 @@ const MyPropertiesPage = () => {
             <div className="flex items-center space-x-2">
               <DollarSign className="h-5 w-5 text-yellow-500" />
               <div>
-                <p className="text-sm text-muted-foreground">En nÈgociation</p>
+                <p className="text-sm text-muted-foreground">En n√©gociation</p>
                 <p className="text-2xl font-bold">
                   {properties.filter(p => p.status === 'under_negotiation').length}
                 </p>
@@ -449,11 +413,11 @@ const MyPropertiesPage = () => {
           <Card>
             <CardContent className="p-8 text-center">
               <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Aucun bien trouvÈ</h3>
+              <h3 className="text-lg font-semibold mb-2">Aucun bien trouv√©</h3>
               <p className="text-muted-foreground">
                 {properties.length === 0 
-                  ? "Vous n'avez pas encore ajoutÈ de biens. Commencez par ajouter votre premier bien."
-                  : "Aucun bien ne correspond ‡ vos critËres de recherche."
+                  ? "Vous n'avez pas encore ajout√© de biens. Commencez par ajouter votre premier bien."
+                  : "Aucun bien ne correspond √© vos crit√©res de recherche."
                 }
               </p>
             </CardContent>
@@ -500,7 +464,7 @@ const MyPropertiesPage = () => {
                       
                       <div className="flex gap-4 text-sm text-muted-foreground">
                         {property.surface && (
-                          <span>{property.surface} m≤</span>
+                          <span>{property.surface} m√©</span>
                         )}
                         {property.bedrooms && (
                           <span>{property.bedrooms} ch.</span>

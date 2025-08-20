@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Search, FileSearch, UserCheck, HeartHandshake as Handshake, FileText, ShieldCheck, Smile, ArrowRight, Users, CheckSquare, Settings2, Share2, Check, ListChecks } from 'lucide-react';
+import { Search, FileSearch, UserCheck, HeartHandshake as Handshake, FileText, Smile, ArrowRight, Settings2, Check, ListChecks } from 'lucide-react';
 
 const buyerSteps = [
   { icon: Search, title: "1. Recherche Ciblée & Sélection Intuitive", description: "Explorez notre catalogue via des filtres puissants (zone, surface, type de bien, budget) ou naviguez sur notre carte interactive pour découvrir les parcelles qui correspondent précisément à vos critères. Enregistrez vos recherches pour des alertes personnalisées." },

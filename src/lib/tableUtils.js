@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabaseClient';
 // src/lib/tableUtils.import { supabase } from './supabaseClient';
 
 /**
@@ -28,14 +29,10 @@ export const safeTableQuery = async (tableName, queryFunction) => {
   try {
     const tableExists = await checkTableExists(tableName);
     
-    if (!tableExists) {
-      console.warn(`Table '${tableName}' n'existe pas, requête ignorée`);
-      return { data: [], error: null };
+    if (!tableExists) {      return { data: [], error: null };
     }
     
     return await queryFunction();
-  } catch (error) {
-    console.error(`Erreur lors de la requête sur la table '${tableName}':`, error);
-    return { data: [], error };
+  } catch (error) {    return { data: [], error };
   }
 };

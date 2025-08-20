@@ -1,18 +1,5 @@
 // src/pages/admin/AdminTransactionsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, Eye, DollarSign } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/components/ui/use-toast";
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from '@/lib/supabaseClient';
-
 const AdminTransactionsPage = () => {
   const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);

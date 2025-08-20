@@ -1,5 +1,7 @@
-// Extension du service SupabaseDataService avec la méthode createUserWithPassword
-// Ce fichier sera importé et fusionné avec le import { supabase } from '../lib/supabaseClient.js';
+// Extension du service SupabaseDataService avec la méthode import { supabase } from '@/lib/supabaseClient';
+
+;
+// Ce fichier sera importé et fusionné avec le service SupabaseDataService
 
 // Extension pour le service SupabaseDataService
 export async function createUserWithPassword(userData) {
@@ -17,9 +19,7 @@ export async function createUserWithPassword(userData) {
     });
 
     if (authError) {
-      // Essayer l'option 2 si option 1 échoue pour des raisons de permissions
-      console.warn("Création directe d'utilisateur auth échouée, essai via RPC:", authError);
-      throw authError;
+      // Essayer l'option 2 si option 1 échoue pour des raisons de permissions      throw authError;
     }
 
     // Si création auth réussie, créer l'entrée dans la table users
@@ -60,10 +60,7 @@ export async function createUserWithPassword(userData) {
 
       if (error) throw error;
       return data;
-    } catch (rpcError) {
-      console.error("Erreur lors de la création de l'utilisateur avec mot de passe:", rpcError);
-      
-      // Option 3: Utiliser un Edge Function comme fallback
+    } catch (rpcError) {      // Option 3: Utiliser un Edge Function comme fallback
       try {
         const endpoint = `${import.meta.env.VITE_EDGE_BASE_URL || ''}/create-user-with-password`;
         if (!endpoint) throw new Error('EDGE endpoint non configuré');
@@ -80,9 +77,7 @@ export async function createUserWithPassword(userData) {
         }
         
         return await res.json();
-      } catch (edgeError) {
-        console.error("Toutes les méthodes de création d'utilisateur ont échoué:", edgeError);
-        throw new Error("Impossible de créer l'utilisateur. Contactez l'administrateur système.");
+      } catch (edgeError) {        throw new Error("Impossible de créer l'utilisateur. Contactez l'administrateur système.");
       }
     }
   }

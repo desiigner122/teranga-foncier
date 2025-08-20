@@ -1,16 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { LandPlot, PlusCircle, Search, Filter, Eye, X, Archive } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Link } from 'react-router-dom';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const LandManagementPage = () => {
   const { toast } = useToast();
   const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
@@ -34,9 +22,7 @@ const LandManagementPage = () => {
           p.legal_status === 'municipal'
         );
         setParcels(municipalParcels);
-      } catch (error) {
-        console.error('Erreur chargement parcelles municipales:', error);
-        toast({ 
+      } catch (error) {        toast({ 
           variant: "destructive",
           title: "Erreur", 
           description: "Impossible de charger les terrains municipaux" 
@@ -47,7 +33,7 @@ const LandManagementPage = () => {
     };
 
     loadMunicipalParcels();
-  }, []);
+  }, [error]);
 
   const zones = useMemo(() => Array.from(new Set(parcels.map(p => p.zone).filter(Boolean))).sort(), [parcels]);
   const filteredParcels = useMemo(() => {
@@ -98,9 +84,7 @@ const LandManagementPage = () => {
       toast({ title:'Parcelle créée', description:`${created.reference || created.id} ajoutée avec succès.` });
       resetForm();
       setShowCreate(false);
-    } catch (error) {
-      console.error(error);
-      toast({ variant:'destructive', title:'Erreur création', description:"Impossible de créer la parcelle" });
+    } catch (error) {      toast({ variant:'destructive', title:'Erreur création', description:"Impossible de créer la parcelle" });
     } finally {
       setCreating(false);
     }

@@ -1,13 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { Badge } from '../components/ui/badge';
-import { Upload, FileText, CheckCircle, AlertCircle, Camera, X } from 'lucide-react';
-
 const IdentityVerificationPage = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
@@ -27,6 +18,13 @@ const IdentityVerificationPage = () => {
 
   const rectoInputRef = useRef(null);
   const versoInputRef = useRef(null);
+
+  // Fonction de défilement vers le bas
+  const scrollToBottom = () => {
+    if (rectoInputRef.current) {
+      rectoInputRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   // Fonction pour valider le fichier
   const validateFile = (file) => {
@@ -150,9 +148,7 @@ const IdentityVerificationPage = () => {
         navigate('/dashboard');
       }, 3000);
 
-    } catch (err) {
-      console.error('Erreur lors de la soumission:', err);
-      setError(err.message || 'Une erreur est survenue lors de la soumission.');
+    } catch (err) {      setError(err.message || 'Une erreur est survenue lors de la soumission.');
     } finally {
       setLoading(false);
     }

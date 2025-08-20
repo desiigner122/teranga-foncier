@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,15 +18,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/components/ui/use-toast";
+
 import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
 
 const getStatusInfo = (status) => {
     switch (status) {
-      case 'available': return { variant: 'success', icon: CheckCircle, text: 'Publié' };
-      case 'pending': return { variant: 'warning', icon: Clock, text: 'En vérification' };
-      case 'reserved': return { variant: 'info', icon: Banknote, text: 'Réservé' };
+      case 'available': return { variant: 'success', icon: CheckCircle, text: 'PubliÃ©' };
+      case 'pending': return { variant: 'warning', icon: Clock, text: 'En vÃ©rification' };
+      case 'reserved': return { variant: 'info', icon: Banknote, text: 'RÃ©servÃ©' };
       case 'sold': return { variant: 'default', icon: CheckCircle, text: 'Vendu' };
       case 'rejected': return { variant: 'destructive', icon: AlertTriangle, text: 'Action requise' };
       default: return { variant: 'secondary', icon: Clock, text: 'Inconnu' };
@@ -61,10 +60,10 @@ const MyListingsPage = () => {
 
         try {
           setIsLoading(true);
-          // Récupérer les parcelles de l'utilisateur connecté
+          // RÃ©cupÃ©rer les parcelles de l'utilisateur connectÃ©
           const userParcels = await SupabaseDataService.getParcelsByOwner(user.id);
           
-          // Transformer les données pour le format attendu
+          // Transformer les donnÃ©es pour le format attendu
           const formattedListings = userParcels.map(parcel => ({
             id: parcel.id,
             name: parcel.title || `Parcelle ${parcel.reference}`,
@@ -82,12 +81,11 @@ const MyListingsPage = () => {
 
           setListings(formattedListings);
         } catch (error) {
-          console.error('Erreur lors du chargement des annonces:', error);
-          // En cas d'erreur, charger des données par défaut
+          // En cas d'erreur, charger des donnÃ©es par dÃ©faut
           setListings([
             { 
               id: 'PROP001', 
-              name: 'Terrain viabilisé Diamniadio', 
+              name: 'Terrain viabilisÃ© Diamniadio', 
               type: 'terrain', 
               status: 'pending', 
               dateSubmitted: '2025-05-01', 
@@ -97,31 +95,31 @@ const MyListingsPage = () => {
             },
             { 
               id: 'PROP002', 
-              name: 'Villa R+1 Sacré Coeur', 
+              name: 'Villa R+1 SacrÃ© Coeur', 
               type: 'residential', 
               status: 'available', 
               dateSubmitted: '2025-04-20', 
               price: 120000000,
               reference: 'REF-002',
-              location: 'Sacré Coeur, Dakar',
+              location: 'SacrÃ© Coeur, Dakar',
               parcelLink: '/parcelles/DK015' 
             },
             { 
               id: 'PROP003', 
-              name: 'Terrain agricole proche Thiès', 
+              name: 'Terrain agricole proche ThiÃ©s', 
               type: 'agricultural', 
               status: 'rejected', 
               dateSubmitted: '2025-04-10', 
               price: 15000000,
               reference: 'REF-003',
-              location: 'Thiès',
+              location: 'ThiÃ©s',
               message: "Document 'Titre Foncier' illisible. Veuillez re-soumettre." 
             }
           ]);
           toast({
             variant: "destructive",
             title: "Erreur de chargement",
-            description: "Impossible de charger vos annonces. Données de démonstration affichées.",
+            description: "Impossible de charger vos annonces. DonnÃ©es de dÃ©monstration affichÃ©es.",
           });
         } finally {
           setIsLoading(false);
@@ -135,8 +133,8 @@ const MyListingsPage = () => {
        // Deleting listing: ${listingId}
        setListings(prev => prev.filter(l => l.id !== listingId));
        toast({
-           title: "Bien supprimé",
-           description: `Votre bien ${listingId} a été retiré.`,
+           title: "Bien supprimÃ©",
+           description: `Votre bien ${listingId} a Ã©tÃ© retirÃ©.`,
        });
    };
 
@@ -189,12 +187,12 @@ const MyListingsPage = () => {
                                 <div className="w-full bg-muted rounded-full h-2.5 mb-2">
                                   <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${listing.paymentProgress}%` }}></div>
                                 </div>
-                                <p className="text-sm text-muted-foreground">Montant perçu: {formatPrice(listing.totalPaid)}</p>
+                                <p className="text-sm text-muted-foreground">Montant perÃ©u: {formatPrice(listing.totalPaid)}</p>
                             </div>
                           )}
                       </CardContent>
                       <CardFooter className="pt-4 flex flex-wrap gap-2 justify-end">
-                         {listing.status === 'Publié' && listing.parcelLink && (
+                         {listing.status === 'PubliÃ©' && listing.parcelLink && (
                              <Button variant="link" size="sm" asChild>
                                 <Link to={listing.parcelLink}>Voir l'annonce <ArrowRight className="ml-1 h-3 w-3"/></Link>
                              </Button>
@@ -212,7 +210,7 @@ const MyListingsPage = () => {
                              <AlertDialogHeader>
                                <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
                                <AlertDialogDescription>
-                                 Êtes-vous sûr de vouloir supprimer définitivement ce bien ({listing.name}) ? Cette action est irréversible.
+                                 Ã©tes-vous sÃ©r de vouloir supprimer dÃ©finitivement ce bien ({listing.name}) ? Cette action est irrÃ©versible.
                                </AlertDialogDescription>
                              </AlertDialogHeader>
                              <AlertDialogFooter>
@@ -236,7 +234,7 @@ const MyListingsPage = () => {
              <Building className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
              <h2 className="text-xl font-semibold mb-2">Aucun bien soumis</h2>
              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Vous n'avez pas encore proposé de bien à la vente sur notre plateforme.
+                Vous n'avez pas encore proposÃ© de bien Ã© la vente sur notre plateforme.
              </p>
              <Button asChild>
                  <Link to="/sell-property">

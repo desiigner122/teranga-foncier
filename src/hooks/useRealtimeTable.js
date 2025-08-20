@@ -105,9 +105,7 @@ export function useRealtimeStats(queries = []) {
           } else {
             newStats[query.key] = data.length;
           }
-        } catch (error) {
-          console.error('Erreur calcul stats:', error);
-          newStats[query.key] = 0;
+        } catch (error) {          newStats[query.key] = 0;
         }
       }
       

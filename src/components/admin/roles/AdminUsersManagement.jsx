@@ -1,11 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
-import ExtendedSupabaseDataService from '@/services/supabaseDataServiceExtended';
-import ExceptionalAddUserDialogWithPassword from './ExceptionalAddUserDialogWithPassword';
-
 export default function AdminUsersManagement() {
   const { toast } = useToast();
   const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
@@ -42,9 +35,7 @@ export default function AdminUsersManagement() {
     try {
       const data = await ExtendedSupabaseDataService.listRoles();
       setRoles(data);
-    } catch (error) {
-      console.error('Erreur récupération des rôles:', error);
-    }
+    } catch (error) {    }
   };
 
   const handleUserCreated = (user) => {

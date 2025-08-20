@@ -1,29 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  FileText, 
-  MapPin, 
-  DollarSign, 
-  Calendar,
-  Upload,
-  Info,
-  Building2,
-  TreePine,
-  Home,
-  Factory
-} from 'lucide-react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-
 const CreateRequestPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -71,8 +46,8 @@ const CreateRequestPage = () => {
   const usageOptions = [
     { value: 'habitation', label: 'Construction d\'habitation' },
     { value: 'agriculture', label: 'Usage agricole' },
-    { value: 'commerce', label: 'ActivitÈ commerciale' },
-    { value: 'industrie', label: 'ActivitÈ industrielle' },
+    { value: 'commerce', label: 'Activit√© commerciale' },
+    { value: 'industrie', label: 'Activit√© industrielle' },
     { value: 'autre', label: 'Autre usage' }
   ];
 
@@ -112,8 +87,8 @@ const CreateRequestPage = () => {
       await SupabaseDataService.createRequest(requestData);
       
       toast({
-        title: "Demande crÈÈe",
-        description: "Votre demande a ÈtÈ soumise avec succËs. Vous recevrez une notification dËs qu'elle sera traitÈe."
+        title: "Demande cr√©√©e",
+        description: "Votre demande a √©t√© soumise avec succ√©s. Vous recevrez une notification d√©s qu'elle sera trait√©e."
       });
 
       // Reset form
@@ -137,12 +112,10 @@ const CreateRequestPage = () => {
       });
       setStep(1);
       
-    } catch (error) {
-      console.error('Erreur lors de la crÈation de la demande:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de crÈer la demande. Veuillez rÈessayer."
+        description: "Impossible de cr√©er la demande. Veuillez r√©essayer."
       });
     } finally {
       setLoading(false);
@@ -202,13 +175,13 @@ const CreateRequestPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="description">Description dÈtaillÈe *</Label>
+              <Label htmlFor="description">Description d√©taill√©e *</Label>
               <Textarea
                 id="description"
                 rows={4}
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="DÈcrivez votre projet en dÈtail..."
+                placeholder="D√©crivez votre projet en d√©tail..."
               />
             </div>
 
@@ -218,7 +191,7 @@ const CreateRequestPage = () => {
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="Adresse ou zone gÈographique"
+                placeholder="Adresse ou zone g√©ographique"
               />
             </div>
 
@@ -247,10 +220,10 @@ const CreateRequestPage = () => {
           return (
             <div className="space-y-6">
               <div>
-                <Label htmlFor="usage_prevu">Usage prÈvu du terrain *</Label>
+                <Label htmlFor="usage_prevu">Usage pr√©vu du terrain *</Label>
                 <Select value={formData.usage_prevu} onValueChange={(value) => setFormData(prev => ({ ...prev, usage_prevu: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="SÈlectionnez l'usage prÈvu" />
+                    <SelectValue placeholder="S√©lectionnez l'usage pr√©vu" />
                   </SelectTrigger>
                   <SelectContent>
                     {usageOptions.map((option) => (
@@ -263,7 +236,7 @@ const CreateRequestPage = () => {
               </div>
 
               <div>
-                <Label htmlFor="surface">Surface souhaitÈe (m≤)</Label>
+                <Label htmlFor="surface">Surface souhait√©e (m√©)</Label>
                 <Input
                   id="surface"
                   type="number"
@@ -274,7 +247,7 @@ const CreateRequestPage = () => {
               </div>
 
               <div>
-                <Label htmlFor="duree_souhaitee">DurÈe d'occupation souhaitÈe</Label>
+                <Label htmlFor="duree_souhaitee">Dur√©e d'occupation souhait√©e</Label>
                 <Input
                   id="duree_souhaitee"
                   value={formData.duree_souhaitee}
@@ -299,7 +272,7 @@ const CreateRequestPage = () => {
           return (
             <div className="space-y-6">
               <div>
-                <Label htmlFor="montant_demande">Montant demandÈ (FCFA) *</Label>
+                <Label htmlFor="montant_demande">Montant demand√© (FCFA) *</Label>
                 <Input
                   id="montant_demande"
                   type="number"
@@ -347,7 +320,7 @@ const CreateRequestPage = () => {
                   id="situation_professionnelle"
                   value={formData.situation_professionnelle}
                   onChange={(e) => setFormData(prev => ({ ...prev, situation_professionnelle: e.target.value }))}
-                  placeholder="Ex: Fonctionnaire, CommerÁant, etc."
+                  placeholder="Ex: Fonctionnaire, Commer√©ant, etc."
                 />
               </div>
             </div>
@@ -370,7 +343,7 @@ const CreateRequestPage = () => {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <FileText className="h-8 w-8" />
-          CrÈer une Demande
+          Cr√©er une Demande
         </h1>
         <p className="text-muted-foreground">
           Soumettez votre demande de terrain communal ou de financement
@@ -404,13 +377,13 @@ const CreateRequestPage = () => {
         <CardHeader>
           <CardTitle>
             {step === 1 && "Type de demande"}
-            {step === 2 && "Informations gÈnÈrales"}
-            {step === 3 && "DÈtails spÈcifiques"}
+            {step === 2 && "Informations g√©n√©rales"}
+            {step === 3 && "D√©tails sp√©cifiques"}
           </CardTitle>
           <CardDescription>
-            {step === 1 && "SÈlectionnez le type de demande que vous souhaitez faire"}
+            {step === 1 && "S√©lectionnez le type de demande que vous souhaitez faire"}
             {step === 2 && "Renseignez les informations de base de votre demande"}
-            {step === 3 && "ComplÈtez les informations spÈcifiques ‡ votre demande"}
+            {step === 3 && "Compl√©tez les informations sp√©cifiques √© votre demande"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -425,7 +398,7 @@ const CreateRequestPage = () => {
           onClick={() => setStep(prev => Math.max(1, prev - 1))}
           disabled={step === 1}
         >
-          PrÈcÈdent
+          Pr√©c√©dent
         </Button>
         
         {step < 3 ? (
@@ -440,7 +413,7 @@ const CreateRequestPage = () => {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? "CrÈation..." : "CrÈer la demande"}
+            {loading ? "Cr√©ation..." : "Cr√©er la demande"}
           </Button>
         )}
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
+import { useRealtimeTable, useRealtimeParcels } from '@/hooks/useRealtimeTable';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { motion } from 'framer-motion';
@@ -10,7 +10,8 @@ import { ExternalLink, Layers, Search, ZoomIn, ZoomOut, Home, DollarSign, MapPin
 import { Input } from '@/components/ui/input';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner'; 
-import { Card, CardContent } from '@/components/ui/card'; // Import Card and CardContent
+import { Card, CardContent } from '@/components/ui/card';
+// Import Card and CardContent
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -105,9 +106,8 @@ const MapPage = () => {
 
         setParcels(formattedParcels);
       } catch (err) {
-  console.error('Erreur lors du chargement des parcelles:', err);
   setError(err.message || 'Erreur inconnue');
-  setParcels([]);
+  setParcels([error]);
       } finally {
         setLoading(false);
       }

@@ -1,37 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/components/ui/use-toast';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Lock, 
-  Building, 
-  MapPin, 
-  UserPlus,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  AlertCircle,
-  RefreshCw,
-  Copy,
-  CheckCheck,
-  Building2,
-  Landmark
-} from 'lucide-react';
-import GeographicSelector from '@/components/ui/GeographicSelector';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 // Utilitaires pour génération de mots de passe sécurisés
 const generateSecurePassword = (length = 12) => {
   const lowercase = 'abcdefghijklmnopqrstuvwxyz';
@@ -305,9 +272,7 @@ const CompleteInstitutionModal = ({ isOpen, onClose, onUserCreated }) => {
       onClose();
       resetForm();
 
-    } catch (error) {
-      console.error('Erreur création institution:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: error.message || "Impossible de créer l'institution"

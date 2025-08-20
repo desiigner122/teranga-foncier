@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
+import { useContext, useEffect, useState } from 'react';
 const SupabaseAuthContext = createContext({
   user: null,
   session: null,
@@ -31,15 +32,11 @@ export const SupabaseAuthProvider = ({ children }) => {
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Erreur lors de la récupération de la session:', error);
-        } else {
+        if (error) {        } else {
           setSession(session);
           setUser(session?.user ?? null);
         }
-      } catch (error) {
-        console.error('Erreur lors de l\'initialisation de l\'auth:', error);
-      } finally {
+      } catch (error) {      } finally {
         setLoading(false);
       }
     };
@@ -48,9 +45,7 @@ export const SupabaseAuthProvider = ({ children }) => {
 
     // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        setSession(session);
+      async (event, session) => {        setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
@@ -59,7 +54,7 @@ export const SupabaseAuthProvider = ({ children }) => {
     return () => {
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [data, error]);
 
   // Inscription
   const signUp = async (email, password, metadata = {}) => {
@@ -78,9 +73,7 @@ export const SupabaseAuthProvider = ({ children }) => {
       }
 
       return { data, error: null };
-    } catch (error) {
-      console.error('Erreur lors de l\'inscription:', error);
-      return { data: null, error };
+    } catch (error) {      return { data: null, error };
     } finally {
       setLoading(false);
     }
@@ -100,9 +93,7 @@ export const SupabaseAuthProvider = ({ children }) => {
       }
 
       return { data, error: null };
-    } catch (error) {
-      console.error('Erreur lors de la connexion:', error);
-      return { data: null, error };
+    } catch (error) {      return { data: null, error };
     } finally {
       setLoading(false);
     }
@@ -119,9 +110,7 @@ export const SupabaseAuthProvider = ({ children }) => {
       }
 
       return { error: null };
-    } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
-      return { error };
+    } catch (error) {      return { error };
     } finally {
       setLoading(false);
     }
@@ -139,9 +128,7 @@ export const SupabaseAuthProvider = ({ children }) => {
       }
 
       return { data, error: null };
-    } catch (error) {
-      console.error('Erreur lors de la réinitialisation:', error);
-      return { data: null, error };
+    } catch (error) {      return { data: null, error };
     }
   };
 
@@ -164,15 +151,11 @@ export const SupabaseAuthProvider = ({ children }) => {
           .update(updates)
           .eq('id', user.id);
 
-        if (profileError) {
-          console.warn('Erreur lors de la mise à jour du profil dans la table users:', profileError);
-        }
+        if (profileError) {        }
       }
 
       return { data, error: null };
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil:', error);
-      return { data: null, error };
+    } catch (error) {      return { data: null, error };
     } finally {
       setLoading(false);
     }
@@ -193,9 +176,7 @@ export const SupabaseAuthProvider = ({ children }) => {
       }
 
       return { data, error: null };
-    } catch (error) {
-      console.error('Erreur lors de la connexion Google:', error);
-      return { data: null, error };
+    } catch (error) {      return { data: null, error };
     }
   };
 

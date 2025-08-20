@@ -1,35 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  CreditCard, 
-  Search, 
-  DollarSign,
-  Calendar,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Eye,
-  Download,
-  Receipt,
-  TrendingUp,
-  Wallet
-} from 'lucide-react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const PaymentPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
+  const [transactions, setTransactions] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedPeriod, setSelectedPeriod] = useState('all');
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -54,12 +33,10 @@ const PaymentPage = () => {
       
       setTransactions(userTransactions || []);
       setPaymentMethods(userPaymentMethods || []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des paiements:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de charger vos données de paiement"
+        description: "Impossible de charger vos donnÃ©es de paiement"
       });
     } finally {
       setLoading(false);
@@ -85,11 +62,11 @@ const PaymentPage = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'completed': { label: 'Complété', variant: 'success' },
-      'success': { label: 'Réussi', variant: 'success' },
+      'completed': { label: 'ComplÃ©tÃ©', variant: 'success' },
+      'success': { label: 'RÃ©ussi', variant: 'success' },
       'pending': { label: 'En attente', variant: 'default' },
       'processing': { label: 'En cours', variant: 'secondary' },
-      'failed': { label: 'Échoué', variant: 'destructive' },
+      'failed': { label: 'Ã‰chouÃ©', variant: 'destructive' },
       'error': { label: 'Erreur', variant: 'destructive' }
     };
 
@@ -201,7 +178,7 @@ const PaymentPage = () => {
           Paiements & Transactions
         </h1>
         <p className="text-muted-foreground">
-          Gérez vos paiements et consultez l'historique de vos transactions
+          GÃ©rez vos paiements et consultez l'historique de vos transactions
         </p>
       </div>
 
@@ -236,7 +213,7 @@ const PaymentPage = () => {
             <div className="flex items-center space-x-2">
               <CreditCard className="h-5 w-5 text-red-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Dépenses</p>
+                <p className="text-sm text-muted-foreground">DÃ©penses</p>
                 <p className="text-2xl font-bold text-red-600">{formatAmount(stats.expenses)}</p>
               </div>
             </div>
@@ -322,8 +299,8 @@ const PaymentPage = () => {
                   <h3 className="text-lg font-semibold mb-2">Aucune transaction</h3>
                   <p className="text-muted-foreground">
                     {transactions.length === 0 
-                      ? "Vous n'avez pas encore effectué de transactions."
-                      : "Aucune transaction ne correspond à vos critères de recherche."
+                      ? "Vous n'avez pas encore effectuÃ© de transactions."
+                      : "Aucune transaction ne correspond Ã© vos critÃ©res de recherche."
                     }
                   </p>
                 </CardContent>
@@ -341,8 +318,8 @@ const PaymentPage = () => {
                             <span>{formatDate(transaction.created_at)}</span>
                             {transaction.reference && (
                               <>
-                                <span>•</span>
-                                <span>Réf: {transaction.reference}</span>
+                                <span>Ã©</span>
+                                <span>RÃ©f: {transaction.reference}</span>
                               </>
                             )}
                           </div>
@@ -384,7 +361,7 @@ const PaymentPage = () => {
             <CardHeader>
               <CardTitle>Moyens de paiement</CardTitle>
               <CardDescription>
-                Gérez vos cartes bancaires et autres moyens de paiement
+                GÃ©rez vos cartes bancaires et autres moyens de paiement
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -413,12 +390,12 @@ const PaymentPage = () => {
                                 {method.type === 'card' ? 'Carte bancaire' : method.type}
                               </h4>
                               <p className="text-sm text-muted-foreground">
-                                {method.last_digits ? `•••• ${method.last_digits}` : method.description}
+                                {method.last_digits ? `Ã©Ã©Ã©Ã© ${method.last_digits}` : method.description}
                               </p>
                             </div>
                           </div>
                           <Badge variant={method.is_default ? 'default' : 'outline'}>
-                            {method.is_default ? 'Par défaut' : 'Secondaire'}
+                            {method.is_default ? 'Par dÃ©faut' : 'Secondaire'}
                           </Badge>
                         </div>
                       </CardContent>
@@ -441,9 +418,9 @@ const PaymentPage = () => {
             <CardContent>
               <div className="text-center py-8">
                 <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Analyse en cours de développement</h3>
+                <h3 className="text-lg font-semibold mb-2">Analyse en cours de dÃ©veloppement</h3>
                 <p className="text-muted-foreground">
-                  Les graphiques et analyses détaillées seront bientôt disponibles.
+                  Les graphiques et analyses dÃ©taillÃ©es seront bientÃ©t disponibles.
                 </p>
               </div>
             </CardContent>

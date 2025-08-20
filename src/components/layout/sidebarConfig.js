@@ -1,12 +1,5 @@
 // src/components/layout/sidebarConfig.js
-import {
-    LayoutDashboard, User, Settings, Users, UserCheck, BarChart, FileSignature, FileCheck as FileCheckIcon,
-    LandPlot, Briefcase, ClipboardList, Search, ShieldCheck, TrendingUp, Calculator, Leaf, Tractor, CloudSun,
-    Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive,
-    Handshake, Activity, LogOut,
-    PieChart, Globe, Palette, Package, ShoppingCart, Calendar, FileText, BookOpen, Layers,
-    Store, Sprout, Shield, Building, DollarSign, LifeBuoy, UserCog, FileBadge // <-- Ajout des icônes manquantes
-} from 'lucide-react';
+import { LayoutDashboard, User, Settings, Users, UserCheck, BarChart, FileSignature, LandPlot, Briefcase, ClipboardList, Search, ShieldCheck, TrendingUp, Calculator, Leaf, Tractor, CloudSun, Banknote, Scale, FolderCheck, Landmark, Map, AlertTriangle, Gavel, Archive, Home, Heart, Bell, MessageSquare, UploadCloud, Receipt, FolderArchive, Handshake, LogOut, FileText, BookOpen, Store, Shield, Building, DollarSign, LifeBuoy, UserCog } from 'lucide-react';
 
 const commonLinks = {
     profile: { label: 'Mon Profil', href: '/dashboard/profile', icon: User, end: true },

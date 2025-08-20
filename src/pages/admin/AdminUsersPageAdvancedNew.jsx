@@ -2,38 +2,6 @@
 // NOTE: Supports deep-link filtering via query param ?type=Vendeur (etc.).
 // The select stays in sync with the URL and allows dashboard cards to link directly.
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import ExceptionalAddUserDialog from '@/components/admin/roles/ExceptionalAddUserDialog';
-import RolesPermissionsPanel from '@/components/admin/roles/RolesPermissionsPanel';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Users, UserCheck, Trash2, Edit, MoreHorizontal, Shield, UserX, CheckCircle2, XCircle, Clock, 
-  User as UserIcon, FileCheck, UserCog, FileBadge, AlertTriangle, Eye, FileText, RefreshCw
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
-} from '@/components/ui/table';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
-} from '@/components/ui/dialog';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const userTypes = [
   'Particulier', 'Vendeur', 'Investisseur', 'Promoteur', 'Agriculteur', 
   'Banque', 'Notaire', 'Mairie', 'Agent', 'Administrateur'
@@ -114,9 +82,7 @@ const AdminUsersPageAdvanced = () => {
         grouped[r.user_id].push(r);
       });
       setUserRolesMap(grouped);
-    } catch (error) {
-      console.error('Erreur chargement utilisateurs:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les utilisateurs"
@@ -160,9 +126,7 @@ const AdminUsersPageAdvanced = () => {
         }
       ];
       setTypeChangeRequests(mockRequests);
-    } catch (error) {
-      console.error('Erreur chargement demandes changement type:', error);
-    }
+    } catch (error) {    }
   };
 
   // Charger les soumissions de parcelles
@@ -203,9 +167,7 @@ const AdminUsersPageAdvanced = () => {
         }
       ];
       setParcelSubmissions(mockSubmissions);
-    } catch (error) {
-      console.error('Erreur chargement soumissions parcelles:', error);
-    }
+    } catch (error) {    }
   };
 
   const filterUsers = () => {
@@ -282,9 +244,7 @@ const AdminUsersPageAdvanced = () => {
       });
       
       setChangeStatusComment('');
-    } catch (e) {
-      console.error(e);
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de statut impossible' });
+    } catch (e) {      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de statut impossible' });
     }
   };
 
@@ -295,9 +255,7 @@ const AdminUsersPageAdvanced = () => {
       await SupabaseDataService.updateUser(user.id, { role: newRole });
       setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
       toast({ title: 'Rôle principal mis à jour', description: `${user.email} → ${newRole}` });
-    } catch (e) {
-      console.error(e);
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de rôle impossible' });
+    } catch (e) {      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de rôle impossible' });
     }
   };
 
@@ -353,9 +311,7 @@ const AdminUsersPageAdvanced = () => {
           description: `${userToUpdate.full_name || userToUpdate.email} est maintenant ${request.requested_type}`
         });
       }
-    } catch (error) {
-      console.error('Erreur lors du changement de type:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de changer le type d'utilisateur"
@@ -388,9 +344,7 @@ const AdminUsersPageAdvanced = () => {
         title: "Demande rejetée",
         description: `La demande de ${request.user_name} a été rejetée`
       });
-    } catch (error) {
-      console.error('Erreur lors du rejet de la demande:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de rejeter la demande"
@@ -423,9 +377,7 @@ const AdminUsersPageAdvanced = () => {
         title: "Parcelle approuvée",
         description: `La parcelle ${submission.reference} est maintenant publiée`
       });
-    } catch (error) {
-      console.error('Erreur lors de l\'approbation de la parcelle:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible d'approuver la parcelle"
@@ -458,9 +410,7 @@ const AdminUsersPageAdvanced = () => {
         title: "Parcelle rejetée",
         description: `La parcelle ${submission.reference} a été rejetée`
       });
-    } catch (error) {
-      console.error('Erreur lors du rejet de la parcelle:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de rejeter la parcelle"
@@ -484,9 +434,7 @@ const AdminUsersPageAdvanced = () => {
         return { ...prev, [userId]: existing };
       });
       toast({ title: 'Rôle assigné', description: roleKey });
-    } catch (e) {
-      console.error(e);
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Assignation échouée' });
+    } catch (e) {      toast({ variant: 'destructive', title: 'Erreur', description: 'Assignation échouée' });
     }
   };
   const handleRevokeUserRole = async (userId, roleKey) => {
@@ -497,9 +445,7 @@ const AdminUsersPageAdvanced = () => {
         [userId]: (prev[userId]||[]).filter(r => r.role_key !== roleKey)
       }));
       toast({ title: 'Rôle révoqué', description: roleKey });
-    } catch (e) {
-      console.error(e);
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Révocation échouée' });
+    } catch (e) {      toast({ variant: 'destructive', title: 'Erreur', description: 'Révocation échouée' });
     }
   };
 
@@ -519,9 +465,7 @@ const AdminUsersPageAdvanced = () => {
 
       setIsEditModalOpen(false);
       setSelectedUser(null);
-    } catch (error) {
-      console.error('Erreur modification utilisateur:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de modifier l'utilisateur"
@@ -543,9 +487,7 @@ const AdminUsersPageAdvanced = () => {
 
       setIsDeleteModalOpen(false);
       setSelectedUser(null);
-    } catch (error) {
-      console.error('Erreur suppression utilisateur:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de supprimer l'utilisateur"
@@ -1510,9 +1452,7 @@ const AdminUsersPageAdvanced = () => {
                   });
                   
                   setIsChangeTypeModalOpen(false);
-                } catch (error) {
-                  console.error('Erreur lors du changement de type:', error);
-                  toast({
+                } catch (error) {                  toast({
                     variant: "destructive",
                     title: "Erreur",
                     description: "Impossible de changer le type d'utilisateur"

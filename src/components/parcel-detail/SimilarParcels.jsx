@@ -1,12 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { SupabaseDataService } from '@/services/supabaseDataService'; 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { MapPin, Maximize } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-
 const formatPrice = (price) => {
   if (price === null || price === undefined) return 'N/A';
   return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(price);
@@ -84,9 +76,7 @@ const SimilarParcels = ({ currentParcelId, currentParcelZone }) => {
         const zoneList = await SupabaseDataService.getParcelsByZone(currentParcelZone, 12);
         const filtered = zoneList.filter(p => p.id !== currentParcelId && (p.status === 'Disponible' || p.status === 'available')).slice(0,4);
         setSimilarParcels(filtered);
-      } catch (e) {
-        console.error('Erreur chargement parcelles similaires:', e);
-        setSimilarParcels([]);
+      } catch (e) {        setSimilarParcels([]);
       } finally {
         setLoading(false);
       }

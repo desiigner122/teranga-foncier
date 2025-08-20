@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable, useRealtimeParcels } from '@/hooks/useRealtimeTable';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { SupabaseDataService } from '@/services/supabaseDataService';
@@ -34,9 +34,8 @@ const ParcelsListPage = () => {
       
       try {
         const realParcels = await SupabaseDataService.getParcels();
-        setParcels(realParcels || []);
+        setParcels(realParcels || [error]);
       } catch (err) {
-        console.error("Erreur de chargement des parcelles:", err);
         setError("Impossible de charger les parcelles pour le moment.");
       } finally {
         setLoading(false);

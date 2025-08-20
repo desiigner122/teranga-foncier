@@ -1,7 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { supabase } from '@/lib/supabaseClient';
-
 /** ParcelTimeline
  * Displays unified parcel timeline (events + price changes) with basic pagination.
  */

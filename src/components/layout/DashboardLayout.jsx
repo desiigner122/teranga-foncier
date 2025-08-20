@@ -1,23 +1,23 @@
 // src/components/layout/DashboardLayout.jsx
 import React, { useState } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
+
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import GlobalAIChat from '@/components/ui/GlobalAIChat';
 import DashboardAIAssistant from '@/components/ui/DashboardAIAssistant';
 
 const DashboardLayout = ({ children }) => {
-  // Renommé pour plus de clarté, `false` = ouvert, `true` = réduit
+  // RenommÃ© pour plus de clartÃ©, `false` = ouvert, `true` = rÃ©duit
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); 
   const { profile } = useAuth();
   const location = useLocation();
 
-  // Déterminer le rôle de l'utilisateur et le contexte du dashboard
+  // DÃ©terminer le rÃ©le de l'utilisateur et le contexte du dashboard
   const getUserRole = () => {
     return profile?.role || profile?.type || 'user';
   };
@@ -43,7 +43,7 @@ const DashboardLayout = ({ children }) => {
       />
 
       {/* Main content area */}
-      {/* md:pl-64 ou md:pl-20 selon l'état de la sidebar */}
+      {/* md:pl-64 ou md:pl-20 selon l'Ã©tat de la sidebar */}
       <div className={cn(
         "flex flex-col flex-1 transition-all duration-300",
         isSidebarCollapsed ? "md:pl-20" : "md:pl-64"
@@ -71,16 +71,15 @@ const DashboardLayout = ({ children }) => {
       </div>
 
       {/* Assistants IA */}
-      {/* Assistant spécialisé dashboard à gauche */}
+      {/* Assistant spÃ©cialisÃ© dashboard Ã© gauche */}
       <DashboardAIAssistant 
         userRole={getDashboardContext().role}
         dashboardContext={getDashboardContext()}
         onAction={(actionType, result) => {
-          console.log('Dashboard AI Action:', actionType, result);
         }}
       />
 
-      {/* Chat IA global à droite */}
+      {/* Chat IA global Ã© droite */}
       <GlobalAIChat />
     </div>
   );

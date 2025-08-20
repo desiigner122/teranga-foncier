@@ -1,16 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Search, MessageSquare, Phone, Edit } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const AgentClientsPage = () => {
   const { toast } = useToast();
   const { data: clients, loading: clientsLoading, error: clientsError, refetch } = useRealtimeTable();
@@ -33,10 +21,8 @@ const AgentClientsPage = () => {
           .eq('agent_assigned', user.id)
           .order('created_at', { ascending: false });
 
-        setClients(clients || []);
-      } catch (error) {
-        console.error('Erreur chargement clients:', error);
-        setClients([]);
+        setClients(clients || [data, error]);
+      } catch (error) {        setClients([]);
       } finally {
         setLoading(false);
       }

@@ -1,7 +1,7 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { SupabaseDataService } from '@/services/supabaseDataService';
+
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -17,8 +17,6 @@ export const AuthProvider = ({ children }) => {
   const fetchUserProfile = useCallback(async (authUser) => {
     if (!authUser) return null;
     try {
-      console.log("Récupération du profil pour:", authUser.email, "ID:", authUser.id);
-      
       // Première tentative par ID dans la table profiles
       let { data, error } = await supabase
         .from('profiles')
@@ -28,7 +26,6 @@ export const AuthProvider = ({ children }) => {
       
       // Si pas trouvé par ID, essayer par email
       if (!data && !error) {
-        console.log("Profil non trouvé par ID, tentative par email...");
         const result = await supabase
           .from('profiles')
           .select('*')
@@ -40,10 +37,7 @@ export const AuthProvider = ({ children }) => {
       }
       
       if (error) {
-        console.error("Erreur lors de la récupération du profil:", error.message);
-        
         // Créer un profil de base à partir des métadonnées user
-        console.log("Création d'un profil de base à partir des métadonnées utilisateur");
         return {
           id: authUser.id,
           email: authUser.email,
@@ -68,12 +62,9 @@ export const AuthProvider = ({ children }) => {
         });
         return data;
       }
-      
-  console.log('Profil introuvable après tentatives ID/email; arrêt sans insertion (RLS)');
   return null;
 
     } catch (err) {
-      console.error("Erreur inattendue lors de la récupération du profil:", err);
       // En cas d'erreur complète, créer un profil de base
       return {
         id: authUser.id,
@@ -150,7 +141,6 @@ export const AuthProvider = ({ children }) => {
         const { error } = await supabase.auth.signOut({ scope: 'global' });
         
         if (error) {
-          console.error('Erreur lors de la déconnexion:', error);
           // Même avec une erreur, on force la déconnexion côté client
         }
         
@@ -164,7 +154,6 @@ export const AuthProvider = ({ children }) => {
         window.location.href = '/';
         
       } catch (err) {
-        console.error('Erreur signOut:', err);
         toast({ 
           variant: "destructive", 
           title: "Erreur de déconnexion", 

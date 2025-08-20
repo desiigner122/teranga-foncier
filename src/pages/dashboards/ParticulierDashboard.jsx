@@ -1,40 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  Shield, 
-  User, 
-  Heart, 
-  CreditCard, 
-  MapPin, 
-  TrendingUp,
-  Search,
-  Bell,
-  Settings,
-  FileText,
-  Eye,
-  AlertTriangle,
-  CheckCircle,
-  MessageSquare,
-  Star,
-  DollarSign,
-  Clock,
-  Filter,
-  Download,
-  Share
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
-import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
-import { supabase } from '@/lib/supabaseClient';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { antiFraudAI } from '@/lib/antiFraudAI';
-import { useAuth } from '@/context/AuthContext';
-import { useRealtimeParcels } from '@/hooks/useRealtimeTable';
-
 const ParticulierDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -67,16 +31,14 @@ const ParticulierDashboard = () => {
           const favorites = await SupabaseDataService.getUserFavorites(user.id);
           const recommendations = await generateAIRecommendations(user.id, favorites, allParcels);
           setRecommendedParcels(recommendations);
-        } catch (error) {
-          console.error('Erreur mise ‡ jour recommandations:', error);
-        }
+        } catch (error) {        }
       }
     };
 
     updateRecommendations();
   }, [allParcels, user?.id]);
 
-  // Charger l'analyse de sÈcuritÈ quand l'utilisateur change
+  // Charger l'analyse de s√©curit√© quand l'utilisateur change
   useEffect(() => {
     const loadSecurityAnalysis = async () => {
       if (!user?.id) return;
@@ -92,9 +54,7 @@ const ParticulierDashboard = () => {
           ...prev,
           securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
         }));
-      } catch (error) {
-        console.error('Erreur analyse sÈcuritÈ:', error);
-      }
+      } catch (error) {      }
     };
 
     loadSecurityAnalysis();
@@ -108,7 +68,7 @@ const ParticulierDashboard = () => {
       // Charger les favoris
       const favorites = await SupabaseDataService.getUserFavorites(user.id);
 
-      // Charger les recherches sauvegardÈes
+      // Charger les recherches sauvegard√©es
       const { data: searches } = await supabase
         .from('saved_searches')
         .select('*')
@@ -121,7 +81,7 @@ const ParticulierDashboard = () => {
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .eq('status', 'in_progress');
 
-      // Charger l'activitÈ rÈcente
+      // Charger l'activit√© r√©cente
       const { data: activity } = await supabase
         .from('user_activities')
         .select('*')
@@ -129,10 +89,10 @@ const ParticulierDashboard = () => {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Recommandations IA personnalisÈes
+      // Recommandations IA personnalis√©es
       const recommendations = await generateAIRecommendations(user.id, favorites, allParcels);
 
-      // Alertes de sÈcuritÈ personnalisÈes
+      // Alertes de s√©curit√© personnalis√©es
       const alerts = await loadSecurityAlerts(user.id);
 
       setStats({
@@ -146,16 +106,14 @@ const ParticulierDashboard = () => {
       setRecommendedParcels(recommendations);
       setSecurityAlerts(alerts);
 
-    } catch (error) {
-      console.error('Erreur chargement dashboard:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
 
   const generateAIRecommendations = async (userId, favorites, allParcels) => {
     try {
-      // Analyser les prÈfÈrences de l'utilisateur
+      // Analyser les pr√©f√©rences de l'utilisateur
       const preferences = favorites?.map(f => ({
         location: f.parcels?.location,
         price: f.parcels?.price,
@@ -164,16 +122,16 @@ const ParticulierDashboard = () => {
       }));
 
       if (!preferences || preferences.length === 0) {
-        // Recommandations par dÈfaut pour nouveaux utilisateurs
+        // Recommandations par d√©faut pour nouveaux utilisateurs
         return await getDefaultRecommendations();
       }
 
-      // Utiliser les parcelles du hook real-time au lieu d'une requÍte
+      // Utiliser les parcelles du hook real-time au lieu d'une requ√©te
       const availableParcels = (allParcels || [])
         .filter(p => p.status === 'available')
         .slice(0, 6);
 
-      // Scoring IA basÈ sur les prÈfÈrences
+      // Scoring IA bas√© sur les pr√©f√©rences
       const scoredParcels = availableParcels.map(parcel => {
         let score = 0;
         
@@ -204,9 +162,7 @@ const ParticulierDashboard = () => {
         .sort((a, b) => b.aiScore - a.aiScore)
         .slice(0, 4);
 
-    } catch (error) {
-      console.error('Erreur recommandations IA:', error);
-      return [];
+    } catch (error) {      return [];
     }
   };
 
@@ -234,9 +190,7 @@ const ParticulierDashboard = () => {
 
       return alerts || [];
 
-    } catch (error) {
-      console.error('Erreur alertes sÈcuritÈ:', error);
-      return [];
+    } catch (error) {      return [];
     }
   };
 
@@ -254,17 +208,17 @@ const ParticulierDashboard = () => {
   const getActivityMessage = (activity) => {
     switch (activity.action_type) {
       case 'view_parcel':
-        return `Parcelle visualisÈe: ${activity.details?.parcel_reference || 'RÈf. inconnue'}`;
+        return `Parcelle visualis√©e: ${activity.details?.parcel_reference || 'R√©f. inconnue'}`;
       case 'favorite_added':
-        return `Parcelle ajoutÈe aux favoris`;
+        return `Parcelle ajout√©e aux favoris`;
       case 'search_saved':
-        return `Recherche sauvegardÈe: ${activity.details?.search_name || 'Sans nom'}`;
+        return `Recherche sauvegard√©e: ${activity.details?.search_name || 'Sans nom'}`;
       case 'transaction_started':
-        return `Transaction initiÈe`;
+        return `Transaction initi√©e`;
       case 'document_uploaded':
-        return `Document tÈlÈchargÈ: ${activity.details?.document_type || 'Type inconnu'}`;
+        return `Document t√©l√©charg√©: ${activity.details?.document_type || 'Type inconnu'}`;
       default:
-        return activity.description || 'ActivitÈ inconnue';
+        return activity.description || 'Activit√© inconnue';
     }
   };
 
@@ -272,7 +226,7 @@ const ParticulierDashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Analyse complËte de sÈcuritÈ
+      // Analyse compl√©te de s√©curit√©
       const securityAnalysis = await antiFraudAI.analyzeUserFraud(user.id, {
         profileAnalysis: true,
         behaviorAnalysis: true,
@@ -281,8 +235,8 @@ const ParticulierDashboard = () => {
       });
 
       toast({
-        title: "Analyse de sÈcuritÈ terminÈe",
-        description: `Score de sÈcuritÈ: ${Math.round((1 - securityAnalysis.riskScore) * 100)}%`,
+        title: "Analyse de s√©curit√© termin√©e",
+        description: `Score de s√©curit√©: ${Math.round((1 - securityAnalysis.riskScore) * 100)}%`,
       });
 
       setStats(prev => ({
@@ -290,12 +244,10 @@ const ParticulierDashboard = () => {
         securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
       }));
 
-    } catch (error) {
-      console.error('Erreur analyse sÈcuritÈ:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible d'effectuer l'analyse de sÈcuritÈ",
+        description: "Impossible d'effectuer l'analyse de s√©curit√©",
       });
     }
   };
@@ -307,16 +259,14 @@ const ParticulierDashboard = () => {
       const isFav = await SupabaseDataService.isParcelFavorite(user.id, parcelId);
       if (isFav) {
         await SupabaseDataService.removeFromFavorites(user.id, parcelId);
-        toast({ title: 'RetirÈ des favoris' });
+        toast({ title: 'Retir√© des favoris' });
       } else {
         await SupabaseDataService.addToFavorites(user.id, parcelId);
-        toast({ title: 'AjoutÈ aux favoris' });
+        toast({ title: 'Ajout√© aux favoris' });
       }
       // Refresh favorites count & recommendations
       loadDashboardData();
-    } catch (e) {
-      console.error(e);
-      toast({ variant:'destructive', title:'Erreur', description:'Impossible de mettre ‡ jour les favoris' });
+    } catch (e) {      toast({ variant:'destructive', title:'Erreur', description:'Impossible de mettre √© jour les favoris' });
     } finally {
       setFavoriteBusy(null);
     }
@@ -325,20 +275,20 @@ const ParticulierDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* En-tÍte avec salutations */}
+        {/* En-t√©te avec salutations */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               Bonjour {user?.full_name || 'Utilisateur'} ??
             </h1>
             <p className="text-gray-600 mt-1">
-              Votre tableau de bord personnel sÈcurisÈ par IA anti-fraude
+              Votre tableau de bord personnel s√©curis√© par IA anti-fraude
             </p>
           </div>
           <div className="flex gap-3">
             <Button onClick={handleSecurityCheck} className="bg-green-600 hover:bg-green-700">
               <Shield className="h-4 w-4 mr-2" />
-              VÈrifier la SÈcuritÈ
+              V√©rifier la S√©curit√©
             </Button>
             <Button variant="outline" onClick={()=> setShowMunicipalModal(true)}>
               <MapPin className="h-4 w-4 mr-2" />
@@ -389,7 +339,7 @@ const ParticulierDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">SÈcuritÈ</p>
+                  <p className="text-sm font-medium text-gray-600">S√©curit√©</p>
                   <p className="text-3xl font-bold text-purple-600">{stats.securityScore}%</p>
                 </div>
                 <Shield className="h-8 w-8 text-purple-500" />
@@ -398,13 +348,13 @@ const ParticulierDashboard = () => {
           </Card>
         </div>
 
-        {/* Alertes de sÈcuritÈ */}
+        {/* Alertes de s√©curit√© */}
         {securityAlerts.length > 0 && (
           <Card className="border-red-200 bg-red-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-700">
                 <AlertTriangle className="h-5 w-5" />
-                Alertes de SÈcuritÈ
+                Alertes de S√©curit√©
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -435,7 +385,7 @@ const ParticulierDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Star className="h-5 w-5 text-yellow-500" />
-                  Recommandations IA PersonnalisÈes
+                  Recommandations IA Personnalis√©es
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -472,7 +422,7 @@ const ParticulierDashboard = () => {
                             {parcel.price?.toLocaleString()} FCFA
                           </span>
                           <span className="text-xs text-gray-500">
-                            {parcel.surface} m≤
+                            {parcel.surface} m√©
                           </span>
                         </div>
                         <div className="mt-2 flex gap-2">
@@ -492,20 +442,20 @@ const ParticulierDashboard = () => {
             </Card>
           </div>
 
-          {/* ActivitÈ rÈcente */}
+          {/* Activit√© r√©cente */}
           <div>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-blue-500" />
-                  ActivitÈ RÈcente
+                  Activit√© R√©cente
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {recentActivity.length === 0 ? (
                   <div className="text-center py-8">
                     <Bell className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-500">Aucune activitÈ rÈcente</p>
+                    <p className="text-sm text-gray-500">Aucune activit√© r√©cente</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -564,7 +514,7 @@ const ParticulierDashboard = () => {
         onSuccess={() => {
           toast({
             title: "Demande soumise",
-            description: "Votre demande de transition vers vendeur a ÈtÈ soumise avec succËs",
+            description: "Votre demande de transition vers vendeur a √©t√© soumise avec succ√©s",
           });
           setIsVendeurTransitionModalOpen(false);
         }}
@@ -575,22 +525,22 @@ const ParticulierDashboard = () => {
           <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
             <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={()=> !creatingMunicipalReq && setShowMunicipalModal(false)}>?</button>
             <h2 className="text-xl font-semibold mb-4">Nouvelle Demande Municipale</h2>
-            <form onSubmit={async e=> { e.preventDefault(); if(!user) return; try { setCreatingMunicipalReq(true); const req = await SupabaseDataService.createMunicipalRequest({ requesterId:user.id, region: municipalReqForm.region, department: municipalReqForm.department, commune: municipalReqForm.commune, requestType: 'allocation_terrain', areaSqm: municipalReqForm.area_sqm? Number(municipalReqForm.area_sqm): null, message: municipalReqForm.message }); toast({ title:'Demande soumise', description:req?.reference || 'RÈfÈrence gÈnÈrÈe'}); setShowMunicipalModal(false); setMunicipalReqForm({ commune:'', department:'', region:'', area_sqm:'', message:''}); } catch(err){ console.error(err); toast({ variant:'destructive', title:'Erreur', description:'Soumission impossible'});} finally { setCreatingMunicipalReq(false);} }} className="space-y-4">
+            <form onSubmit={async e=> { e.preventDefault(); if(!user) return; try { setCreatingMunicipalReq(true); const req = await SupabaseDataService.createMunicipalRequest({ requesterId:user.id, region: municipalReqForm.region, department: municipalReqForm.department, commune: municipalReqForm.commune, requestType: 'allocation_terrain', areaSqm: municipalReqForm.area_sqm? Number(municipalReqForm.area_sqm): null, message: municipalReqForm.message }); toast({ title:'Demande soumise', description:req?.reference || 'R√©f√©rence g√©n√©r√©e'}); setShowMunicipalModal(false); setMunicipalReqForm({ commune:'', department:'', region:'', area_sqm:'', message:''}); } catch(err){ console.error(err); toast({ variant:'destructive', title:'Erreur', description:'Soumission impossible'});} finally { setCreatingMunicipalReq(false);} }} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium mb-1">Commune *</label>
                   <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.commune} onChange={e=> setMunicipalReqForm(f=>({...f, commune:e.target.value}))} required />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1">DÈpartement</label>
+                  <label className="block text-xs font-medium mb-1">D√©partement</label>
                   <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.department} onChange={e=> setMunicipalReqForm(f=>({...f, department:e.target.value}))} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1">RÈgion</label>
+                  <label className="block text-xs font-medium mb-1">R√©gion</label>
                   <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.region} onChange={e=> setMunicipalReqForm(f=>({...f, region:e.target.value}))} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1">Surface (m≤)</label>
+                  <label className="block text-xs font-medium mb-1">Surface (m√©)</label>
                   <input type="number" min="0" className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.area_sqm} onChange={e=> setMunicipalReqForm(f=>({...f, area_sqm:e.target.value}))} />
                 </div>
               </div>

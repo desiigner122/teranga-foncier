@@ -1,27 +1,15 @@
 // src/components/ui/DashboardAIAssistant.jsx - Assistant IA spécialisé à gauche
 import React, { useState, useEffect, useRef } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Button } from '@/components/ui/button';
-import { Brain, X, Send, Zap, Sparkles, Settings, BarChart3 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/ScrollArea';
-import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
-import { motion, AnimatePresence } from 'framer-motion';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { hybridAI } from '@/lib/hybridAI';
-
 const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' }) => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const { data: messages, loading: messagesLoading, error: messagesError, refetch } = useRealtimeTable();
+  const { data: messageData, loading: messagesLoading, error: messagesError, refetch } = useRealtimeMessages(null, { limit: 50 });
   const [filteredData, setFilteredData] = useState([]);
   const [chatMessages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const { isEnabled: isFeatureEnabled } = useFeatureFlag('show_dashboard_assistant', true);
   
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -30,10 +18,11 @@ const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' })
   };
   
   useEffect(() => {
-    if (messages) {
-      setFilteredData(messages);
+    scrollToBottom();
+    if (messageData) {
+      setFilteredData(messageData);
     }
-  }, [messages]);
+  }, [messageData]);
   
   useEffect(() => {
     scrollToBottom();
@@ -41,7 +30,7 @@ const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' })
 
   const getWelcomeMessage = () => {
     const roleMessages = {
-      admin: "�️ **Assistant IA Admin** - Je vous aide à gérer la plateforme, analyser les données et superviser les opérations avec expertise.",
+      admin: "é️ **Assistant IA Admin** - Je vous aide à gérer la plateforme, analyser les données et superviser les opérations avec expertise.",
       notaire: "⚖️ **Assistant IA Notaire** - Spécialisé dans l'analyse de documents, la conformité légale et la gestion des dossiers complexes.",
       particulier: "🏠 **Assistant IA Particulier** - Je vous guide dans vos recherches de propriétés et vos démarches d'acquisition avec des conseils personnalisés.",
       vendeur: "💼 **Assistant IA Vendeur** - Optimisation de vos annonces, analyse de marché et stratégies de vente pour maximiser vos résultats.",
@@ -134,9 +123,7 @@ Utilisez les actions rapides ou posez vos questions directement.`;
         onAction(response.actionType, response);
       }
       
-    } catch (error) {
-      console.error("Erreur Assistant IA:", error);
-      setMessages(prev => [...prev, { 
+    } catch (error) {      setMessages(prev => [...prev, { 
         sender: 'bot', 
         text: "Erreur technique. Veuillez réessayer.",
         error: true

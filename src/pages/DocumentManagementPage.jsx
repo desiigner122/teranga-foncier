@@ -1,12 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { FileText, Download, Upload, PenTool, Shield, Clock, CheckCircle, Eye, Share2 } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
-
 const DocumentManagementPage = () => {
   const { toast } = useToast();
   const [isSigningOpen, setIsSigningOpen] = useState(false);

@@ -1,35 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
-import { motion } from 'framer-motion';
-import { 
-  Users, 
-  FileText, 
-  TrendingUp, 
-  AlertTriangle,
-  Search,
-  Trash2,
-  UserX,
-  CheckCircle,
-  BarChart3,
-  PieChart,
-  Download,
-  Bell
-} from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
-import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const AdminUsersPageWithAI = () => {
   const { toast } = useToast();
   const { profile } = useAuth();
-  // Loading géré par le hook temps réel
+  // Loading gÃ©rÃ© par le hook temps rÃ©el
   const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -59,9 +32,7 @@ const AdminUsersPageWithAI = () => {
 
       setUsers(data || []);
       calculateStats(data || []);
-    } catch (error) {
-      console.error('Erreur chargement utilisateurs:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les utilisateurs",
@@ -80,7 +51,7 @@ const AdminUsersPageWithAI = () => {
     ).length;
 
     const byRole = userData.reduce((acc, user) => {
-      const role = user.role || 'non_défini';
+      const role = user.role || 'non_dÃ©fini';
       acc[role] = (acc[role] || 0) + 1;
       return acc;
     }, {});
@@ -121,7 +92,7 @@ const AdminUsersPageWithAI = () => {
     if (!userToDelete) return;
 
     try {
-      // Vérifier les permissions admin
+      // VÃ©rifier les permissions admin
       if (profile?.role !== 'admin') {
         throw new Error('Permission insuffisante');
       }
@@ -153,13 +124,11 @@ const AdminUsersPageWithAI = () => {
       await loadUsers();
 
       toast({
-        title: "Utilisateur supprimé",
-        description: `${userToDelete.full_name} a été supprimé avec succès`,
+        title: "Utilisateur supprimÃ©",
+        description: `${userToDelete.full_name} a Ã©tÃ© supprimÃ© avec succÃ©s`,
       });
 
-    } catch (error) {
-      console.error('Erreur suppression:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: error.message || "Impossible de supprimer l'utilisateur",
@@ -174,8 +143,8 @@ const AdminUsersPageWithAI = () => {
     if (selectedUsers.length === 0) {
       toast({
         variant: "destructive",
-        title: "Aucune sélection",
-        description: "Veuillez sélectionner au moins un utilisateur",
+        title: "Aucune sÃ©lection",
+        description: "Veuillez sÃ©lectionner au moins un utilisateur",
       });
       return;
     }
@@ -210,16 +179,14 @@ const AdminUsersPageWithAI = () => {
       setSelectedUsers([]);
 
       toast({
-        title: "Action exécutée",
-        description: `${selectedUsers.length} utilisateur(s) traité(s)`,
+        title: "Action exÃ©cutÃ©e",
+        description: `${selectedUsers.length} utilisateur(s) traitÃ©(s)`,
       });
 
-    } catch (error) {
-      console.error('Erreur action groupée:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible d'exécuter l'action",
+        description: "Impossible d'exÃ©cuter l'action",
       });
     }
   };
@@ -243,7 +210,7 @@ const AdminUsersPageWithAI = () => {
         }))
       };
 
-      // Créer et télécharger le rapport
+      // CrÃ©er et tÃ©lÃ©charger le rapport
       const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -255,16 +222,14 @@ const AdminUsersPageWithAI = () => {
       URL.revokeObjectURL(url);
 
       toast({
-        title: "Rapport généré",
-        description: "Le rapport des utilisateurs a été téléchargé",
+        title: "Rapport gÃ©nÃ©rÃ©",
+        description: "Le rapport des utilisateurs a Ã©tÃ© tÃ©lÃ©chargÃ©",
       });
 
-    } catch (error) {
-      console.error('Erreur génération rapport:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de générer le rapport",
+        description: "Impossible de gÃ©nÃ©rer le rapport",
       });
     }
   };
@@ -274,7 +239,7 @@ const AdminUsersPageWithAI = () => {
       case 'DELETE_USER':
         await loadUsers();
         toast({
-          title: "Action IA exécutée",
+          title: "Action IA exÃ©cutÃ©e",
           description: `${result.message}`,
         });
         break;
@@ -301,11 +266,11 @@ const AdminUsersPageWithAI = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* En-tête */}
+      {/* En-tÃ©te */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Gestion des Utilisateurs</h1>
-          <p className="text-muted-foreground">Administration avancée avec IA</p>
+          <p className="text-muted-foreground">Administration avancÃ©e avec IA</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={generateReport}>
@@ -380,7 +345,7 @@ const AdminUsersPageWithAI = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Rechercher par nom, email ou rôle..."
+                placeholder="Rechercher par nom, email ou rÃ©le..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -390,13 +355,13 @@ const AdminUsersPageWithAI = () => {
 
           {selectedUsers.length > 0 && (
             <div className="flex gap-2 mb-4 p-3 bg-blue-50 rounded-lg">
-              <span className="text-sm font-medium">{selectedUsers.length} utilisateur(s) sélectionné(s)</span>
+              <span className="text-sm font-medium">{selectedUsers.length} utilisateur(s) sÃ©lectionnÃ©(s)</span>
               <div className="flex gap-2 ml-auto">
                 <Button size="sm" variant="outline" onClick={() => handleBulkAction('activate')}>
                   Activer
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => handleBulkAction('deactivate')}>
-                  Désactiver
+                  DÃ©sactiver
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => handleBulkAction('delete')}>
                   <Trash2 className="h-4 w-4 mr-1" />
@@ -436,12 +401,12 @@ const AdminUsersPageWithAI = () => {
                     className="rounded"
                   />
                   <div>
-                    <h4 className="font-semibold">{user.full_name || 'Nom non défini'}</h4>
+                    <h4 className="font-semibold">{user.full_name || 'Nom non dÃ©fini'}</h4>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                     <div className="flex gap-2 mt-1">
-                      <Badge variant="outline">{user.role || 'Non défini'}</Badge>
+                      <Badge variant="outline">{user.role || 'Non dÃ©fini'}</Badge>
                       <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                        {user.status || 'Non défini'}
+                        {user.status || 'Non dÃ©fini'}
                       </Badge>
                     </div>
                   </div>
@@ -450,9 +415,9 @@ const AdminUsersPageWithAI = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => {/* Ouvrir modal d'édition */}}
+                    onClick={() => {/* Ouvrir modal d'Ã©dition */}}
                   >
-                    Éditer
+                    Ã©diter
                   </Button>
                   <Button
                     size="sm"
@@ -474,8 +439,8 @@ const AdminUsersPageWithAI = () => {
           <DialogHeader>
             <DialogTitle>Confirmer la suppression</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer l'utilisateur {userToDelete?.full_name} ?
-              Cette action ne peut pas être annulée.
+              Ã©tes-vous sÃ©r de vouloir supprimer l'utilisateur {userToDelete?.full_name} ?
+              Cette action ne peut pas Ã©tre annulÃ©e.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

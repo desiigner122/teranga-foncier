@@ -1,13 +1,5 @@
 // src/pages/admin/AdminAIAssistantPage.jsx
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, Send, Copy } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const suggestedPrompts = [
     "Rédige un article de blog sur les 5 avantages d'investir dans le foncier à Dakar en 2025.",
     "Crée une description attrayante pour une parcelle de 300m² située à Saly, idéale pour une villa.",
@@ -65,9 +57,7 @@ const AdminAIAssistantPage = () => {
       });
     } catch (err) {
       // Log error for debugging in development only
-      if (import.meta.env.DEV) {
-        console.error('AI generation error:', err);
-      }
+      if (import.meta.env.DEV) {      }
       toast({ 
         variant: 'destructive', 
         title: 'Erreur de génération', 

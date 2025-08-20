@@ -1,13 +1,13 @@
 import React from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
+
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { Banknote, ShieldCheck, BarChart3, FileSearch, Users, ArrowRight, CheckSquare, Settings2, Share2 } from 'lucide-react';
+import { ShieldCheck, BarChart3, FileSearch, Users, ArrowRight, CheckSquare, Settings2, Share2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { Helmet } from 'react-helmet-async';
-import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage'; // <<< CORRECTION DU CHEMIN ICI
+import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage';// <<< CORRECTION DU CHEMIN ICI
 
 const SolutionsBanquesPage = () => {
   const { isAuthenticated } = useAuth();
@@ -37,45 +37,45 @@ const SolutionsBanquesPage = () => {
   const features = [
     {
       icon: ShieldCheck,
-      title: "Évaluation Fiable des Garanties Foncières",
-      description: "Accédez à des données vérifiées et à des analyses de marché pour évaluer avec précision la valeur des terrains proposés en garantie. Réduisez vos risques et optimisez vos décisions de crédit.",
+      title: "Ã©valuation Fiable des Garanties FonciÃ©res",
+      description: "AccÃ©dez Ã© des donnÃ©es vÃ©rifiÃ©es et Ã© des analyses de marchÃ© pour Ã©valuer avec prÃ©cision la valeur des terrains proposÃ©s en garantie. RÃ©duisez vos risques et optimisez vos dÃ©cisions de crÃ©dit.",
     },
     {
       icon: BarChart3,
       title: "Analyse de Portefeuille et Gestion des Risques",
-      description: "Visualisez la composition de votre portefeuille foncier, identifiez les risques potentiels et prenez des décisions éclairées grâce à des tableaux de bord intuitifs et des rapports détaillés.",
+      description: "Visualisez la composition de votre portefeuille foncier, identifiez les risques potentiels et prenez des dÃ©cisions Ã©clairÃ©es grÃ©ce Ã© des tableaux de bord intuitifs et des rapports dÃ©taillÃ©s.",
     },
     {
       icon: FileSearch,
-      title: "Accès Sécurisé aux Documents Officiels",
-      description: "Consultez et vérifiez les titres de propriété, les plans cadastraux et autres documents légaux directement depuis la plateforme, garantissant la conformité et la transparence.",
+      title: "AccÃ©s SÃ©curisÃ© aux Documents Officiels",
+      description: "Consultez et vÃ©rifiez les titres de propriÃ©tÃ©, les plans cadastraux et autres documents lÃ©gaux directement depuis la plateforme, garantissant la conformitÃ© et la transparence.",
     },
     {
       icon: Users,
-      title: "Collaboration Simplifiée avec les Notaires et Mairies",
-      description: "Facilitez les échanges et les validations avec les acteurs clés de l'écosystème foncier, accélérant ainsi les processus d'authentification et d'enregistrement.",
+      title: "Collaboration SimplifiÃ©e avec les Notaires et Mairies",
+      description: "Facilitez les Ã©changes et les validations avec les acteurs clÃ©s de l'Ã©cosystÃ©me foncier, accÃ©lÃ©rant ainsi les processus d'authentification et d'enregistrement.",
     },
     {
       icon: CheckSquare,
-      title: "Conformité Réglementaire Automatisée",
-      description: "Assurez-vous que toutes vos opérations respectent les réglementations foncières sénégalaises grâce à des outils de vérification intégrés et des alertes en cas de non-conformité.",
+      title: "ConformitÃ© RÃ©glementaire AutomatisÃ©e",
+      description: "Assurez-vous que toutes vos opÃ©rations respectent les rÃ©glementations fonciÃ©res sÃ©nÃ©galaises grÃ©ce Ã© des outils de vÃ©rification intÃ©grÃ©s et des alertes en cas de non-conformitÃ©.",
     },
     {
       icon: Settings2,
-      title: "Personnalisation et Intégration Facile",
-      description: "Adaptez la plateforme à vos besoins spécifiques et intégrez-la facilement à vos systèmes existants pour une gestion foncière centralisée et efficace.",
+      title: "Personnalisation et IntÃ©gration Facile",
+      description: "Adaptez la plateforme Ã© vos besoins spÃ©cifiques et intÃ©grez-la facilement Ã© vos systÃ©mes existants pour une gestion fonciÃ©re centralisÃ©e et efficace.",
     },
   ];
 
   const caseStudies = [
     {
-      title: "Optimisation des Processus de Crédit Immobilier",
-      description: "Une grande banque sénégalaise a réduit de 30% le temps de traitement des dossiers de crédit immobilier grâce à notre solution d'évaluation foncière rapide et fiable.",
+      title: "Optimisation des Processus de CrÃ©dit Immobilier",
+      description: "Une grande banque sÃ©nÃ©galaise a rÃ©duit de 30% le temps de traitement des dossiers de crÃ©dit immobilier grÃ©ce Ã© notre solution d'Ã©valuation fonciÃ©re rapide et fiable.",
       link: "#",
     },
     {
-      title: "Sécurisation des Portefeuilles de Garanties",
-      description: "Une institution financière a minimisé ses risques de défaut de paiement en utilisant nos outils d'analyse prédictive pour mieux évaluer la liquidité des garanties foncières.",
+      title: "SÃ©curisation des Portefeuilles de Garanties",
+      description: "Une institution financiÃ©re a minimisÃ© ses risques de dÃ©faut de paiement en utilisant nos outils d'analyse prÃ©dictive pour mieux Ã©valuer la liquiditÃ© des garanties fonciÃ©res.",
       link: "#",
     },
   ];
@@ -89,7 +89,7 @@ const SolutionsBanquesPage = () => {
     >
       <Helmet>
         <title>Solutions pour Banques - Teranga Foncier</title>
-        <meta name="description" content="Découvrez comment Teranga Foncier aide les banques et institutions financières à sécuriser leurs garanties foncières au Sénégal." />
+        <meta name="description" content="DÃ©couvrez comment Teranga Foncier aide les banques et institutions financiÃ©res Ã© sÃ©curiser leurs garanties fonciÃ©res au SÃ©nÃ©gal." />
       </Helmet>
 
       {/* Hero Section */}
@@ -101,7 +101,7 @@ const SolutionsBanquesPage = () => {
             transition={{ duration: 0.6 }}
             className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight"
           >
-            Teranga Foncier pour les Banques & Institutions Financières
+            Teranga Foncier pour les Banques & Institutions FinanciÃ©res
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -20 }}
@@ -109,7 +109,7 @@ const SolutionsBanquesPage = () => {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-lg md:text-xl mb-8 max-w-2xl mx-auto"
           >
-            Sécurisez vos opérations de crédit et optimisez la gestion de vos garanties foncières au Sénégal.
+            SÃ©curisez vos opÃ©rations de crÃ©dit et optimisez la gestion de vos garanties fonciÃ©res au SÃ©nÃ©gal.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -117,7 +117,7 @@ const SolutionsBanquesPage = () => {
             transition={{ delay: 0.4, duration: 0.6 }}
           >
             <Button size="lg" onClick={handleDashboardAccess} className="bg-white text-blue-700 hover:bg-blue-100 shadow-xl text-lg px-8 py-3 rounded-full">
-              Accéder au Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+              AccÃ©der au Dashboard <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>
         </div>
@@ -138,7 +138,7 @@ const SolutionsBanquesPage = () => {
       <section className="py-16 md:py-20 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-blue-800 dark:text-blue-300">
-            Nos Solutions Clés pour les Banques
+            Nos Solutions ClÃ©s pour les Banques
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -165,13 +165,13 @@ const SolutionsBanquesPage = () => {
       {/* Call to Action - Dashboard Access */}
       <section className="py-16 md:py-20 bg-primary/5">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-700">Renforcez Votre Expertise Foncière avec Nos Outils</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-700">Renforcez Votre Expertise FonciÃ©re avec Nos Outils</h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-            Accédez à un tableau de bord dédié pour visualiser les évaluations, suivre les portefeuilles et gérer les risques liés aux garanties foncières.
+            AccÃ©dez Ã© un tableau de bord dÃ©diÃ© pour visualiser les Ã©valuations, suivre les portefeuilles et gÃ©rer les risques liÃ©s aux garanties fonciÃ©res.
           </p>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button size="lg" onClick={handleDashboardAccess} className="bg-gradient-to-r from-blue-600 to-sky-600 text-white shadow-lg">
-              Accéder au Dashboard Banques <BarChart3 className="ml-2 h-5 w-5" />
+              AccÃ©der au Dashboard Banques <BarChart3 className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>
            <p className="text-sm text-muted-foreground mt-4">Ou <Link to="/contact?subject=SolutionsBanques" className="underline hover:text-primary">contactez-nous pour un partenariat</Link>.</p>
@@ -182,7 +182,7 @@ const SolutionsBanquesPage = () => {
       <section className="py-16 md:py-20 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-blue-800 dark:text-blue-300">
-            Études de Cas
+            Ã©tudes de Cas
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {caseStudies.map((study, index) => (
@@ -192,7 +192,7 @@ const SolutionsBanquesPage = () => {
                   <p className="text-muted-foreground mb-4">{study.description}</p>
                   <div className="flex justify-end">
                     <Button variant="link" className="text-blue-600 hover:underline p-0">
-                      Lire plus d'études de cas <ArrowRight className="ml-1 h-4 w-4" />
+                      Lire plus d'Ã©tudes de cas <ArrowRight className="ml-1 h-4 w-4" />
                     </Button>
                   </div>
                 </CardContent>
@@ -205,12 +205,12 @@ const SolutionsBanquesPage = () => {
       {/* Contact Section */}
       <section className="py-16 md:py-20 bg-blue-700 text-white text-center">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Prêt à Transformer Votre Gestion Foncière ?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">PrÃ©t Ã© Transformer Votre Gestion FonciÃ©re ?</h2>
           <p className="text-lg md:text-xl mb-8 max-w-xl mx-auto">
-            Contactez notre équipe pour une démonstration personnalisée de nos solutions pour les banques.
+            Contactez notre Ã©quipe pour une dÃ©monstration personnalisÃ©e de nos solutions pour les banques.
           </p>
           <Button asChild size="lg" className="bg-white text-blue-700 hover:bg-blue-100 shadow-xl text-lg px-8 py-3 rounded-full">
-            <Link to="/contact?subject=DémonstrationBanques">Demander une Démonstration <Share2 className="ml-2 h-5 w-5" /></Link>
+            <Link to="/contact?subject=DÃ©monstrationBanques">Demander une DÃ©monstration <Share2 className="ml-2 h-5 w-5" /></Link>
           </Button>
         </div>
       </section>

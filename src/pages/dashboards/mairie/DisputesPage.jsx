@@ -1,15 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, PlusCircle, Search, Filter, Gavel } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/lib/supabaseClient';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 // Data source: land_disputes table (expected). Fallback: empty.
 
 const DisputesPage = () => {
@@ -32,7 +21,7 @@ const DisputesPage = () => {
           .order('created_at', { ascending: false })
           .limit(200);
         if (error) throw error;
-        const mapped = (data || []).map(d => ({ id: d.id, parcelId: d.parcel_id, parties: d.parties, type: d.type, status: d.status }));
+        const mapped = (data || [data, error]).map(d => ({ id: d.id, parcelId: d.parcel_id, parties: d.parties, type: d.type, status: d.status }));
         setDisputes(mapped);
       } catch (e) {
         if (process.env.NODE_ENV !== 'production') console.warn('Litiges non chargés', e.message || e);

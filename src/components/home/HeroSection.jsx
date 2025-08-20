@@ -1,12 +1,11 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button } import { Link, useNavigate } from 'react-router-dom';
+ate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-
+import { SLink } from 'react-router-dom';
 const HeroSection = () => {
   const navigate = useNavigate();
   const carouselImages = [

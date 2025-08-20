@@ -1,18 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { UserCheck, MapPin, FileText, BarChart2, CalendarDays, MessageSquare, Search, Filter, Check, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabaseClient';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-
 const kpiData = [
   { title: "Demandes à Traiter", value: "5", icon: FileText, trend: "+2", trendColor: "text-yellow-500", unit: "nouvelles" },
   { title: "Parcelles Assignées", value: "12", icon: MapPin, trend: "Stable", trendColor: "text-neutral-500", unit: "actives" },

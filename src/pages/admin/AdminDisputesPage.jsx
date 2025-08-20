@@ -1,18 +1,5 @@
 // src/pages/admin/AdminDisputesPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { AlertTriangle, Search, Filter, Eye, MessageSquare, Check, X, Clock } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/lib/supabaseClient';
-
 const AdminDisputesPage = () => {
   const { data: disputes, loading: disputesLoading, error: disputesError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -40,9 +27,7 @@ const AdminDisputesPage = () => {
       let disputesData;
       
       if (error || !realDisputes || realDisputes.length === 0) {
-        // Si pas de table disputes ou erreur, utiliser des données de démonstration
-        console.warn('Table disputes non trouvée ou vide, utilisation de données de démonstration');
-        disputesData = [
+        // Si pas de table disputes ou erreur, utiliser des données de démonstration        disputesData = [
           {
             id: '1',
             title: 'Conflit de propriété - Parcelle #A-2023-001',
@@ -126,9 +111,7 @@ const AdminDisputesPage = () => {
 
       setDisputes(disputesData);
       setFilteredDisputes(disputesData);
-    } catch (error) {
-      console.error('Erreur lors du chargement des litiges:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les litiges"
@@ -176,9 +159,7 @@ const AdminDisputesPage = () => {
         title: "Statut mis à jour",
         description: `Le statut du litige a été changé vers "${statusOptions[newStatus].label}"`
       });
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut:', error);
-      toast({
+    } catch (error) {      toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le statut",
         variant: "destructive"
@@ -216,9 +197,7 @@ const AdminDisputesPage = () => {
         title: "Litige résolu",
         description: "La résolution a été enregistrée avec succès"
       });
-    } catch (error) {
-      console.error('Erreur lors de la résolution:', error);
-      toast({
+    } catch (error) {      toast({
         title: "Erreur",
         description: "Impossible d'enregistrer la résolution",
         variant: "destructive"

@@ -1,17 +1,6 @@
 // src/components/layout/Sidebar.jsx
 import React, { useState, useEffect } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
-import { useMessagingNotification } from '@/context/MessagingNotificationContext';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { getSidebarConfig } from './sidebarConfig';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-
-// Ce composant est maintenant juste pour l'affichage, il ne reçoit plus `active`
+// Ce composant est maintenant juste pour l'affichage, il ne reÃ©oit plus `active`
 const NavItemContent = ({ item, unreadCount }) => (
   <>
     {item.icon && React.createElement(item.icon, { className: 'mr-3 h-5 w-5 flex-shrink-0' })}
@@ -25,11 +14,11 @@ const NavItemContent = ({ item, unreadCount }) => (
 );
 
 const Sidebar = ({ isCollapsed, toggleSidebar }) => {
-  const { user, profile, signOut } = useAuth(); // signOut a été renommé dans AuthContext
+  const { user, profile, signOut } = useAuth(); // signOut a Ã©tÃ© renommÃ© dans AuthContext
   const [openMenus, setOpenMenus] = useState({});
   const location = useLocation();
   
-  // Utilise profile pour obtenir les informations de rôle et type
+  // Utilise profile pour obtenir les informations de rÃ©le et type
   const sidebarConfig = getSidebarConfig(profile);
 
   // Get unread counts from MessagingNotificationContext
@@ -45,7 +34,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
 
   useEffect(() => {
     if (isCollapsed) {
-      setOpenMenus({}); // Ferme tous les menus si la sidebar est réduite
+      setOpenMenus({}); // Ferme tous les menus si la sidebar est rÃ©duite
     }
   }, [isCollapsed]);
 
@@ -155,7 +144,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
       <div className="p-2 border-t">
         <Button variant="ghost" className="w-full justify-start p-3" onClick={signOut}>
           <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span>Déconnexion</span>}
+          {!isCollapsed && <span>DÃ©connexion</span>}
         </Button>
       </div>
     </aside>

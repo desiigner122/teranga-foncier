@@ -1,16 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { supabase } from '@/lib/supabaseClient';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, Clock, FileText, Home, User, AlertCircle, Banknote, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-
 const formatDate = (dateString) => new Date(dateString).toLocaleDateString('fr-FR', {
   year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
 });
@@ -19,8 +7,8 @@ const getStatusInfo = (status) => {
   switch (status) {
     case 'Nouvelle': return { icon: FileText, color: 'text-blue-500' };
     case 'En instruction': return { icon: Clock, color: 'text-yellow-500' };
-    case 'Approuvée': case 'Traitée': return { icon: CheckCircle, color: 'text-green-500' };
-    case 'Rejeté': return { icon: AlertCircle, color: 'text-red-500' };
+    case 'ApprouvÃ©e': case 'TraitÃ©e': return { icon: CheckCircle, color: 'text-green-500' };
+    case 'RejetÃ©': return { icon: AlertCircle, color: 'text-red-500' };
     default: return { icon: FileText, color: 'text-gray-500' };
   }
 };
@@ -43,7 +31,7 @@ const CaseTrackingSkeleton = () => (
 const CaseTrackingPage = () => {
   const { id } = useParams();
   const [request, setRequest] = useState(null);
-  // Loading géré par le hook temps réel
+  // Loading gÃ©rÃ© par le hook temps rÃ©el
   const { user } = useAuth();
 
   useEffect(() => {
@@ -56,36 +44,34 @@ const CaseTrackingPage = () => {
       try {
         setLoading(true);
         
-        // Essayer de récupérer la demande spécifique depuis Supabase
+        // Essayer de rÃ©cupÃ©rer la demande spÃ©cifique depuis Supabase
         const realRequest = await SupabaseDataService.getRequestById(id);
         
         if (realRequest) {
-          // Transformer les données pour le format attendu
+          // Transformer les donnÃ©es pour le format attendu
           const formattedRequest = {
             id: realRequest.id,
             type: realRequest.request_type || 'information',
             status: realRequest.status === 'pending' ? 'En instruction' :
-                   realRequest.status === 'approved' ? 'Approuvée' :
-                   realRequest.status === 'completed' ? 'Traitée' :
-                   realRequest.status === 'rejected' ? 'Rejeté' : 'Nouvelle',
+                   realRequest.status === 'approved' ? 'ApprouvÃ©e' :
+                   realRequest.status === 'completed' ? 'TraitÃ©e' :
+                   realRequest.status === 'rejected' ? 'RejetÃ©' : 'Nouvelle',
             recipient: realRequest.recipient_type || 'Mairie',
             dateSubmitted: realRequest.created_at,
             lastUpdated: realRequest.updated_at,
-            user_name: realRequest.users ? realRequest.users.full_name : 'Utilisateur non spécifié',
+            user_name: realRequest.users ? realRequest.users.full_name : 'Utilisateur non spÃ©cifiÃ©',
             user_email: realRequest.users ? realRequest.users.email : '',
             details: realRequest.details || {},
             history: generateHistoryFromStatus(realRequest.status, realRequest.created_at, realRequest.updated_at),
-            payments: [] // À implémenter si nécessaire
+            payments: [] // Ã© implÃ©menter si nÃ©cessaire
           };
           
           setRequest(formattedRequest);
         } else {
-          // Si pas trouvé dans Supabase, afficher un message d'erreur
-          setError('Demande non trouvée');
+          // Si pas trouvÃ© dans Supabase, afficher un message d'erreur
+          setError('Demande non trouvÃ©e');
         }
-      } catch (error) {
-        console.error('Erreur lors du chargement de la demande:', error);
-        // En cas d'erreur, afficher un message d'erreur
+      } catch (error) {        // En cas d'erreur, afficher un message d'erreur
         setError('Erreur lors du chargement de la demande');
       } finally {
         setLoading(false);
@@ -95,13 +81,13 @@ const CaseTrackingPage = () => {
     loadRequest();
   }, [id, user]);
 
-  // Fonction pour générer l'historique basé sur le statut
+  // Fonction pour gÃ©nÃ©rer l'historique basÃ© sur le statut
   const generateHistoryFromStatus = (status, createdAt, updatedAt) => {
     const history = [
       {
         date: createdAt,
         action: 'Demande soumise',
-        description: 'Votre demande a été reçue et enregistrée dans notre système.',
+        description: 'Votre demande a Ã©tÃ© reÃ©ue et enregistrÃ©e dans notre systÃ©me.',
         status: 'completed'
       }
     ];
@@ -109,13 +95,13 @@ const CaseTrackingPage = () => {
     if (status !== 'pending') {
       history.push({
         date: updatedAt || createdAt,
-        action: status === 'approved' ? 'Demande approuvée' : 
-               status === 'completed' ? 'Demande traitée' :
-               status === 'rejected' ? 'Demande rejetée' : 'Demande mise à jour',
-        description: status === 'approved' ? 'Votre demande a été approuvée par les autorités compétentes.' :
-                    status === 'completed' ? 'Votre demande a été traitée avec succès.' :
-                    status === 'rejected' ? 'Votre demande a été rejetée. Veuillez consulter les détails.' :
-                    'Votre demande a été mise à jour.',
+        action: status === 'approved' ? 'Demande approuvÃ©e' : 
+               status === 'completed' ? 'Demande traitÃ©e' :
+               status === 'rejected' ? 'Demande rejetÃ©e' : 'Demande mise Ã© jour',
+        description: status === 'approved' ? 'Votre demande a Ã©tÃ© approuvÃ©e par les autoritÃ©s compÃ©tentes.' :
+                    status === 'completed' ? 'Votre demande a Ã©tÃ© traitÃ©e avec succÃ©s.' :
+                    status === 'rejected' ? 'Votre demande a Ã©tÃ© rejetÃ©e. Veuillez consulter les dÃ©tails.' :
+                    'Votre demande a Ã©tÃ© mise Ã© jour.',
         status: status === 'rejected' ? 'error' : 'completed'
       });
     }
@@ -131,8 +117,8 @@ const CaseTrackingPage = () => {
 
   if (!request) return (
     <div className="container mx-auto py-10 text-center">
-      <h2 className="text-2xl font-semibold text-destructive">Demande non trouvée</h2>
-      <Link to="/my-requests" className="text-primary hover:underline mt-4 inline-block">Retour à mes demandes</Link>
+      <h2 className="text-2xl font-semibold text-destructive">Demande non trouvÃ©e</h2>
+      <Link to="/my-requests" className="text-primary hover:underline mt-4 inline-block">Retour Ã© mes demandes</Link>
     </div>
   );
   
@@ -146,7 +132,7 @@ const CaseTrackingPage = () => {
     >
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-primary">Suivi du Dossier : {request.id}</h1>
-        <p className="text-muted-foreground">Historique complet et état actuel de votre demande.</p>
+        <p className="text-muted-foreground">Historique complet et Ã©tat actuel de votre demande.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -191,7 +177,7 @@ const CaseTrackingPage = () => {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Détails de la Demande</CardTitle>
+              <CardTitle>DÃ©tails de la Demande</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -215,7 +201,7 @@ const CaseTrackingPage = () => {
                  <Card className="border-primary bg-primary/5">
                     <CardHeader>
                         <CardTitle className="flex items-center text-primary"><Banknote className="mr-2"/>Action Requise : Paiement</CardTitle>
-                        <CardDescription>Un ou plusieurs paiements sont nécessaires pour faire avancer votre dossier.</CardDescription>
+                        <CardDescription>Un ou plusieurs paiements sont nÃ©cessaires pour faire avancer votre dossier.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ul className="space-y-2">

@@ -16,7 +16,6 @@ export function FeatureFlagsProvider({ children }) {
         setFlags(map);
       }
     } catch (error) {
-      console.warn('FeatureFlags table not found or error loading flags:', error);
       // Set default flags if table doesn't exist
       setFlags({});
     } finally { 

@@ -1,0 +1,14 @@
+{
+  "extends": ["react-app"],
+  "rules": {
+    "no-unused-vars": "warn",
+    "react/react-in-jsx-scope": "off",
+    "no-undef": "error",
+    "no-multiple-empty-lines": "warn",
+    "no-console": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-duplicate-imports": "error",
+    "eqeqeq": "warn",
+    "prefer-const": "warn"
+  }
+}

@@ -1,38 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  Shield, 
-  TrendingUp, 
-  Banknote,
-  ShieldCheck,
-  Scale,
-  FolderCheck,
-  BarChart3,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Users,
-  DollarSign,
-  FileText,
-  Calculator,
-  Target,
-  Zap,
-  Eye,
-  Download
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
-import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
-import { supabase } from '@/lib/supabaseClient';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { antiFraudAI } from '@/lib/antiFraudAI';
-import { useAuth } from '@/context/AuthContext';
-
 const BanqueDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -58,7 +24,7 @@ const BanqueDashboard = () => {
       loadBankDashboardData();
     }
   }, [user]);
-  // Charger l'analyse de sécurité quand l'utilisateur change
+  // Charger l'analyse de sÃ©curitÃ© quand l'utilisateur change
   useEffect(() => {
     const loadSecurityAnalysis = async () => {
       if (!user?.id) return;
@@ -74,9 +40,7 @@ const BanqueDashboard = () => {
           ...prev,
           securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
         }));
-      } catch (error) {
-        console.error('Erreur analyse sécurité:', error);
-      }
+      } catch (error) {      }
     };
 
     loadSecurityAnalysis();
@@ -97,7 +61,7 @@ const BanqueDashboard = () => {
         `)
         .eq('bank_id', user.id);
 
-      // Charger les évaluations foncières
+      // Charger les Ã©valuations fonciÃ©res
       const { data: landEvaluations } = await supabase
         .from('land_evaluations')
         .select(`
@@ -117,7 +81,7 @@ const BanqueDashboard = () => {
         `)
         .eq('bank_id', user.id);
 
-      // Charger les données de conformité
+      // Charger les donnÃ©es de conformitÃ©
       const { data: complianceData } = await supabase
         .from('compliance_checks')
         .select('*')
@@ -140,7 +104,7 @@ const BanqueDashboard = () => {
       // Analyse des risques IA
       const risks = await generateRiskAnalysis(bankGuarantees, financingRequests);
       
-      // Tendances du marché
+      // Tendances du marchÃ©
       const trends = await generateMarketTrends();
 
       setStats({
@@ -158,9 +122,7 @@ const BanqueDashboard = () => {
       setRiskAnalysis(risks);
       setMarketTrends(trends);
 
-    } catch (error) {
-      console.error('Erreur chargement dashboard banque:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -169,7 +131,7 @@ const BanqueDashboard = () => {
     try {
       const risks = [];
 
-      // Analyse concentration géographique
+      // Analyse concentration gÃ©ographique
       if (guarantees && guarantees.length > 0) {
         const locations = guarantees.map(g => g.parcels?.location).filter(Boolean);
         const locationCounts = locations.reduce((acc, loc) => {
@@ -185,9 +147,9 @@ const BanqueDashboard = () => {
           risks.push({
             type: 'geographic',
             level: 'medium',
-            title: 'Concentration géographique élevée',
-            description: `${Math.round(concentrationRate * 100)}% des garanties dans une même zone`,
-            recommendation: 'Diversifiez votre portefeuille géographique'
+            title: 'Concentration gÃ©ographique Ã©levÃ©e',
+            description: `${Math.round(concentrationRate * 100)}% des garanties dans une mÃ©me zone`,
+            recommendation: 'Diversifiez votre portefeuille gÃ©ographique'
           });
         }
       }
@@ -203,13 +165,13 @@ const BanqueDashboard = () => {
             type: 'financial',
             level: 'high',
             title: 'Exposition aux gros montants',
-            description: `${highAmountCount} garanties dépassent 200% de la moyenne`,
-            recommendation: 'Réévaluez les limites d\'exposition'
+            description: `${highAmountCount} garanties dÃ©passent 200% de la moyenne`,
+            recommendation: 'RÃ©Ã©valuez les limites d\'exposition'
           });
         }
       }
 
-      // Analyse des délais de traitement
+      // Analyse des dÃ©lais de traitement
       if (requests && requests.length > 0) {
         const pendingOld = requests.filter(r => {
           const created = new Date(r.created_at);
@@ -222,24 +184,22 @@ const BanqueDashboard = () => {
           risks.push({
             type: 'operational',
             level: 'medium',
-            title: 'Délais de traitement longs',
+            title: 'DÃ©lais de traitement longs',
             description: `${pendingOld.length} demandes en attente depuis plus de 30 jours`,
-            recommendation: 'Accélérez le processus de traitement'
+            recommendation: 'AccÃ©lÃ©rez le processus de traitement'
           });
         }
       }
 
       return risks;
 
-    } catch (error) {
-      console.error('Erreur analyse des risques:', error);
-      return [];
+    } catch (error) {      return [];
     }
   };
 
   const generateMarketTrends = async () => {
     try {
-      // Analyser les tendances du marché immobilier
+      // Analyser les tendances du marchÃ© immobilier
       const { data: recentTransactions } = await supabase
         .from('transactions')
         .select('amount, created_at')
@@ -250,8 +210,8 @@ const BanqueDashboard = () => {
         return [
           {
             type: 'info',
-            title: 'Marché stable',
-            description: 'Données insuffisantes pour analyse de tendance',
+            title: 'MarchÃ© stable',
+            description: 'DonnÃ©es insuffisantes pour analyse de tendance',
             trend: 'stable'
           }
         ];
@@ -295,9 +255,7 @@ const BanqueDashboard = () => {
 
       return trends;
 
-    } catch (error) {
-      console.error('Erreur analyse tendances:', error);
-      return [];
+    } catch (error) {      return [];
     }
   };
 
@@ -305,7 +263,7 @@ const BanqueDashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Analyse complète des risques IA
+      // Analyse complÃ©te des risques IA
       const riskAnalysis = await antiFraudAI.analyzeBankRisk(user.id, {
         portfolioAnalysis: true,
         concentrationRisk: true,
@@ -314,13 +272,11 @@ const BanqueDashboard = () => {
       });
 
       toast({
-        title: "Analyse des risques terminée",
+        title: "Analyse des risques terminÃ©e",
         description: `Score de risque global: ${Math.round(riskAnalysis.overallRisk * 100)}%`,
       });
 
-    } catch (error) {
-      console.error('Erreur analyse risques:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible d'effectuer l'analyse des risques",
@@ -332,20 +288,18 @@ const BanqueDashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Vérification de conformité automatisée
+      // VÃ©rification de conformitÃ© automatisÃ©e
       const complianceCheck = await antiFraudAI.runComplianceCheck(user.id, 'bank');
 
       toast({
-        title: "Vérification de conformité terminée",
-        description: `Taux de conformité: ${Math.round(complianceCheck.complianceRate * 100)}%`,
+        title: "VÃ©rification de conformitÃ© terminÃ©e",
+        description: `Taux de conformitÃ©: ${Math.round(complianceCheck.complianceRate * 100)}%`,
       });
 
-    } catch (error) {
-      console.error('Erreur vérification conformité:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de vérifier la conformité",
+        description: "Impossible de vÃ©rifier la conformitÃ©",
       });
     }
   };
@@ -384,10 +338,8 @@ const BanqueDashboard = () => {
         if (updated.decision_note !== undefined || kind.startsWith('financing')) setFundingRequests(rs=> rs.map(r=> r.id===id? {...r, ...updated}: r));
         if (updated.estimated_value !== undefined || kind.startsWith('evaluation')) setEvaluations(ev=> ev.map(e=> e.id===id? {...e, ...updated}: e));
       }
-      toast({ title:'Action effectuée', description: key });
-    } catch(e) {
-      console.error(e);
-      toast({ variant:'destructive', title:'Erreur', description:'Action impossible'});
+      toast({ title:'Action effectuÃ©e', description: key });
+    } catch(e) {      toast({ variant:'destructive', title:'Erreur', description:'Action impossible'});
     } finally {
       setActionBusy(null);
     }
@@ -396,7 +348,7 @@ const BanqueDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* En-tête banque */}
+        {/* En-tÃ©te banque */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
@@ -413,7 +365,7 @@ const BanqueDashboard = () => {
             </Button>
             <Button onClick={handleComplianceCheck} className="bg-blue-600 hover:bg-blue-700">
               <FolderCheck className="h-4 w-4 mr-2" />
-              Vérifier Conformité
+              VÃ©rifier ConformitÃ©
             </Button>
           </div>
         </div>
@@ -436,7 +388,7 @@ const BanqueDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Évaluations</p>
+                  <p className="text-sm font-medium text-gray-600">Ã©valuations</p>
                   <p className="text-3xl font-bold text-green-600">{stats.pendingEvaluations}</p>
                 </div>
                 <Scale className="h-8 w-8 text-green-500" />
@@ -460,7 +412,7 @@ const BanqueDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Conformité</p>
+                  <p className="text-sm font-medium text-gray-600">ConformitÃ©</p>
                   <p className="text-3xl font-bold text-purple-600">{stats.complianceRate}%</p>
                 </div>
                 <FolderCheck className="h-8 w-8 text-purple-500" />
@@ -486,7 +438,7 @@ const BanqueDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Sécurité</p>
+                  <p className="text-sm font-medium text-gray-600">SÃ©curitÃ©</p>
                   <p className="text-3xl font-bold text-indigo-600">{stats.securityScore}%</p>
                 </div>
                 <Shield className="h-8 w-8 text-indigo-500" />
@@ -509,8 +461,8 @@ const BanqueDashboard = () => {
               {riskAnalysis.length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-400" />
-                  <p className="text-gray-500">Aucun risque majeur détecté</p>
-                  <p className="text-sm text-gray-400">Portefeuille bien diversifié</p>
+                  <p className="text-gray-500">Aucun risque majeur dÃ©tectÃ©</p>
+                  <p className="text-sm text-gray-400">Portefeuille bien diversifiÃ©</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -540,12 +492,12 @@ const BanqueDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Tendances du marché */}
+          {/* Tendances du marchÃ© */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-blue-500" />
-                Tendances du Marché
+                Tendances du MarchÃ©
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -602,7 +554,7 @@ const BanqueDashboard = () => {
           }} 
         />
 
-        {/* Listes opérationnelles */}
+        {/* Listes opÃ©rationnelles */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Demandes de financement */}
           <Card>
@@ -618,7 +570,7 @@ const BanqueDashboard = () => {
                         <span className="font-medium">#{fr.id}</span>
                         <Badge variant={fr.status==='approved'? 'success': fr.status==='rejected'? 'destructive':'secondary'}>{fr.status}</Badge>
                       </div>
-                      <p className="text-xs text-gray-500">{fr.parcels?.reference} • {fr.amount?.toLocaleString()} XOF</p>
+                      <p className="text-xs text-gray-500">{fr.parcels?.reference} Ã© {fr.amount?.toLocaleString()} XOF</p>
                       {fr.status==='pending' && (
                         <div className="flex gap-2 mt-2">
                           <Button size="xs" disabled={actionBusy===`financing-approve-${fr.id}`} onClick={()=>act('financing-approve', fr.id)}>Approuver</Button>
@@ -640,7 +592,7 @@ const BanqueDashboard = () => {
                   {guarantees.slice(0,6).map(g => (
                     <div key={g.id} className="border rounded p-3 text-sm">
                       <div className="flex justify-between"><span>#{g.id}</span><Badge variant={g.status==='active'? 'success': g.status==='closed'?'secondary':'outline'}>{g.status}</Badge></div>
-                      <p className="text-xs text-gray-500">{g.parcels?.reference} • {g.guarantee_amount?.toLocaleString()} XOF</p>
+                      <p className="text-xs text-gray-500">{g.parcels?.reference} Ã© {g.guarantee_amount?.toLocaleString()} XOF</p>
                       {g.status!=='closed' && (
                         <div className="flex gap-2 mt-2">
                           {g.status!=='active' && <Button size="xs" disabled={actionBusy===`guarantee-activate-${g.id}`} onClick={()=>act('guarantee-activate', g.id)}>Activer</Button>}
@@ -653,19 +605,19 @@ const BanqueDashboard = () => {
               )}
             </CardContent>
           </Card>
-          {/* Evaluations foncières */}
+          {/* Evaluations fonciÃ©res */}
             <Card>
-              <CardHeader><CardTitle>Évaluations Foncières</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Ã©valuations FonciÃ©res</CardTitle></CardHeader>
               <CardContent>
-                {evaluations.length===0? <p className="text-sm text-gray-500">Aucune évaluation</p> : (
+                {evaluations.length===0? <p className="text-sm text-gray-500">Aucune Ã©valuation</p> : (
                   <div className="space-y-3">
                     {evaluations.slice(0,6).map(ev => (
                       <div key={ev.id} className="border rounded p-3 text-sm">
                         <div className="flex justify-between"><span>#{ev.id}</span><Badge variant={ev.status==='completed'? 'success':'secondary'}>{ev.status}</Badge></div>
-                        <p className="text-xs text-gray-500">{ev.parcels?.reference} • {ev.estimated_value? ev.estimated_value.toLocaleString()+' XOF':'—'}</p>
+                        <p className="text-xs text-gray-500">{ev.parcels?.reference} Ã© {ev.estimated_value? ev.estimated_value.toLocaleString()+' XOF':'Ã©'}</p>
                         {ev.status==='pending' && (
                           <div className="mt-2">
-                            <Button size="xs" disabled={actionBusy===`evaluation-complete-${ev.id}`} onClick={()=>act('evaluation-complete', ev.id)}>Clôturer</Button>
+                            <Button size="xs" disabled={actionBusy===`evaluation-complete-${ev.id}`} onClick={()=>act('evaluation-complete', ev.id)}>ClÃ©turer</Button>
                           </div>
                         )}
                       </div>
@@ -676,7 +628,7 @@ const BanqueDashboard = () => {
             </Card>
         </div>
 
-        {/* Assistant IA spécialisé banque */}
+        {/* Assistant IA spÃ©cialisÃ© banque */}
         <AIAssistantWidget 
           userRole="banque"
           context={{

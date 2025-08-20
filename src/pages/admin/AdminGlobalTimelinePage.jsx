@@ -1,11 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabaseClient';
-
 export default function AdminGlobalTimelinePage() {
   const [events, setEvents] = useState([]);
   const [page, setPage] = useState(1);

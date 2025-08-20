@@ -1,12 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar } from 'lucide-react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const BlogPreview = () => {
   const sectionVariants = {
     hidden: { opacity: 0 },
@@ -32,10 +24,8 @@ const BlogPreview = () => {
       setLoading(true);
       try {
         const data = await SupabaseDataService.getBlogPosts(6);
-        setPosts(data || []);
-      } catch (e) {
-        console.error('Erreur chargement posts:', e);
-        setPosts([]);
+        setPosts(data || [data, error]);
+      } catch (e) {        setPosts([]);
       } finally {
         setLoading(false);
       }

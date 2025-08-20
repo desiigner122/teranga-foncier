@@ -1,11 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
-import ParcelCard from '@/components/parcels/ParcelCard';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-
 const FeaturedParcelsSection = () => {
   const { data: featuredParcels, loading: featuredParcelsLoading, error: featuredParcelsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -25,10 +18,8 @@ const FeaturedParcelsSection = () => {
           // fallback: take most recent available parcels
             data = await SupabaseDataService.searchParcels({ status: 'available', limit: 6 });
         }
-        setFeaturedParcels((data || []).slice(0,3));
-      } catch (e) {
-        console.error('Erreur chargement featured parcels:', e);
-        setFeaturedParcels([]);
+        setFeaturedParcels((data || [data, error]).slice(0,3));
+      } catch (e) {        setFeaturedParcels([]);
       } finally {
         setLoading(false);
       }

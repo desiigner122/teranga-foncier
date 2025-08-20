@@ -1,16 +1,10 @@
 // src/pages/HomePage.jsx
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { Link } from 'react-router-dom';
-// Importation de Button est toujours nécessaire pour les import { Button } from '@/components/ui/button'; 
+// Importation de Button est toujours nécessaire pour import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Search, MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, Users, FileText, DollarSign,
-  Newspaper, Map, BarChart, Lightbulb, Gavel, ClipboardCheck, Briefcase, Leaf, Store, Banknote, UserCheck,
-  ArrowRight, CheckCircle, Globe, Clock, Sparkles, Lock, Zap, Building, Shield, Award, AlertTriangle
-} from 'lucide-react';
+import { MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark, FileText, Newspaper, Map, Gavel, ClipboardCheck, Banknote, UserCheck, ArrowRight, CheckCircle, Globe, Clock, Sparkles, Lock, Building, Shield, Award, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useChatbot } from '@/context/ChatbotContext';
 import { SupabaseDataService } from '@/services/supabaseDataService';
@@ -491,7 +485,7 @@ const HomePage = () => {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-800 dark:text-white mb-6">
-              Le Foncier Sénégalais en un Coup d'Œil
+              Le Foncier Sénégalais en un Coup d'éil
             </h2>
             <p className="text-gray-700 dark:text-gray-300 font-normal leading-relaxed mb-4 text-lg">
               Explorez notre carte interactive pour visualiser les opportunités foncières, les valeurs estimées et les zones de développement à travers le Sénégal.

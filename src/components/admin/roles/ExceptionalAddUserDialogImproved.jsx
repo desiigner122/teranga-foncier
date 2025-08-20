@@ -1,12 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import { exceptionalRoleSchemas, defaultExceptionalTypeOrder } from './ExceptionalUserSchemasImproved';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-
 // Utility
 const slugify = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 
@@ -55,9 +47,7 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
           setNotaireSpecs(ns);
           setShowLocalData(false);
         }
-      } catch (error) {
-        console.error("Erreur de chargement des données de référence:", error);
-        handleMissingData();
+      } catch (error) {        handleMissingData();
       }
     })();
   }, [open]);
@@ -87,9 +77,7 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
         } else {
           setDepartments(deps);
         }
-      } catch (error) {
-        console.error("Erreur de chargement des départements:", error);
-        toast({
+      } catch (error) {        toast({
           variant: 'destructive',
           title: 'Erreur',
           description: 'Impossible de charger les départements'
@@ -121,9 +109,7 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
         } else {
           setCommunes(cms);
         }
-      } catch (error) {
-        console.error("Erreur de chargement des communes:", error);
-        toast({
+      } catch (error) {        toast({
           variant: 'destructive',
           title: 'Erreur',
           description: 'Impossible de charger les communes'
@@ -189,9 +175,7 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
       // Assign role (new RBAC) if function is there
       try { 
         await SupabaseDataService.assignRole(created.id, baseType.toLowerCase()); 
-      } catch (e) {
-        console.warn("Erreur d'attribution de rôle RBAC:", e);
-      }
+      } catch (e) {      }
       
       // Institution profile for institution types
       if (['Mairie', 'Banque', 'Notaire', 'Agent Immobilier', 'Géomètre', 'Avocat', 'Expert Immobilier'].includes(baseType)) {

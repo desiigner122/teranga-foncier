@@ -12,9 +12,7 @@ const getFirebaseConfig = () => {
       return JSON.parse(firebaseConfigString);
     } catch (error) {
       // Log error for debugging in development only
-      if (import.meta.env.DEV) {
-        console.error('Error parsing VITE_FIREBASE_CONFIG:', error);
-      }
+      if (import.meta.env.DEV) {      }
     }
   }
 
@@ -38,10 +36,7 @@ const missingFields = requiredFields.filter(field => !firebaseConfig[field]);
 
 if (missingFields.length > 0) {
   // Log warning for debugging in development only
-  if (import.meta.env.DEV) {
-    console.warn(`Missing Firebase configuration fields: ${missingFields.join(', ')}`);
-    console.warn('Messaging and real-time features will be disabled');
-  }
+  if (import.meta.env.DEV) {  }
 }
 
 // Initialize Firebase
@@ -62,17 +57,13 @@ try {
         connectAuthEmulator(auth, 'http://localhost:9099');
       } catch (error) {
         // Emulator connection might fail if already connected
-        if (import.meta.env.DEV) {
-          console.log('Firebase emulator connection info:', error.message);
-        }
+        if (import.meta.env.DEV) {        }
       }
     }
   }
 } catch (error) {
   // Log Firebase initialization errors for debugging
-  if (import.meta.env.DEV) {
-    console.error('Error initializing Firebase:', error);
-  }
+  if (import.meta.env.DEV) {  }
 }
 
 export { db, auth, app };

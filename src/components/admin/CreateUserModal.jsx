@@ -1,31 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Lock, 
-  Building, 
-  MapPin, 
-  UserPlus,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  AlertCircle
-} from 'lucide-react';
-import GeographicSelector from '@/components/ui/GeographicSelector';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const CreateUserModal = ({ isOpen, onClose, onUserCreated, userType }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -241,11 +214,7 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated, userType }) => {
         },
         is_active: true,
         verification_status: 'verified' // Auto-vérifié car créé par admin
-      };
-
-      console.log("Création utilisateur:", formData.type, userData);
-
-      // Créer l'utilisateur
+      };      // Créer l'utilisateur
       let newUser;
       
       // Normaliser le type d'utilisateur (première lettre en majuscule)
@@ -279,9 +248,7 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated, userType }) => {
       onClose();
       resetForm();
 
-    } catch (error) {
-      console.error('Erreur création utilisateur:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: error.message || "Impossible de créer l'utilisateur. Vérifiez que l'email n'existe pas déjà."

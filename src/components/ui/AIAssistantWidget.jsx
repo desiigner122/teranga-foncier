@@ -1,32 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from "@/components/ui/use-toast";
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bot, 
-  Send, 
-  Mic, 
-  MicOff, 
-  Loader2, 
-  CheckCircle, 
-  AlertTriangle, 
-  Info,
-  Trash2,
-  Edit,
-  Search,
-  FileText,
-  TrendingUp,
-  Calendar,
-  Bell
-} from 'lucide-react';
-import { aiAssistant } from '@/lib/aiAssistant';
-import { useAuth } from '@/context/AuthContext';
-
 const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
   const { toast } = useToast();
   const { profile } = useAuth();
@@ -90,7 +62,7 @@ const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
 
       setConversation(prev => [...prev, aiMessage]);
 
-      // Exécution de l'action si confiance suffisante
+      // ExÃ©cution de l'action si confiance suffisante
       if (aiResponse.confidence > 0.7 && aiResponse.action !== 'ERROR') {
         try {
           const result = await aiAssistant.executeAction(aiResponse, profile?.role);
@@ -105,13 +77,13 @@ const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
 
           setConversation(prev => [...prev, successMessage]);
 
-          // Callback pour mettre à jour le dashboard parent
+          // Callback pour mettre Ã© jour le dashboard parent
           if (onAction) {
             onAction(aiResponse.action, result);
           }
 
           toast({
-            title: "Action exécutée",
+            title: "Action exÃ©cutÃ©e",
             description: result.message,
           });
 
@@ -127,7 +99,7 @@ const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
 
           toast({
             variant: "destructive",
-            title: "Erreur d'exécution",
+            title: "Erreur d'exÃ©cution",
             description: executionError.message,
           });
         }
@@ -135,20 +107,17 @@ const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
         const clarificationMessage = {
           id: Date.now() + 2,
           type: 'clarification',
-          content: "Je ne suis pas sûr de comprendre votre demande. Pouvez-vous la reformuler ?",
+          content: "Je ne suis pas sÃ©r de comprendre votre demande. Pouvez-vous la reformuler ?",
           timestamp: new Date()
         };
 
         setConversation(prev => [...prev, clarificationMessage]);
       }
 
-    } catch (error) {
-      console.error('Erreur IA:', error);
-      
-      const errorMessage = {
+    } catch (error) {      const errorMessage = {
         id: Date.now() + 1,
         type: 'error',
-        content: 'Désolé, je ne peux pas traiter votre demande pour le moment.',
+        content: 'DÃ©solÃ©, je ne peux pas traiter votre demande pour le moment.',
         timestamp: new Date()
       };
 
@@ -192,8 +161,8 @@ const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
     } else {
       toast({
         variant: "destructive",
-        title: "Non supporté",
-        description: "La reconnaissance vocale n'est pas supportée par votre navigateur",
+        title: "Non supportÃ©",
+        description: "La reconnaissance vocale n'est pas supportÃ©e par votre navigateur",
       });
     }
   };
@@ -264,7 +233,7 @@ const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
               </Badge>
             </DialogTitle>
             <DialogDescription>
-              Votre assistant intelligent pour la gestion foncière
+              Votre assistant intelligent pour la gestion fonciÃ©re
             </DialogDescription>
           </DialogHeader>
 

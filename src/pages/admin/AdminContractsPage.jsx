@@ -1,18 +1,5 @@
 // src/pages/admin/AdminContractsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileText, Download, Search, Eye } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { jsPDF } from "jspdf";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from '@/components/ui/badge';
-
 const AdminContractsPage = () => {
   const { toast } = useToast();
   const { data: contracts, loading: contractsLoading, error: contractsError, refetch } = useRealtimeTable();

@@ -39,9 +39,6 @@ export function RealtimeProvider({ children }) {
 
   const initializeUserData = async () => {
     if (!user) return;
-
-    console.log('[RealtimeContext] Initialisation données utilisateur');
-
     try {
       // Charger les données essentielles selon le type d'utilisateur
       const loadPromises = [];
@@ -140,20 +137,14 @@ export function RealtimeProvider({ children }) {
 
       // Attendre le chargement
       await Promise.allSettled(loadPromises);
-      
-      console.log('[RealtimeContext] Données utilisateur chargées');
       setConnected(true);
 
     } catch (error) {
-      console.error('[RealtimeContext] Erreur initialisation:', error);
     }
   };
 
   const invalidateUserData = async () => {
     if (!user) return;
-    
-    console.log('[RealtimeContext] Invalidation données utilisateur');
-    
     // Invalider selon le type d'utilisateur
     const invalidatePromises = [];
     
@@ -176,7 +167,6 @@ export function RealtimeProvider({ children }) {
   };
 
   const refreshAll = async () => {
-    console.log('[RealtimeContext] Refresh complet');
     await realtimeStore.invalidateAll();
   };
 

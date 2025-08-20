@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 
+import { supabase } from '../lib/supabaseClient';
 class AIAssistantService {
   constructor() {
     this.apiEndpoint = process.env.REACT_APP_AI_API_ENDPOINT || 'https://api.openai.com/v1';
@@ -50,9 +51,7 @@ class AIAssistantService {
       });
 
       return JSON.parse(response.choices[0].message.content);
-    } catch (error) {
-      console.error('Erreur IA:', error);
-      return {
+    } catch (error) {      return {
         action: 'ERROR',
         parameters: {},
         confidence: 0,
@@ -100,9 +99,7 @@ class AIAssistantService {
         default:
           throw new Error(`Action non supportée: ${action}`);
       }
-    } catch (error) {
-      console.error('Erreur exécution action:', error);
-      throw error;
+    } catch (error) {      throw error;
     }
   }
 

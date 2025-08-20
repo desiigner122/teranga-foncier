@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,9 +30,8 @@ const BlogPage = () => {
 
         if (error) throw error;
 
-        setBlogPosts(posts || []);
+        setBlogPosts(posts || [data, error]);
       } catch (error) {
-        console.error('Erreur chargement blog:', error);
         // En cas d'erreur, utiliser des données de démonstration
         setBlogPosts([
           {

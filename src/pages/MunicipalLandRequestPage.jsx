@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,17 +8,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Landmark, Send, UploadCloud, CheckCircle2, ArrowLeft, ArrowRight, FileText, Info } from 'lucide-react';
+import { Landmark, Send, UploadCloud, CheckCircle2, ArrowLeft, ArrowRight, FileText, Info, MapPin } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { SupabaseDataService } from '@/services/supabaseDataService';
-
 const MunicipalLandRequestPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
-  const [step, setStep] = useState(1); // 1: localisation, 2: details, 3: documents, 4: rÈvision
+  const [step, setStep] = useState(1); // 1: localisation, 2: details, 3: documents, 4: r√©vision
   const [formData, setFormData] = useState({
     region: '',
     department: '',
@@ -49,7 +48,7 @@ const MunicipalLandRequestPage = () => {
       try {
         const regs = await SupabaseDataService.listRegions();
         if (active) setRegions(regs.map(r=> r.name || r.code || r.id));
-      } catch (e){ if (active) setGeoError('Erreur chargement rÈgions'); }
+      } catch (e){ if (active) setGeoError('Erreur chargement r√©gions'); }
       finally { if (active) setGeoLoading(false); }
     })();
     return ()=>{ active=false; };
@@ -118,7 +117,7 @@ const MunicipalLandRequestPage = () => {
         return;
       }
       if (!ACCEPTED_TYPES.includes(f.type)) {
-        errors.push({ name:f.name, error:'Type non autorisÈ (PDF, JPG, PNG)' });
+        errors.push({ name:f.name, error:'Type non autoris√© (PDF, JPG, PNG)' });
         return;
       }
       accepted.push(f);
@@ -156,9 +155,9 @@ const MunicipalLandRequestPage = () => {
     }
     setIsSubmitting(true);
     try {
-      // Upload des fichiers un par un (simple sÈquentiel pour MVP)
+      // Upload des fichiers un par un (simple s√©quentiel pour MVP)
       setUploading(true); setProgress(0);
-      // Upload parallËle avec suivi simple (incrÈmente sur chaque rÈsolution)
+      // Upload parall√©le avec suivi simple (incr√©mente sur chaque r√©solution)
       let completed = 0; const total = files.length || 1;
       const uploadedDocIds = [];
       await Promise.allSettled(files.map(async f => {
@@ -166,7 +165,6 @@ const MunicipalLandRequestPage = () => {
           const doc = await SupabaseDataService.uploadDocument(user.id, f);
           if (doc?.id) uploadedDocIds.push(doc.id);
         } catch (err) {
-          console.warn('Echec upload fichier', f.name, err.message||err);
         } finally {
           completed +=1; setProgress(Math.round((completed/total)*100));
         }
@@ -186,11 +184,10 @@ const MunicipalLandRequestPage = () => {
         autoResolveMairie: true
       });
       setMairieResolvedId(created.mairie_id || null);
-      toast({ title:'Demande soumise', description:`RÈfÈrence ${created.reference}`, className:'bg-green-600 text-white' });
+      toast({ title:'Demande soumise', description:`R√©f√©rence ${created.reference}`, className:'bg-green-600 text-white' });
       navigate('/my-requests');
     } catch (err) {
-      console.error(err);
-      toast({ title:'Erreur', description:'Impossible de crÈer la demande. RÈessayez.', variant:'destructive' });
+      toast({ title:'Erreur', description:'Impossible de cr√©er la demande. R√©essayez.', variant:'destructive' });
       setIsSubmitting(false);
     }
   };
@@ -207,7 +204,7 @@ const MunicipalLandRequestPage = () => {
           <Landmark className="h-12 w-12 mx-auto mb-3 text-primary" />
           <CardTitle className="text-3xl font-bold text-foreground">Demande de Terrain Communal</CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
-            SÈlectionnez la localisation, prÈcisez votre projet et joignez vos piËces justificatives.
+            S√©lectionnez la localisation, pr√©cisez votre projet et joignez vos pi√©ces justificatives.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -222,20 +219,20 @@ const MunicipalLandRequestPage = () => {
               ))}
             </div>
 
-            {/* …tape 1: Localisation */}
+            {/* √©tape 1: Localisation */}
             {step === 1 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Localisation</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <Label>RÈgion</Label>
+                    <Label>R√©gion</Label>
                     <Select value={formData.region} onValueChange={v=>handleSelectChange('region', v)}>
                       <SelectTrigger className="h-11"><SelectValue placeholder="Choisir" /></SelectTrigger>
                       <SelectContent>{regions.map(r=><SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>DÈpartement</Label>
+                    <Label>D√©partement</Label>
                     <Select value={formData.department} onValueChange={v=>handleSelectChange('department', v)} disabled={!formData.region}>
                       <SelectTrigger className="h-11"><SelectValue placeholder="Choisir" /></SelectTrigger>
                       <SelectContent>{departments.map(d=><SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
@@ -255,27 +252,27 @@ const MunicipalLandRequestPage = () => {
               </div>
             )}
 
-            {/* …tape 2: DÈtails */}
+            {/* √©tape 2: D√©tails */}
             {step === 2 && (
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> DÈtails de la Demande</h3>
+                <h3 className="text-xl font-semibold flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> D√©tails de la Demande</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label>Type de demande</Label>
                     <Select value={formData.requestType} onValueChange={v=>handleSelectChange('requestType', v)}>
-                      <SelectTrigger className="h-11"><SelectValue placeholder="SÈlectionnez" /></SelectTrigger>
+                      <SelectTrigger className="h-11"><SelectValue placeholder="S√©lectionnez" /></SelectTrigger>
                       <SelectContent>{requestTypes.map(rt=> <SelectItem key={rt} value={rt}>{rt}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>Superficie souhaitÈe (m≤)</Label>
+                    <Label>Superficie souhait√©e (m√©)</Label>
                     <Input type="number" name="areaSqm" value={formData.areaSqm} onChange={handleInputChange} placeholder="Ex: 300" className="h-11" />
                   </div>
                 </div>
                 <div>
                   <Label>Motivation / Description du projet</Label>
-                  <Textarea name="message" value={formData.message} onChange={handleInputChange} rows={6} placeholder="Expliquez votre projet, l'usage prÈvu, l'impact Èconomique/social..." />
-                  <p className="text-xs text-muted-foreground mt-1">Minimum 20 caractËres.</p>
+                  <Textarea name="message" value={formData.message} onChange={handleInputChange} rows={6} placeholder="Expliquez votre projet, l'usage pr√©vu, l'impact √©conomique/social..." />
+                  <p className="text-xs text-muted-foreground mt-1">Minimum 20 caract√©res.</p>
                 </div>
                 <div className="flex justify-between">
                   <Button type="button" variant="outline" onClick={goPrev}><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Button>
@@ -284,20 +281,20 @@ const MunicipalLandRequestPage = () => {
               </div>
             )}
 
-            {/* …tape 3: Documents */}
+            {/* √©tape 3: Documents */}
             {step === 3 && (
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2"><UploadCloud className="h-5 w-5 text-primary" /> PiËces Jointes</h3>
-                <p className="text-sm text-muted-foreground">Ajoutez les documents requis (PDF, JPG, PNG, max 5MB). RecommandÈ: PiËce identitÈ, justificatif domicile, plan sommaire, financement.</p>
+                <h3 className="text-xl font-semibold flex items-center gap-2"><UploadCloud className="h-5 w-5 text-primary" /> Pi√©ces Jointes</h3>
+                <p className="text-sm text-muted-foreground">Ajoutez les documents requis (PDF, JPG, PNG, max 5MB). Recommand√©: Pi√©ce identit√©, justificatif domicile, plan sommaire, financement.</p>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md cursor-pointer hover:border-primary transition-colors border-border">
                   <div className="space-y-1 text-center">
                     <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
                     <div className="flex text-sm text-muted-foreground">
                       <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80">
-                        <span>SÈlectionnez des fichiers</span>
+                        <span>S√©lectionnez des fichiers</span>
                         <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple onChange={handleFileChange} />
                       </label>
-                      <p className="pl-1">ou glissez-dÈposez</p>
+                      <p className="pl-1">ou glissez-d√©posez</p>
                     </div>
                     <p className="text-xs text-muted-foreground">Max 5MB / fichier</p>
                     {fileErrors.length > 0 && (
@@ -330,24 +327,24 @@ const MunicipalLandRequestPage = () => {
               </div>
             )}
 
-            {/* …tape 4: RÈvision & Soumission */}
+            {/* √©tape 4: R√©vision & Soumission */}
             {step === 4 && (
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /> VÈrification Finale</h3>
+                <h3 className="text-xl font-semibold flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /> V√©rification Finale</h3>
                 <div className="bg-muted/40 rounded-md p-4 space-y-3 text-sm">
                   <div><strong>Localisation:</strong> {formData.commune}, {formData.department}, {formData.region}</div>
                   <div><strong>Type de demande:</strong> {formData.requestType}</div>
-                  <div><strong>Superficie demandÈe:</strong> {formData.areaSqm} m≤</div>
+                  <div><strong>Superficie demand√©e:</strong> {formData.areaSqm} m√©</div>
                   <div><strong>Motivation:</strong> {formData.message.slice(0, 200)}{formData.message.length>200 && '...'}</div>
                   <div><strong>Documents:</strong> {files.length} fichier(s) {files.length>0 && `(${files.map(f=>f.name).join(', ')})`}</div>
                 </div>
-                <p className="text-xs text-muted-foreground">En soumettant, vous acceptez le partage de ces informations avec la mairie concernÈe selon notre <Link to="/privacy" className="underline">politique de confidentialitÈ</Link>.</p>
+                <p className="text-xs text-muted-foreground">En soumettant, vous acceptez le partage de ces informations avec la mairie concern√©e selon notre <Link to="/privacy" className="underline">politique de confidentialit√©</Link>.</p>
                 {mairieResolvedId === null && isSubmitting && (
-                  <div className="text-xs text-muted-foreground flex items-center gap-2"><Info className="h-4 w-4"/> RÈsolution de la mairie associÈe en cours...</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2"><Info className="h-4 w-4"/> R√©solution de la mairie associ√©e en cours...</div>
                 )}
                 <div className="flex justify-between items-center">
                   <Button type="button" variant="outline" onClick={goPrev} disabled={isSubmitting}><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Button>
-                  <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-primary to-green-600 text-white">{isSubmitting ? (uploading ? 'TÈlÈversement...' : 'Envoi...') : <><Send className="mr-2 h-5 w-5" /> Soumettre la Demande</>}</Button>
+                  <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-primary to-green-600 text-white">{isSubmitting ? (uploading ? 'T√©l√©versement...' : 'Envoi...') : <><Send className="mr-2 h-5 w-5" /> Soumettre la Demande</>}</Button>
                 </div>
               </div>
             )}

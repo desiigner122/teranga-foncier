@@ -1,15 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Upload, CheckCircle2, XCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { supabase } from '@/lib/supabaseClient';
-
 /**
  * ParcelSubmissionModal
  * Permet à un vendeur de soumettre une nouvelle parcelle pour validation (anti-fraude) avant publication.
@@ -42,9 +31,16 @@ const ParcelSubmissionModal = ({ isOpen, onClose, owner, onSubmitted }) => {
   const refreshTimerRef = useRef(null);
   const [docsMetaState, setDocsMetaState] = useState([]); // keep latest signed URLs
 
+  // Fonction de défilement vers le bas ajoutée
+  const scrollToBottom = () => {
+    if (refreshTimerRef.current) {
+      refreshTimerRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   // Renew signed URLs every 45 minutes if modal stays open step 2
   useEffect(()=>{
-    if (isOpen && step===2 && docsMetaState.length>0) {
+    if (isOpen && step==2 && docsMetaState.length>0) {
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
       refreshTimerRef.current = setTimeout(async ()=>{
         try {
@@ -120,9 +116,7 @@ const ParcelSubmissionModal = ({ isOpen, onClose, owner, onSubmitted }) => {
       onSubmitted?.(submission);
       onClose();
       setStep(1); setForm({ reference:'', location:'', type:'terrain', surface:'', price:'', description:'' }); setDocuments([]);
-    } catch (e) {
-      console.error(e);
-      toast({ variant:'destructive', title:'Erreur', description:'Impossible de soumettre la parcelle' });
+    } catch (e) {      toast({ variant:'destructive', title:'Erreur', description:'Impossible de soumettre la parcelle' });
     } finally { setSubmitting(false); }
   };
 

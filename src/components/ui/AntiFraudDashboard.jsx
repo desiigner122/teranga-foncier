@@ -1,32 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Shield, 
-  AlertTriangle, 
-  Ban, 
-  Eye, 
-  FileX, 
-  Users, 
-  MapPin,
-  TrendingDown,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Info,
-  Zap
-} from 'lucide-react';
-import { antiFraudAI } from '@/lib/antiFraudAI';
-import { supabase } from '@/lib/supabaseClient';
-import { safeTableQuery } from '@/lib/tableUtils';
-
 const AntiFraudDashboard = ({ userRole, dashboardContext }) => {
   const { toast } = useToast();
   const { data: fraudAlerts, loading: fraudAlertsLoading, error: fraudAlertsError, refetch } = useRealtimeTable();
@@ -65,9 +37,7 @@ const AntiFraudDashboard = ({ userRole, dashboardContext }) => {
       setFraudAlerts(alerts || []);
       calculateStats(alerts || []);
 
-    } catch (error) {
-      console.error('Erreur chargement alertes:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -135,9 +105,7 @@ const AntiFraudDashboard = ({ userRole, dashboardContext }) => {
         description: `Alerte ${action === 'resolve' ? 'résolue' : action === 'escalate' ? 'escaladée' : 'mise à jour'}`,
       });
 
-    } catch (error) {
-      console.error('Erreur action alerte:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible d'exécuter l'action",
@@ -201,9 +169,7 @@ const AntiFraudDashboard = ({ userRole, dashboardContext }) => {
 
       return analysisResult;
 
-    } catch (error) {
-      console.error('Erreur analyse fraude:', error);
-      throw error;
+    } catch (error) {      throw error;
     }
   };
 

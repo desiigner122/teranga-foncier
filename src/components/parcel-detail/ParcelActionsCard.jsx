@@ -1,9 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Info, ShoppingCart, CalendarPlus, PercentSquare } from 'lucide-react';
-import InstallmentPaymentModal from '@/components/parcel-detail/InstallmentPaymentModal';
-
 const ParcelActionsCard = ({ parcel, onRequestInfo, onInitiateBuy, onRequestVisit }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 

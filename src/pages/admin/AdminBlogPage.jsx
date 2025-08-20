@@ -1,25 +1,7 @@
 // src/pages/admin/AdminBlogPage.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from '@/components/ui/use-toast';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { PlusCircle, Edit, Trash2, Search, FileText, Calendar, Image as ImageIcon } from 'lucide-react';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter // <-- CORRECTION ICI
-} from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabaseClient'; // Import nommé
+// Import nommé
 
 const AdminBlogPage = () => {
   const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();

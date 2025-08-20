@@ -1,14 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ShieldCheck, Search, RefreshCw, AlertTriangle, FileText } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useToast } from '@/components/ui/use-toast';
-
 // NOTE: Uses tables 'transactions' and 'notaire_dossiers'. Basic heuristic scoring.
 
 const DueDiligencePage = () => {

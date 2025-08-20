@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldAlert, FileCheck, UserCheck, Lock, SearchCheck, Gavel } from 'lucide-react';
+import { FileCheck, UserCheck, SearchCheck, Gavel } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';

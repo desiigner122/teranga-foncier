@@ -1,17 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { TrendingUp, PlusCircle, Search, DollarSign, Calendar, MapPin, BarChart3, Target } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const InvestmentsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -34,7 +21,7 @@ const InvestmentsPage = () => {
     try {
       setLoading(true);
 
-      // Récupérer les investissements (table 'investments' du schéma AI) rejoints sur parcels si FK (adapter selon schéma réel)
+      // RÃ©cupÃ©rer les investissements (table 'investments' du schÃ©ma AI) rejoints sur parcels si FK (adapter selon schÃ©ma rÃ©el)
       const { data: investmentData, error } = await supabase
         .from('investments')
         .select(`
@@ -44,17 +31,13 @@ const InvestmentsPage = () => {
         .eq('investor_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erreur chargement investissements:', error);
-      }
+      if (error && error.code !== 'PGRST116') {      }
 
       setInvestments(investmentData || []);
 
-  // Pas de génération d'exemples: on affiche simplement vide + CTA
+  // Pas de gÃ©nÃ©ration d'exemples: on affiche simplement vide + CTA
 
-    } catch (error) {
-      console.error('Erreur chargement investissements:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les investissements"
@@ -105,7 +88,7 @@ const InvestmentsPage = () => {
     switch (status) {
       case 'active': return 'Actif';
       case 'in_progress': return 'En cours';
-      case 'completed': return 'Terminé';
+      case 'completed': return 'TerminÃ©';
       case 'sold': return 'Vendu';
       default: return status;
     }
@@ -115,7 +98,7 @@ const InvestmentsPage = () => {
     switch (type) {
       case 'purchase': return 'Achat direct';
       case 'rental': return 'Investissement locatif';
-      case 'development': return 'Développement';
+      case 'development': return 'DÃ©veloppement';
       case 'flip': return 'Revente rapide';
       default: return type;
     }
@@ -125,7 +108,7 @@ const InvestmentsPage = () => {
     switch (strategy) {
       case 'value_appreciation': return 'Plus-value';
       case 'rental_income': return 'Revenus locatifs';
-      case 'development': return 'Développement';
+      case 'development': return 'DÃ©veloppement';
       case 'mixed': return 'Mixte';
       default: return strategy;
     }
@@ -150,7 +133,7 @@ const InvestmentsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* En-tête */}
+      {/* En-tÃ©te */}
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
@@ -251,7 +234,7 @@ const InvestmentsPage = () => {
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="active">Actif</SelectItem>
                   <SelectItem value="in_progress">En cours</SelectItem>
-                  <SelectItem value="completed">Terminé</SelectItem>
+                  <SelectItem value="completed">TerminÃ©</SelectItem>
                   <SelectItem value="sold">Vendu</SelectItem>
                 </SelectContent>
               </Select>
@@ -265,7 +248,7 @@ const InvestmentsPage = () => {
         <CardHeader>
           <CardTitle>Portefeuille d'Investissements</CardTitle>
           <CardDescription>
-            Détail de vos investissements immobiliers
+            DÃ©tail de vos investissements immobiliers
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -273,12 +256,12 @@ const InvestmentsPage = () => {
             <div className="text-center py-8">
               <TrendingUp className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {investments.length === 0 ? 'Aucun investissement' : 'Aucun résultat'}
+                {investments.length === 0 ? 'Aucun investissement' : 'Aucun rÃ©sultat'}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
                 {investments.length === 0 
                   ? 'Commencez votre premier investissement immobilier'
-                  : 'Essayez de modifier vos critères de recherche'
+                  : 'Essayez de modifier vos critÃ©res de recherche'
                 }
               </p>
             </div>
@@ -328,14 +311,14 @@ const InvestmentsPage = () => {
                         </div>
 
                         <div>
-                          <span className="text-gray-500">ROI annualisé:</span>
+                          <span className="text-gray-500">ROI annualisÃ©:</span>
                           <p className={`font-medium ${parseFloat(calculateAnnualizedROI(investment)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {calculateAnnualizedROI(investment)}%
                           </p>
                         </div>
 
                         <div>
-                          <span className="text-gray-500">Stratégie:</span>
+                          <span className="text-gray-500">StratÃ©gie:</span>
                           <p className="font-medium">{getStrategyLabel(investment.investment_strategy)}</p>
                         </div>
 

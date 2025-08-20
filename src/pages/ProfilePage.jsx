@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, KeyRound, Save, LogOut, ShieldCheck, Trash2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { User, KeyRound, Save, LogOut, ShieldCheck, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,7 +47,7 @@ const ProfilePage = () => {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) {
-      toast({ variant: "destructive", title: "Erreur", description: "Le nom et l'email ne peuvent pas être vides." });
+      toast({ variant: "destructive", title: "Erreur", description: "Le nom et l'email ne peuvent pas Ã©tre vides." });
       return;
     }
     setIsUpdatingProfile(true);
@@ -57,10 +57,9 @@ const ProfilePage = () => {
       const updatedUserData = { name, phone }; 
       await updateUserProfile({ data: updatedUserData }); // Supabase data update method for metadata
 
-      toast({ title: "Profil mis à jour", description: "Vos informations ont été sauvegardées avec succès." });
+      toast({ title: "Profil mis Ã© jour", description: "Vos informations ont Ã©tÃ© sauvegardÃ©es avec succÃ©s." });
     } catch (error) {
-      console.error("Error updating profile:", error);
-      toast({ variant: "destructive", title: "Erreur de mise à jour", description: error.message });
+      toast({ variant: "destructive", title: "Erreur de mise Ã© jour", description: error.message });
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -73,19 +72,18 @@ const ProfilePage = () => {
       return;
     }
     if (!newPassword) { // Current password check happens on backend
-       toast({ variant: "destructive", title: "Erreur", description: "Le nouveau mot de passe ne peut pas être vide." });
+       toast({ variant: "destructive", title: "Erreur", description: "Le nouveau mot de passe ne peut pas Ã©tre vide." });
        return;
     }
     setIsUpdatingPassword(true);
     try {
       await updateUserProfile({ password: newPassword }); // Supabase password update method
-      toast({ title: "Mot de passe mis à jour", description: "Votre mot de passe a été changé avec succès." });
+      toast({ title: "Mot de passe mis Ã© jour", description: "Votre mot de passe a Ã©tÃ© changÃ© avec succÃ©s." });
       setCurrentPassword(''); // Clear current password for security if it was displayed/used
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (error) {
-      console.error("Error updating password:", error);
-      toast({ variant: "destructive", title: "Erreur de mise à jour du mot de passe", description: error.message });
+      toast({ variant: "destructive", title: "Erreur de mise Ã© jour du mot de passe", description: error.message });
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -93,7 +91,7 @@ const ProfilePage = () => {
   
   const handleLogout = async () => {
     await logout();
-    toast({ title: "Déconnexion réussie", description: "Vous avez été déconnecté." });
+    toast({ title: "DÃ©connexion rÃ©ussie", description: "Vous avez Ã©tÃ© dÃ©connectÃ©." });
     navigate('/');
   };
   
@@ -102,7 +100,7 @@ const ProfilePage = () => {
      // For now, simulate and inform user.
      toast({
   title: "Suppression de Compte",
-        description: "?? La suppression de compte n'est pas encore entièrement fonctionnelle. Cette action sera irréversible.",
+        description: "?? La suppression de compte n'est pas encore entiÃ©rement fonctionnelle. Cette action sera irrÃ©versible.",
         variant: "warning",
         duration: 5000,
      });
@@ -130,7 +128,7 @@ const ProfilePage = () => {
         <Card className="shadow-lg hover:shadow-primary/10 transition-shadow">
           <CardHeader>
             <CardTitle className="text-xl flex items-center"><User className="mr-2 h-5 w-5 text-primary"/>Informations Personnelles</CardTitle>
-            <CardDescription>Mettez à jour vos informations de profil.</CardDescription>
+            <CardDescription>Mettez Ã© jour vos informations de profil.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleProfileUpdate} className="space-y-4">
@@ -144,11 +142,11 @@ const ProfilePage = () => {
                 <p className="text-xs text-muted-foreground">Pour changer d'email, veuillez contacter le support.</p>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="profile-phone">Numéro de Téléphone</Label>
+                <Label htmlFor="profile-phone">NumÃ©ro de TÃ©lÃ©phone</Label>
                 <Input id="profile-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isUpdatingProfile} placeholder="+221 XX XXX XX XX" className="h-10"/>
               </div>
               <Button type="submit" disabled={isUpdatingProfile} className="w-full sm:w-auto">
-                <Save className="mr-2 h-4 w-4" /> {isUpdatingProfile ? 'Mise à jour en cours...' : 'Sauvegarder les Modifications'}
+                <Save className="mr-2 h-4 w-4" /> {isUpdatingProfile ? 'Mise Ã© jour en cours...' : 'Sauvegarder les Modifications'}
               </Button>
             </form>
           </CardContent>
@@ -159,21 +157,21 @@ const ProfilePage = () => {
         <Card className="shadow-lg hover:shadow-primary/10 transition-shadow">
           <CardHeader>
             <CardTitle className="text-xl flex items-center"><KeyRound className="mr-2 h-5 w-5 text-primary"/>Changer le Mot de Passe</CardTitle>
-            <CardDescription>Pour votre sécurité, choisissez un mot de passe fort.</CardDescription>
+            <CardDescription>Pour votre sÃ©curitÃ©, choisissez un mot de passe fort.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePasswordUpdate} className="space-y-4">
                {/* For Supabase, current password is not needed on client if user is authenticated */}
               <div className="grid gap-2">
                 <Label htmlFor="new-password">Nouveau Mot de Passe</Label>
-                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={isUpdatingPassword} required className="h-10" placeholder="Minimum 8 caractères"/>
+                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={isUpdatingPassword} required className="h-10" placeholder="Minimum 8 caractÃ©res"/>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="confirm-new-password">Confirmer le Nouveau Mot de Passe</Label>
                 <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} disabled={isUpdatingPassword} required className="h-10" placeholder="Retapez votre nouveau mot de passe"/>
               </div>
               <Button type="submit" disabled={isUpdatingPassword} className="w-full sm:w-auto">
-                <ShieldCheck className="mr-2 h-4 w-4" /> {isUpdatingPassword ? 'Mise à jour en cours...' : 'Changer le Mot de Passe'}
+                <ShieldCheck className="mr-2 h-4 w-4" /> {isUpdatingPassword ? 'Mise Ã© jour en cours...' : 'Changer le Mot de Passe'}
               </Button>
             </form>
           </CardContent>
@@ -182,7 +180,7 @@ const ProfilePage = () => {
 
       <motion.div variants={cardVariants} className="space-y-4 pt-6 border-t">
          <Button onClick={handleLogout} variant="outline" className="w-full sm:w-auto">
-           <LogOut className="mr-2 h-4 w-4" /> Se Déconnecter
+           <LogOut className="mr-2 h-4 w-4" /> Se DÃ©connecter
          </Button>
          
          <AlertDialog>
@@ -193,9 +191,9 @@ const ProfilePage = () => {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+              <AlertDialogTitle>Ã©tes-vous absolument sÃ©r ?</AlertDialogTitle>
               <AlertDialogDescription>
-                Cette action est irréversible et supprimera définitivement votre compte et toutes vos données associées de Teranga Foncier.
+                Cette action est irrÃ©versible et supprimera dÃ©finitivement votre compte et toutes vos donnÃ©es associÃ©es de Teranga Foncier.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

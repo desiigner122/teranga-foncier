@@ -1,10 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MapPin } from 'lucide-react';
-
 const ParcelsHeroSearch = ({ onSearch, initialFilters }) => {
   const [search, setSearch] = useState(initialFilters.search || '');
   const [zone, setZone] = useState(initialFilters.zone || 'all');

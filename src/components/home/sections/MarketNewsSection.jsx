@@ -1,12 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarDays, TrendingUp } from 'lucide-react';
-// Importation de import { supabase } from '@/lib/supabaseClient'; // Assurez-vous que ce chemin est import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useToast } from '@/components/ui/use-toast';
-
 const MarketNewsSection = () => {
   const { data: newsItems, loading: newsItemsLoading, error: newsItemsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -33,9 +25,7 @@ const MarketNewsSection = () => {
           throw error;
         }
 
-        if (data.length === 0) {
-            console.warn("Aucune actualité du marché foncier trouvée dans la base de données. Affichage de données par défaut.");
-            // Optionnel: charger des données mockées si la DB est vide
+        if (data.length === 0) {            // Optionnel: charger des données mockées si la DB est vide
             setNewsItems([
                 { id: 'mn1', title: 'Titre Foncier vs Bail vs Délibération', published_at: '2025-07-01', excerpt: 'Une explication claire des documents fonciers au Sénégal.', category: 'Juridique', slug: '/blog/titre-foncier-bail-deliberation', image_url: 'https://images.unsplash.com/photo-1667118300849-1872d823219f' },
                 { id: 'mn2', title: 'Les Zones d\'Avenir pour l\'Investissement Foncier à Dakar', published_at: '2025-06-21', excerpt: 'Explorez les quartiers émergents offrant les meilleures opportunités.', category: 'Marché Immobilier', slug: '/blog/zones-avenir-investissement-dakar', image_url: 'https://images.unsplash.com/photo-1667118300849-1872d823219f' },
@@ -53,9 +43,7 @@ const MarketNewsSection = () => {
                 description: `Actualité du marché immobilier au Sénégal: ${post.title}`
             })));
         }
-      } catch (error) {
-        console.error("Erreur lors de la récupération des actualités du marché:", error.message);
-        toast({
+      } catch (error) {        toast({
           title: "Erreur",
           description: "Impossible de charger les actualités du marché. Veuillez réessayer plus tard.",
           variant: "destructive",

@@ -1,20 +1,5 @@
 // src/pages/VerificationPage.jsx
 import React, { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from "@/components/ui/use-toast";
-import { Upload, AlertCircle, CheckCircle, Camera, FileText, Shield, Clock } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Helmet } from 'react-helmet-async';
-
 const VerificationPage = () => {
   const [frontFile, setFrontFile] = useState(null);
   const [backFile, setBackFile] = useState(null);
@@ -28,6 +13,13 @@ const VerificationPage = () => {
   const navigate = useNavigate();
   const frontInputRef = useRef(null);
   const backInputRef = useRef(null);
+
+  // Fonction de d√©filement vers le bas
+  const scrollToBottom = () => {
+    if (frontInputRef.current) {
+      frontInputRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
@@ -86,14 +78,14 @@ const VerificationPage = () => {
     const bucket = 'identity-documents';
     const { data: existing, error: listError } = await supabase.storage.from(bucket).list(user.id, { limit: 1 });
     if (listError && listError.message?.toLowerCase().includes('not found')) {
-      throw new Error("Le bucket 'identity-documents' n'existe pas dans Supabase. CrÈez-le dans Storage (public ou privÈ) puis rÈessayez.");
+      throw new Error("Le bucket 'identity-documents' n'existe pas dans Supabase. Cr√©ez-le dans Storage (public ou priv√©) puis r√©essayez.");
     }
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(fileName, file, { upsert: false });
     if (uploadError) {
       if (uploadError.message?.toLowerCase().includes('bucket')) {
-        throw new Error("Erreur bucket: vÈrifiez le nom 'identity-documents' et les policies (INSERT pour authenticated).");
+        throw new Error("Erreur bucket: v√©rifiez le nom 'identity-documents' et les policies (INSERT pour authenticated).");
       }
       throw uploadError;
     }
@@ -108,7 +100,7 @@ const VerificationPage = () => {
 
     try {
       if (!frontFile || !backFile) {
-        throw new Error("Veuillez fournir les deux cÙtÈs de votre carte d'identitÈ.");
+        throw new Error("Veuillez fournir les deux c√©t√©s de votre carte d'identit√©.");
       }
 
       setStep(2); // Moving to upload step
@@ -132,8 +124,8 @@ const VerificationPage = () => {
       setStep(3); // Success step
       
       toast({ 
-        title: "Documents envoyÈs !", 
-        description: "Votre demande est en attente de vÈrification." 
+        title: "Documents envoy√©s !", 
+        description: "Votre demande est en attente de v√©rification." 
       });
 
       // Auto redirect after 3 seconds
@@ -162,7 +154,7 @@ const VerificationPage = () => {
     return (
       <>
         <Helmet>
-          <title>VÈrification ComplËte - Teranga Foncier</title>
+          <title>V√©rification Compl√©te - Teranga Foncier</title>
         </Helmet>
         <motion.div 
           initial={{ opacity: 0 }} 
@@ -173,16 +165,16 @@ const VerificationPage = () => {
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2">
                 <CheckCircle className="h-6 w-6 text-green-500" />
-                VÈrification ComplËte
+                V√©rification Compl√©te
               </CardTitle>
-              <CardDescription>Votre compte est dÈj‡ vÈrifiÈ et opÈrationnel.</CardDescription>
+              <CardDescription>Votre compte est d√©j√© v√©rifi√© et op√©rationnel.</CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <div className="p-4 bg-green-50 rounded-lg">
                 <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4"/>
-                <p className="text-green-700 font-medium">Statut: VÈrifiÈ</p>
+                <p className="text-green-700 font-medium">Statut: V√©rifi√©</p>
                 <p className="text-sm text-green-600 mt-2">
-                  Vous avez accËs ‡ toutes les fonctionnalitÈs de la plateforme.
+                  Vous avez acc√©s √© toutes les fonctionnalit√©s de la plateforme.
                 </p>
               </div>
               <Button onClick={() => navigate('/dashboard')} className="w-full">
@@ -198,7 +190,7 @@ const VerificationPage = () => {
   return (
     <>
       <Helmet>
-        <title>VÈrification d'IdentitÈ - Teranga Foncier</title>
+        <title>V√©rification d'Identit√© - Teranga Foncier</title>
       </Helmet>
       
       <motion.div 
@@ -236,11 +228,11 @@ const VerificationPage = () => {
               <CardHeader className="text-center">
                 <CardTitle className="flex items-center justify-center gap-2">
                   <Shield className="h-6 w-6" />
-                  VÈrification d'IdentitÈ
+                  V√©rification d'Identit√©
                 </CardTitle>
                 <CardDescription>
-                  Pour sÈcuriser votre compte et accÈder ‡ toutes les fonctionnalitÈs, 
-                  veuillez soumettre une photo recto-verso de votre carte d'identitÈ.
+                  Pour s√©curiser votre compte et acc√©der √© toutes les fonctionnalit√©s, 
+                  veuillez soumettre une photo recto-verso de votre carte d'identit√©.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -251,10 +243,10 @@ const VerificationPage = () => {
                     <AlertDescription>
                       <strong>Instructions importantes :</strong>
                       <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                        <li>Utilisez un Èclairage optimal et Èvitez les reflets</li>
+                        <li>Utilisez un √©clairage optimal et √©vitez les reflets</li>
                         <li>Assurez-vous que tous les textes sont lisibles</li>
-                        <li>Formats acceptÈs : JPG, PNG, WebP (max 5 MB)</li>
-                        <li>Les informations doivent correspondre ‡ votre profil</li>
+                        <li>Formats accept√©s : JPG, PNG, WebP (max 5 MB)</li>
+                        <li>Les informations doivent correspondre √© votre profil</li>
                       </ul>
                     </AlertDescription>
                   </Alert>
@@ -262,14 +254,14 @@ const VerificationPage = () => {
                   {/* Front Card Upload */}
                   <div className="space-y-3">
                     <Label htmlFor="front" className="text-base font-medium">
-                      Recto de la carte d'identitÈ *
+                      Recto de la carte d'identit√© *
                     </Label>
                     <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
                       {frontPreview ? (
                         <div className="space-y-4">
                           <img 
                             src={frontPreview} 
-                            alt="AperÁu recto" 
+                            alt="Aper√©u recto" 
                             className="max-w-full h-48 object-contain mx-auto rounded-lg border"
                           />
                           <div className="flex gap-2 justify-center">
@@ -306,7 +298,7 @@ const VerificationPage = () => {
                             </Button>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Photographiez le recto de votre carte d'identitÈ
+                            Photographiez le recto de votre carte d'identit√©
                           </p>
                         </div>
                       )}
@@ -327,14 +319,14 @@ const VerificationPage = () => {
                   {/* Back Card Upload */}
                   <div className="space-y-3">
                     <Label htmlFor="back" className="text-base font-medium">
-                      Verso de la carte d'identitÈ *
+                      Verso de la carte d'identit√© *
                     </Label>
                     <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
                       {backPreview ? (
                         <div className="space-y-4">
                           <img 
                             src={backPreview} 
-                            alt="AperÁu verso" 
+                            alt="Aper√©u verso" 
                             className="max-w-full h-48 object-contain mx-auto rounded-lg border"
                           />
                           <div className="flex gap-2 justify-center">
@@ -371,7 +363,7 @@ const VerificationPage = () => {
                             </Button>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Photographiez le verso de votre carte d'identitÈ
+                            Photographiez le verso de votre carte d'identit√©
                           </p>
                         </div>
                       )}
@@ -424,7 +416,7 @@ const VerificationPage = () => {
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
                 <h3 className="text-xl font-semibold mb-2">Envoi en cours...</h3>
                 <p className="text-muted-foreground">
-                  Vos documents sont en cours d'envoi sÈcurisÈ. Veuillez patienter.
+                  Vos documents sont en cours d'envoi s√©curis√©. Veuillez patienter.
                 </p>
               </CardContent>
             </Card>
@@ -434,22 +426,22 @@ const VerificationPage = () => {
             <Card className="shadow-xl">
               <CardContent className="text-center py-12">
                 <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
-                <h3 className="text-xl font-semibold mb-2">Documents envoyÈs avec succËs !</h3>
+                <h3 className="text-xl font-semibold mb-2">Documents envoy√©s avec succ√©s !</h3>
                 <p className="text-muted-foreground mb-6">
-                  Votre demande de vÈrification a ÈtÈ soumise. Notre Èquipe examinera vos documents 
-                  dans les plus brefs dÈlais.
+                  Votre demande de v√©rification a √©t√© soumise. Notre √©quipe examinera vos documents 
+                  dans les plus brefs d√©lais.
                 </p>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                   <div className="flex items-center justify-center gap-2 text-yellow-700">
                     <Clock className="h-5 w-5" />
-                    <span className="font-medium">En attente de vÈrification</span>
+                    <span className="font-medium">En attente de v√©rification</span>
                   </div>
                   <p className="text-sm text-yellow-600 mt-2">
-                    DÈlai habituel : 24-48 heures ouvrÈes
+                    D√©lai habituel : 24-48 heures ouvr√©es
                   </p>
                 </div>
                 <Button onClick={() => navigate('/dashboard')} className="w-full">
-                  AccÈder au tableau de bord
+                  Acc√©der au tableau de bord
                 </Button>
               </CardContent>
             </Card>
@@ -466,10 +458,10 @@ const VerificationPage = () => {
                     profile.verification_status === 'pending' ? 'secondary' :
                     'destructive'
                   }>
-                    {profile.verification_status === 'verified' && 'VÈrifiÈ'}
+                    {profile.verification_status === 'verified' && 'V√©rifi√©'}
                     {profile.verification_status === 'pending' && 'En attente'}
-                    {profile.verification_status === 'rejected' && 'RejetÈ'}
-                    {!['verified', 'pending', 'rejected'].includes(profile.verification_status) && 'Non vÈrifiÈ'}
+                    {profile.verification_status === 'rejected' && 'Rejet√©'}
+                    {!['verified', 'pending', 'rejected'].includes(profile.verification_status) && 'Non v√©rifi√©'}
                   </Badge>
                 </div>
               </CardContent>

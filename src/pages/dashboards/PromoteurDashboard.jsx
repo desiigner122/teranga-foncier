@@ -1,53 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
-import { Alert, AlertDescription } from '../../components/ui/alert';
-import { 
-  LayoutDashboard, 
-  Building,
-  ClipboardList,
-  DollarSign,
-  Users,
-  Calendar,
-  Wrench,
-  FileText,
-  TrendingUp,
-  MapPin,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Plus,
-  BarChart3,
-  Target,
-  PieChart as PieChartIcon,
-  Brain,
-  Zap,
-  Shield,
-  Activity,
-  Settings,
-  Eye,
-  Star,
-  Truck,
-  HardHat
-} from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Cell, AreaChart, Area } from 'recharts';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import AIAssistantWidget from '../../components/ui/AIAssistantWidget';
-import AntiFraudDashboard from '../../components/ui/AntiFraudDashboard';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { hybridAI } from '../../lib/hybridAI';
-import { antiFraudAI } from '../../lib/antiFraudAI';
-
 const PromoteurDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  // Loading géré par le hook temps réel
+  // Loading gÃ©rÃ© par le hook temps rÃ©el
   const { data: projects, loading: projectsLoading, error: projectsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -69,7 +24,7 @@ const PromoteurDashboard = () => {
     try {
       setLoading(true);
 
-      // Récupérer les projets du promoteur avec détails complets
+      // RÃ©cupÃ©rer les projets du promoteur avec dÃ©tails complets
       const { data: projectsData, error: projectsError } = await supabase
         .from('development_projects')
         .select(`
@@ -91,7 +46,7 @@ const PromoteurDashboard = () => {
 
       if (projectsError) throw projectsError;
 
-      // Récupérer les ventes liées aux projets avec détails
+      // RÃ©cupÃ©rer les ventes liÃ©es aux projets avec dÃ©tails
       const { data: salesData, error: salesError } = await supabase
         .from('project_sales')
         .select(`
@@ -103,7 +58,7 @@ const PromoteurDashboard = () => {
 
       if (salesError) throw salesError;
 
-      // Récupérer les phases de construction
+      // RÃ©cupÃ©rer les phases de construction
       const { data: constructionData, error: constructionError } = await supabase
         .from('construction_phases')
         .select('*')
@@ -111,7 +66,7 @@ const PromoteurDashboard = () => {
 
       if (constructionError) throw constructionError;
 
-      // Récupérer les fournisseurs/contractants
+      // RÃ©cupÃ©rer les fournisseurs/contractants
       const { data: suppliersData, error: suppliersError } = await supabase
         .from('project_suppliers')
         .select(`
@@ -122,10 +77,10 @@ const PromoteurDashboard = () => {
 
       if (suppliersError) throw suppliersError;
 
-      // Calculer les statistiques avancées
+      // Calculer les statistiques avancÃ©es
       const totalProjects = projectsData?.length || 0;
       const activeProjects = projectsData?.filter(p => p.status === 'active' || p.status === 'En cours').length || 0;
-      const completedProjects = projectsData?.filter(p => p.status === 'completed' || p.status === 'Terminé').length || 0;
+      const completedProjects = projectsData?.filter(p => p.status === 'completed' || p.status === 'TerminÃ©').length || 0;
       const totalRevenue = salesData?.reduce((sum, sale) => sum + (sale.amount || 0), 0) || 0;
       const totalUnits = projectsData?.reduce((sum, p) => sum + (p.total_units || 0), 0) || 0;
       const soldUnits = salesData?.length || 0;
@@ -135,13 +90,13 @@ const PromoteurDashboard = () => {
       const totalSpent = constructionData?.reduce((sum, phase) => sum + (phase.budget_spent || 0), 0) || 0;
       const averageMargin = totalBudget > 0 ? ((totalRevenue - totalSpent) / totalRevenue) * 100 : 0;
 
-      // Calculer le progrès de construction moyen
+      // Calculer le progrÃ©s de construction moyen
       const totalPhases = constructionData?.length || 0;
       const avgCompletion = totalPhases > 0 
         ? constructionData.reduce((sum, phase) => sum + (phase.completion_percentage || 0), 0) / totalPhases 
         : 0;
 
-      // Calculer l'équipe totale
+      // Calculer l'Ã©quipe totale
       const teamMembers = projectsData?.reduce((sum, p) => sum + (p.project_team?.length || 0), 0) || 0;
 
       setStats({
@@ -152,15 +107,15 @@ const PromoteurDashboard = () => {
         averageMargin,
         totalUnits,
         soldUnits,
-        pendingSales: Math.floor(soldUnits * 0.1), // Estimé
+        pendingSales: Math.floor(soldUnits * 0.1), // EstimÃ©
         constructionProgress: avgCompletion,
         teamMembers
       });
 
       setSalesMetrics({
         conversionRate: totalUnits > 0 ? (soldUnits / totalUnits) * 100 : 0,
-        averageSaleTime: 45, // Simulé - jours
-        customerSatisfaction: 4.2, // Simulé - sur 5
+        averageSaleTime: 45, // SimulÃ© - jours
+        customerSatisfaction: 4.2, // SimulÃ© - sur 5
         leadGeneration: salesProgressData[salesProgressData.length - 1]?.leads || 0
       });
 
@@ -170,9 +125,7 @@ const PromoteurDashboard = () => {
       // Analyser les risques des projets
       await analyzeProjectRisks(projectsData, constructionData);
 
-    } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
-      // Fallback avec données de démonstration enrichies
+    } catch (error) {      // Fallback avec donnÃ©es de dÃ©monstration enrichies
       setStats({
         totalProjects: 18,
         activeProjects: 7,
@@ -199,7 +152,7 @@ const PromoteurDashboard = () => {
     }
   };
 
-  // Génération d'insights IA pour les promoteurs
+  // GÃ©nÃ©ration d'insights IA pour les promoteurs
   const generateAIInsights = async () => {
     try {
       const context = {
@@ -210,13 +163,13 @@ const PromoteurDashboard = () => {
         salesConversion: salesMetrics.conversionRate
       };
 
-      const query = `En tant qu'expert en promotion immobilière au Sénégal, analyse ma performance:
+      const query = `En tant qu'expert en promotion immobiliÃ©re au SÃ©nÃ©gal, analyse ma performance:
       - ${context.totalProjects} projets au total, ${context.activeProjects} actifs
       - Marge moyenne: ${context.averageMargin}%
       - Progression construction: ${context.constructionProgress}%
       - Taux de conversion ventes: ${context.salesConversion}%
       
-      Fournis 3 recommandations stratégiques pour optimiser mes projets et identifier 2 risques potentiels à surveiller.`;
+      Fournis 3 recommandations stratÃ©giques pour optimiser mes projets et identifier 2 risques potentiels Ã© surveiller.`;
 
       const response = await hybridAI.generateResponse(query, [], { 
         role: 'real_estate_developer', 
@@ -224,12 +177,10 @@ const PromoteurDashboard = () => {
       });
       
       setAiInsights(response);
-    } catch (error) {
-      console.error('Erreur génération insights IA:', error);
-    }
+    } catch (error) {    }
   };
 
-  // Vérification des alertes de construction
+  // VÃ©rification des alertes de construction
   const checkConstructionAlerts = async () => {
     try {
       const alerts = [];
@@ -242,26 +193,24 @@ const PromoteurDashboard = () => {
             type: 'delay',
             severity: 'high',
             project: project.name,
-            message: `Retard potentiel détecté - Progression: ${project.progress}% vs attendu: ${expectedProgress}%`
+            message: `Retard potentiel dÃ©tectÃ© - Progression: ${project.progress}% vs attendu: ${expectedProgress}%`
           });
         }
 
-        // Analyser les dépassements budgétaires
+        // Analyser les dÃ©passements budgÃ©taires
         const spentRatio = (project.spent / project.budget) * 100;
         if (spentRatio > project.progress + 15) {
           alerts.push({
             type: 'budget',
             severity: 'medium',
             project: project.name,
-            message: `Dépassement budgétaire potentiel - Dépensé: ${spentRatio.toFixed(1)}% vs progression: ${project.progress}%`
+            message: `DÃ©passement budgÃ©taire potentiel - DÃ©pensÃ©: ${spentRatio.toFixed(1)}% vs progression: ${project.progress}%`
           });
         }
       });
 
       setConstructionAlerts(alerts);
-    } catch (error) {
-      console.error('Erreur vérification alertes:', error);
-    }
+    } catch (error) {    }
   };
 
   // Analyser les risques des projets avec IA
@@ -275,10 +224,10 @@ const PromoteurDashboard = () => {
         const budgetUsed = project.spent ? (project.spent / project.budget) * 100 : 0;
         if (budgetUsed > 80) {
           riskScore += 30;
-          factors.push('Budget élevé');
+          factors.push('Budget Ã©levÃ©');
         }
 
-        // Facteur délai
+        // Facteur dÃ©lai
         const expectedProgress = calculateExpectedProgress(project.completion_date);
         if (project.progress < expectedProgress - 10) {
           riskScore += 25;
@@ -292,25 +241,23 @@ const PromoteurDashboard = () => {
           factors.push('Ventes insuffisantes');
         }
 
-        // Facteur complexité
+        // Facteur complexitÃ©
         if (project.type === 'Commercial' || project.type === 'Mixte') {
           riskScore += 15;
-          factors.push('Complexité technique');
+          factors.push('ComplexitÃ© technique');
         }
 
         return {
           projectId: project.id,
           projectName: project.name,
           riskScore: Math.min(riskScore, 100),
-          riskLevel: riskScore > 70 ? 'Élevé' : riskScore > 40 ? 'Moyen' : 'Faible',
+          riskLevel: riskScore > 70 ? 'Ã©levÃ©' : riskScore > 40 ? 'Moyen' : 'Faible',
           factors: factors
         };
       }) || [];
 
       setProjectRisks(risks);
-    } catch (error) {
-      console.error('Erreur analyse risques:', error);
-    }
+    } catch (error) {    }
   };
 
   // Fonction utilitaire pour calculer la progression attendue
@@ -347,7 +294,7 @@ const PromoteurDashboard = () => {
       'Planification': { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
       'En cours': { color: 'bg-blue-100 text-blue-800', icon: Wrench },
       'Livraison': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      'Terminé': { color: 'bg-gray-100 text-gray-800', icon: CheckCircle },
+      'TerminÃ©': { color: 'bg-gray-100 text-gray-800', icon: CheckCircle },
       'active': { color: 'bg-blue-100 text-blue-800', icon: Wrench },
       'completed': { color: 'bg-gray-100 text-gray-800', icon: CheckCircle },
       'delayed': { color: 'bg-red-100 text-red-800', icon: AlertCircle }
@@ -361,7 +308,7 @@ const PromoteurDashboard = () => {
     const riskConfig = {
       'Faible': { color: 'bg-green-100 text-green-800' },
       'Moyen': { color: 'bg-yellow-100 text-yellow-800' },
-      'Élevé': { color: 'bg-red-100 text-red-800' }
+      'Ã©levÃ©': { color: 'bg-red-100 text-red-800' }
     };
     
     const config = riskConfig[risk] || riskConfig['Moyen'];
@@ -397,9 +344,7 @@ const PromoteurDashboard = () => {
       case 'SALES_FORECAST':
         await generateAIInsights();
         break;
-      default:
-        console.log('Action IA:', actionType, result);
-    }
+      default:    }
   };
 
   if (loading || dataLoading) {
@@ -419,7 +364,7 @@ const PromoteurDashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* En-tête */}
+      {/* En-tÃ©te */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
@@ -427,7 +372,7 @@ const PromoteurDashboard = () => {
             Dashboard Promoteur
           </h1>
           <p className="text-gray-600 mt-1">
-            Gérez vos projets immobiliers et suivez vos performances
+            GÃ©rez vos projets immobiliers et suivez vos performances
           </p>
         </div>
         <div className="flex gap-2">
@@ -532,13 +477,13 @@ const PromoteurDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unités Vendues</CardTitle>
+            <CardTitle className="text-sm font-medium">UnitÃ©s Vendues</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.soldUnits}/{stats.totalUnits}</div>
             <p className="text-xs text-muted-foreground">
-              {formatPercentage((stats.soldUnits / stats.totalUnits) * 100)} de réussite
+              {formatPercentage((stats.soldUnits / stats.totalUnits) * 100)} de rÃ©ussite
             </p>
           </CardContent>
         </Card>
@@ -551,14 +496,14 @@ const PromoteurDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{formatPercentage(stats.constructionProgress)}</div>
             <p className="text-xs text-muted-foreground">
-              Moyenne générale
+              Moyenne gÃ©nÃ©rale
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Équipe</CardTitle>
+            <CardTitle className="text-sm font-medium">Ã©quipe</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -570,7 +515,7 @@ const PromoteurDashboard = () => {
         </Card>
       </div>
 
-      {/* Métriques de vente avancées */}
+      {/* MÃ©triques de vente avancÃ©es */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -598,7 +543,7 @@ const PromoteurDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Leads Générés</CardTitle>
+            <CardTitle className="text-sm">Leads GÃ©nÃ©rÃ©s</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold text-purple-600">{salesMetrics.leadGeneration}</div>
@@ -626,7 +571,7 @@ const PromoteurDashboard = () => {
                   formatter={(value, name) => [
                     name === 'revenue' ? formatCurrency(value) : value,
                     name === 'vendu' ? 'Vendues' : 
-                    name === 'prevision' ? 'Prévision' : 
+                    name === 'prevision' ? 'PrÃ©vision' : 
                     name === 'revenue' ? 'Revenus' : 'Leads'
                   ]}
                 />
@@ -654,7 +599,7 @@ const PromoteurDashboard = () => {
                   stroke="#F59E0B" 
                   strokeWidth={2}
                   strokeDasharray="5 5"
-                  name="Prévision"
+                  name="PrÃ©vision"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -704,7 +649,7 @@ const PromoteurDashboard = () => {
         </Card>
       </div>
 
-      {/* Nouvelles sections avancées */}
+      {/* Nouvelles sections avancÃ©es */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Analyse des risques de projet */}
         <Card>
@@ -723,8 +668,8 @@ const PromoteurDashboard = () => {
                     <p className="text-sm text-gray-500">{risk.mitigation}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge className={`text-xs ${
-                        risk.impact === 'Très Élevé' ? 'bg-red-100 text-red-800' :
-                        risk.impact === 'Élevé' ? 'bg-orange-100 text-orange-800' :
+                        risk.impact === 'TrÃ©s Ã©levÃ©' ? 'bg-red-100 text-red-800' :
+                        risk.impact === 'Ã©levÃ©' ? 'bg-orange-100 text-orange-800' :
                         'bg-yellow-100 text-yellow-800'
                       }`}>
                         Impact: {risk.impact}
@@ -759,7 +704,7 @@ const PromoteurDashboard = () => {
                     <span className="font-medium">{milestone.phase}</span>
                     <div className="flex items-center gap-2">
                       <Badge className={milestone.onTime ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                        {milestone.onTime ? 'À temps' : 'Retard'}
+                        {milestone.onTime ? 'Ã© temps' : 'Retard'}
                       </Badge>
                       <span className="text-sm">{formatPercentage(milestone.completion)}</span>
                     </div>
@@ -782,7 +727,7 @@ const PromoteurDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Projets récents améliorés */}
+        {/* Projets rÃ©cents amÃ©liorÃ©s */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -820,7 +765,7 @@ const PromoteurDashboard = () => {
                     </div>
                   </div>
                   
-                  {/* Barre de progression améliorée */}
+                  {/* Barre de progression amÃ©liorÃ©e */}
                   <div className="mb-3">
                     <div className="flex justify-between text-sm mb-1">
                       <span>Progression</span>
@@ -836,22 +781,22 @@ const PromoteurDashboard = () => {
 
                   <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                     <div>
-                      <p className="text-gray-500">Unités vendues</p>
+                      <p className="text-gray-500">UnitÃ©s vendues</p>
                       <p className="font-semibold">{project.soldUnits}/{project.totalUnits}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Budget utilisé</p>
+                      <p className="text-gray-500">Budget utilisÃ©</p>
                       <p className="font-semibold">
                         {formatCurrency(project.spent)}/{formatCurrency(project.budget)}
                       </p>
                     </div>
                   </div>
 
-                  {/* Détails supplémentaires */}
+                  {/* DÃ©tails supplÃ©mentaires */}
                   <div className="text-xs text-gray-500 space-y-1">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      <span>Prochaine étape: {project.nextMilestone}</span>
+                      <span>Prochaine Ã©tape: {project.nextMilestone}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Truck className="h-3 w-3" />
@@ -870,7 +815,7 @@ const PromoteurDashboard = () => {
                       onClick={() => navigate(`/dashboard/promoteur/project/${project.id}`)}
                     >
                       <Eye className="h-3 w-3 mr-1" />
-                      Détails
+                      DÃ©tails
                     </Button>
                     <Button 
                       size="sm"
@@ -915,8 +860,8 @@ const PromoteurDashboard = () => {
                     <h4 className="font-medium">{type.type}</h4>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <span>Marge: {formatPercentage(type.margin)}</span>
-                      <span>•</span>
-                      <span>{type.units} unités</span>
+                      <span>Ã©</span>
+                      <span>{type.units} unitÃ©s</span>
                     </div>
                     <p className="text-xs text-blue-600">
                       Prix moyen: {formatCurrency(type.avgPrice)}
@@ -935,7 +880,7 @@ const PromoteurDashboard = () => {
         </Card>
       </div>
 
-      {/* Actions rapides améliorées */}
+      {/* Actions rapides amÃ©liorÃ©es */}
       <Card>
         <CardHeader>
           <CardTitle>Outils de Gestion</CardTitle>
@@ -972,7 +917,7 @@ const PromoteurDashboard = () => {
               onClick={() => navigate('/dashboard/promoteur/analytics')}
             >
               <BarChart3 className="h-6 w-6 mb-2" />
-              Analytics Avancés
+              Analytics AvancÃ©s
             </Button>
           </div>
         </CardContent>

@@ -1,25 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  UserCheck, 
-  TrendingUp, 
-  DollarSign, 
-  Home,
-  Calendar,
-  Target,
-  Award,
-  Users
-} from 'lucide-react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const AgentDashboard = () => {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState({
@@ -29,7 +8,7 @@ const AgentDashboard = () => {
     commissions: 0,
     appointments: []
   });
-  // Loading géré par le hook temps réel
+  // Loading gÃ©rÃ© par le hook temps rÃ©el
   const [showNewAppt, setShowNewAppt] = useState(false);
   const [apptForm, setApptForm] = useState({ client_name:'', property_title:'', date:'', notes:'' });
   const { toast } = useToast();
@@ -59,9 +38,7 @@ const AgentDashboard = () => {
         commissions: totalCommissions,
         appointments: appointments || []
       });
-    } catch (error) {
-      console.error('Erreur lors du chargement du dashboard:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -110,10 +87,10 @@ const AgentDashboard = () => {
         .single();
       if (error) throw error;
       setDashboardData(d => ({ ...d, appointments:[data, ...d.appointments] }));
-      toast({ title:'RDV créé' });
+      toast({ title:'RDV crÃ©Ã©' });
       setShowNewAppt(false);
       setApptForm({ client_name:'', property_title:'', date:'', notes:'' });
-    } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Création RDV impossible'}); }
+    } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'CrÃ©ation RDV impossible'}); }
   };
 
   if (loading) {
@@ -165,7 +142,7 @@ const AgentDashboard = () => {
                 <Home className="h-8 w-8 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Propriétés gérées</p>
+                <p className="text-sm text-muted-foreground">PropriÃ©tÃ©s gÃ©rÃ©es</p>
                 <p className="text-3xl font-bold">{dashboardData.properties.length}</p>
               </div>
             </div>
@@ -238,7 +215,7 @@ const AgentDashboard = () => {
           <CardContent>
             <div className="space-y-3">
               {dashboardData.appointments.slice(0, 3).length === 0 ? (
-                <p className="text-muted-foreground text-sm">Aucun rendez-vous prévu</p>
+                <p className="text-muted-foreground text-sm">Aucun rendez-vous prÃ©vu</p>
               ) : (
                 dashboardData.appointments.slice(0, 3).map((appointment, index) => (
           <div key={index} className={`flex justify-between items-center text-sm ${new Date(appointment.date) < new Date()? 'bg-red-50 border border-red-200 rounded px-2 py-1':''}`}>
@@ -310,7 +287,7 @@ const AgentDashboard = () => {
                 <Input value={apptForm.client_name} onChange={e=>setApptForm(f=>({...f, client_name:e.target.value}))} required />
               </div>
               <div>
-                <label className="text-xs font-medium">Propriété</label>
+                <label className="text-xs font-medium">PropriÃ©tÃ©</label>
                 <Input value={apptForm.property_title} onChange={e=>setApptForm(f=>({...f, property_title:e.target.value}))} required />
               </div>
               <div>
@@ -334,13 +311,13 @@ const AgentDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Dernières ventes</CardTitle>
-            <CardDescription>Vos ventes les plus récentes</CardDescription>
+            <CardTitle>DerniÃ©res ventes</CardTitle>
+            <CardDescription>Vos ventes les plus rÃ©centes</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {dashboardData.sales.slice(0, 5).length === 0 ? (
-                <p className="text-muted-foreground text-sm">Aucune vente récente</p>
+                <p className="text-muted-foreground text-sm">Aucune vente rÃ©cente</p>
               ) : (
                 dashboardData.sales.slice(0, 5).map((sale, index) => (
                   <div key={index} className="flex justify-between items-center">
@@ -364,7 +341,7 @@ const AgentDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Nouveaux clients</CardTitle>
-            <CardDescription>Clients ajoutés récemment</CardDescription>
+            <CardDescription>Clients ajoutÃ©s rÃ©cemment</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

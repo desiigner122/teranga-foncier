@@ -1,16 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileSignature, Search, Filter, CheckCircle, XCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useAuth } from '@/context/AuthContext';
-
 const MairieRequestsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -29,11 +17,11 @@ const MairieRequestsPage = () => {
         setLoading(true);
         
         if (user && user.id) {
-          // Utiliser la nouvelle méthode pour récupérer les demandes destinées spécifiquement à cette mairie
+          // Utiliser la nouvelle mÃ©thode pour rÃ©cupÃ©rer les demandes destinÃ©es spÃ©cifiquement Ã© cette mairie
           const mairieRequests = await SupabaseDataService.getRequestsByRecipient(user.id, 'mairie');
           setRequests(mairieRequests);
         } else {
-          // Fallback: récupérer toutes les demandes de type mairie si pas d'utilisateur spécifique
+          // Fallback: rÃ©cupÃ©rer toutes les demandes de type mairie si pas d'utilisateur spÃ©cifique
           const allRequests = await SupabaseDataService.getRequests();
           const mairieRequests = allRequests.filter(r => 
             r.recipient_type === 'Mairie' || 
@@ -42,9 +30,7 @@ const MairieRequestsPage = () => {
           );
           setRequests(mairieRequests);
         }
-      } catch (error) {
-        console.error('Erreur chargement demandes mairie:', error);
-        toast({ 
+      } catch (error) {        toast({ 
           variant: "destructive",
           title: "Erreur", 
           description: "Impossible de charger les demandes" 
@@ -101,8 +87,8 @@ const MairieRequestsPage = () => {
             <select className="border rounded px-2 text-sm" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
               <option value="all">Tous statuts</option>
               <option value="pending">En attente</option>
-              <option value="approved">Approuvé</option>
-              <option value="rejected">Rejeté</option>
+              <option value="approved">ApprouvÃ©</option>
+              <option value="rejected">RejetÃ©</option>
             </select>
           </div>
         </CardHeader>
@@ -137,10 +123,10 @@ const MairieRequestsPage = () => {
                         <Button variant="outline" size="sm" onClick={() => handleRequestAction(req.id,'Instruite','in_review')}>
                           Instruire
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'Approuvée','approved')}>
+                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'ApprouvÃ©e','approved')}>
                           <CheckCircle className="h-4 w-4 text-green-500"/>
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'Rejetée','rejected')}>
+                        <Button variant="ghost" size="icon" onClick={() => handleRequestAction(req.id,'RejetÃ©e','rejected')}>
                           <XCircle className="h-4 w-4 text-red-500"/>
                         </Button>
                       </td>

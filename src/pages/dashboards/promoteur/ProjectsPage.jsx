@@ -1,33 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
-import { 
-  Building, 
-  PlusCircle, 
-  Search, 
-  Eye, 
-  Edit, 
-  Clock, 
-  DollarSign,
-  MapPin,
-  Calendar,
-  TrendingUp,
-  AlertTriangle
-} from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const ProjectsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -50,7 +21,7 @@ const ProjectsPage = () => {
     try {
       setLoading(true);
       
-      // RÈcupÈrer les projets du promoteur depuis la table projects ou parcels avec type 'development'
+      // R√©cup√©rer les projets du promoteur depuis la table projects ou parcels avec type 'development'
       const { data, error } = await supabase
         .from('parcels')
         .select(`
@@ -63,12 +34,12 @@ const ProjectsPage = () => {
 
       if (error) throw error;
 
-      // Transformer les donnÈes pour correspondre au format projet
+      // Transformer les donn√©es pour correspondre au format projet
       const projectsData = data.map(parcel => ({
         id: parcel.id,
         name: parcel.name || `Projet ${parcel.reference}`,
         description: parcel.description || 'Aucune description',
-        location: parcel.location_name || parcel.location || 'Non spÈcifiÈ',
+        location: parcel.location_name || parcel.location || 'Non sp√©cifi√©',
         budget: parcel.price || 0,
         status: parcel.status || 'planning',
         surface_area: parcel.surface_area,
@@ -78,9 +49,7 @@ const ProjectsPage = () => {
       }));
 
       setProjects(projectsData);
-    } catch (error) {
-      console.error('Erreur chargement projets:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les projets"
@@ -111,11 +80,11 @@ const ProjectsPage = () => {
       if (error) throw error;
 
       toast({
-        title: "Projet crÈÈ",
-        description: "Votre nouveau projet a ÈtÈ crÈÈ avec succËs"
+        title: "Projet cr√©√©",
+        description: "Votre nouveau projet a √©t√© cr√©√© avec succ√©s"
       });
 
-      // Recharger les donnÈes
+      // Recharger les donn√©es
       await loadProjects();
       setIsAddModalOpen(false);
       setNewProject({
@@ -126,12 +95,10 @@ const ProjectsPage = () => {
         status: 'planning'
       });
       
-    } catch (error) {
-      console.error('Erreur crÈation projet:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de crÈer le projet"
+        description: "Impossible de cr√©er le projet"
       });
     } finally {
       setIsProcessing(false);
@@ -142,9 +109,9 @@ const ProjectsPage = () => {
     const labels = {
       'planning': 'Planification',
       'in_progress': 'En cours',
-      'completed': 'TerminÈ',
+      'completed': 'Termin√©',
       'on_hold': 'En attente',
-      'cancelled': 'AnnulÈ'
+      'cancelled': 'Annul√©'
     };
     return labels[status] || status;
   };
@@ -204,7 +171,7 @@ const ProjectsPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold flex items-center">
           <Building className="mr-3 h-8 w-8" />
-          Mes Projets de DÈveloppement
+          Mes Projets de D√©veloppement
         </h1>
         <Button onClick={() => setIsAddModalOpen(true)}>
           <PlusCircle className="h-4 w-4 mr-2" />
@@ -243,7 +210,7 @@ const ProjectsPage = () => {
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">TerminÈs</p>
+                <p className="text-sm font-medium text-muted-foreground">Termin√©s</p>
                 <p className="text-2xl font-bold">
                   {projects.filter(p => p.status === 'completed').length}
                 </p>
@@ -275,7 +242,7 @@ const ProjectsPage = () => {
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Rechercher par nom, localisation ou rÈfÈrence..."
+                placeholder="Rechercher par nom, localisation ou r√©f√©rence..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-md"
@@ -289,9 +256,9 @@ const ProjectsPage = () => {
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="planning">Planification</SelectItem>
                 <SelectItem value="in_progress">En cours</SelectItem>
-                <SelectItem value="completed">TerminÈ</SelectItem>
+                <SelectItem value="completed">Termin√©</SelectItem>
                 <SelectItem value="on_hold">En attente</SelectItem>
-                <SelectItem value="cancelled">AnnulÈ</SelectItem>
+                <SelectItem value="cancelled">Annul√©</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -303,20 +270,20 @@ const ProjectsPage = () => {
         <CardHeader>
           <CardTitle>Projets ({filteredProjects.length})</CardTitle>
           <CardDescription>
-            GÈrez vos projets de dÈveloppement immobilier
+            G√©rez vos projets de d√©veloppement immobilier
           </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredProjects.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Building className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Aucun projet trouvÈ</p>
+              <p>Aucun projet trouv√©</p>
               <Button 
                 variant="outline" 
                 className="mt-4"
                 onClick={() => setIsAddModalOpen(true)}
               >
-                CrÈer votre premier projet
+                Cr√©er votre premier projet
               </Button>
             </div>
           ) : (
@@ -327,8 +294,8 @@ const ProjectsPage = () => {
                   <TableHead>Localisation</TableHead>
                   <TableHead>Budget</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead>ProgrËs</TableHead>
-                  <TableHead>Date de crÈation</TableHead>
+                  <TableHead>Progr√©s</TableHead>
+                  <TableHead>Date de cr√©ation</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -353,7 +320,7 @@ const ProjectsPage = () => {
                       </div>
                       {project.surface_area && (
                         <div className="text-sm text-muted-foreground">
-                          {project.surface_area} m≤
+                          {project.surface_area} m√©
                         </div>
                       )}
                     </TableCell>
@@ -384,7 +351,7 @@ const ProjectsPage = () => {
                         }}
                       >
                         <Eye className="h-4 w-4 mr-1" />
-                        DÈtails
+                        D√©tails
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -399,9 +366,9 @@ const ProjectsPage = () => {
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nouveau Projet de DÈveloppement</DialogTitle>
+            <DialogTitle>Nouveau Projet de D√©veloppement</DialogTitle>
             <DialogDescription>
-              CrÈez un nouveau projet de dÈveloppement immobilier
+              Cr√©ez un nouveau projet de d√©veloppement immobilier
             </DialogDescription>
           </DialogHeader>
           
@@ -412,7 +379,7 @@ const ProjectsPage = () => {
                 id="name"
                 value={newProject.name}
                 onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                placeholder="Ex: RÈsidence Les Palmiers"
+                placeholder="Ex: R√©sidence Les Palmiers"
               />
             </div>
             <div>
@@ -421,7 +388,7 @@ const ProjectsPage = () => {
                 id="description"
                 value={newProject.description}
                 onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                placeholder="DÈcrivez votre projet..."
+                placeholder="D√©crivez votre projet..."
               />
             </div>
             <div>
@@ -473,19 +440,19 @@ const ProjectsPage = () => {
               onClick={createProject}
               disabled={isProcessing || !newProject.name}
             >
-              {isProcessing ? 'CrÈation...' : 'CrÈer le projet'}
+              {isProcessing ? 'Cr√©ation...' : 'Cr√©er le projet'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Modal de dÈtails */}
+      {/* Modal de d√©tails */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>DÈtails du Projet</DialogTitle>
+            <DialogTitle>D√©tails du Projet</DialogTitle>
             <DialogDescription>
-              Informations complËtes sur le projet de dÈveloppement
+              Informations compl√©tes sur le projet de d√©veloppement
             </DialogDescription>
           </DialogHeader>
           
@@ -497,7 +464,7 @@ const ProjectsPage = () => {
                   <p className="font-medium">{selectedProject.name}</p>
                 </div>
                 <div>
-                  <Label>RÈfÈrence</Label>
+                  <Label>R√©f√©rence</Label>
                   <p className="font-medium">{selectedProject.reference}</p>
                 </div>
               </div>
@@ -526,7 +493,7 @@ const ProjectsPage = () => {
                   {getStatusBadge(selectedProject.status)}
                 </div>
                 <div>
-                  <Label>ProgrËs</Label>
+                  <Label>Progr√©s</Label>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div 
                       className="bg-blue-600 h-2 rounded-full" 
@@ -542,17 +509,17 @@ const ProjectsPage = () => {
               {selectedProject.surface_area && (
                 <div>
                   <Label>Surface</Label>
-                  <p className="font-medium">{selectedProject.surface_area} m≤</p>
+                  <p className="font-medium">{selectedProject.surface_area} m√©</p>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Date de crÈation</Label>
+                  <Label>Date de cr√©ation</Label>
                   <p className="text-sm">{new Date(selectedProject.created_at).toLocaleDateString('fr-FR')}</p>
                 </div>
                 <div>
-                  <Label>DerniËre mise ‡ jour</Label>
+                  <Label>Derni√©re mise √© jour</Label>
                   <p className="text-sm">{new Date(selectedProject.updated_at).toLocaleDateString('fr-FR')}</p>
                 </div>
               </div>

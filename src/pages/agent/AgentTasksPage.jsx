@@ -1,17 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PlusCircle, Search, CheckCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { supabase } from '@/lib/supabaseClient';
-import { cn } from '@/lib/utils';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const AgentTasksPage = () => {
   const { toast } = useToast();
   const { data: tasks, loading: tasksLoading, error: tasksError, refetch } = useRealtimeTable();
@@ -34,10 +21,8 @@ const AgentTasksPage = () => {
           .eq('agent_id', user.id)
           .order('created_at', { ascending: false });
 
-        setTasks(tasks || []);
-      } catch (error) {
-        console.error('Erreur chargement tâches:', error);
-        setTasks([]);
+        setTasks(tasks || [data, error]);
+      } catch (error) {        setTasks([]);
       } finally {
         setLoading(false);
       }

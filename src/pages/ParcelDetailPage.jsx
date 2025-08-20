@@ -1,24 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import ParcelImageGallery from '@/components/parcel-detail/ParcelImageGallery';
-import ParcelHeaderSection from '@/components/parcel-detail/ParcelHeaderSection';
-import ParcelDescriptionCard from '@/components/parcel-detail/ParcelDescriptionCard';
-import ParcelLocationCard from '@/components/parcel-detail/ParcelLocationCard';
-import ParcelDocumentsCard from '@/components/parcel-detail/ParcelDocumentsCard';
-import ParcelActionsCard from '@/components/parcel-detail/ParcelActionsCard';
-import SimilarParcels from '@/components/parcel-detail/SimilarParcels';
-import ParcelDetailSkeleton from '@/components/parcel-detail/ParcelDetailSkeleton';
-import ParcelFeeCalculator from '@/components/parcel-detail/ParcelFeeCalculator';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Home, MapPin, School, ShoppingCart, Hotel as Hospital, HeartHandshake as Handshake, Shield, User, Award, RefreshCw } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/context/AuthContext';
-import { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ComparisonContext } from '@/context/ComparisonContext';
 import { Helmet } from 'react-helmet-async';
 import ParcelTimeline from '@/components/parcel-detail/ParcelTimeline';
@@ -31,7 +11,8 @@ const ParcelDetailPage = () => {
   const { comparisonList, addToCompare, removeFromCompare } = useContext(ComparisonContext);
   
   const [parcel, setParcel] = useState(null);
-  // Loading géré par le hook temps réel
+  // Loading gÃ©rÃ© par le hook temps rÃ©el
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [viewLogged, setViewLogged] = useState(false);
@@ -43,30 +24,29 @@ const ParcelDetailPage = () => {
       setError(null);
       const data = await SupabaseDataService.getParcelById(id);
       if (!data) {
-        setError('Parcelle non trouvée.');
+        setError('Parcelle non trouvÃ©e.');
         return;
       }
-      // Normalisation minimale si les champs diffèrent
+      // Normalisation minimale si les champs diffÃ©rent
       const normalized = {
         id: data.id,
         reference: data.reference,
         owner_id: data.owner_id || null,
         name: data.name || data.title || `Parcelle ${data.reference}`,
-        location_name: data.location_name || data.location || 'Localisation non spécifiée',
+        location_name: data.location_name || data.location || 'Localisation non spÃ©cifiÃ©e',
         description: data.description || 'Description indisponible.',
         price: data.price,
         area: data.area_sqm || data.area || null,
-        zone: data.zone || data.location_zone || '—',
+        zone: data.zone || data.location_zone || 'Ã©',
         status: data.status,
         documents: data.documents || [],
         images: data.images || [],
         coordinates: data.coordinates ? (typeof data.coordinates === 'string' ? JSON.parse(data.coordinates) : data.coordinates) : null,
-        ownerType: data.owner_type || 'Propriétaire',
-        documentStatus: data.document_status || (data.verified ? 'Vérifié' : 'En attente')
+        ownerType: data.owner_type || 'PropriÃ©taire',
+        documentStatus: data.document_status || (data.verified ? 'VÃ©rifiÃ©' : 'En attente')
       };
       setParcel(normalized);
     } catch (e) {
-      console.error('Erreur chargement parcelle:', e);
       setError('Erreur lors du chargement de la parcelle.');
     } finally {
       setLoading(false);
@@ -91,7 +71,6 @@ const ParcelDetailPage = () => {
         });
       } catch (e) {
         // Non bloquant
-        console.warn('Instrumentation parcel view failed', e.message||e);
       } finally {
         setViewLogged(true);
       }
@@ -108,9 +87,9 @@ const ParcelDetailPage = () => {
       const messageMap = {
         info: `Demande d'information pour ${parcel.location_name}.`,
         visit: `Demande de visite pour ${parcel.location_name}.`,
-        buy: `Initiation de la procédure d'achat pour ${parcel.location_name}.`
+        buy: `Initiation de la procÃ©dure d'achat pour ${parcel.location_name}.`
       };
-      // Créer l'inquiry dans la base
+      // CrÃ©er l'inquiry dans la base
       const inquiry = await SupabaseDataService.createParcelInquiry({
         parcelId: parcel.id,
         inquirerId: user.id,
@@ -118,7 +97,7 @@ const ParcelDetailPage = () => {
         message: messageMap[type] || 'Demande',
         metadata: { ...extra }
       });
-      // Enregistrer activité
+      // Enregistrer activitÃ©
       await SupabaseDataService.recordUserActivity({
         userId: user.id,
         activityType: `parcel_inquiry_${type}`,
@@ -126,23 +105,22 @@ const ParcelDetailPage = () => {
         entityId: parcel.id,
         description: messageMap[type]
       });
-      // Notifier propriétaire (si différent et disponible)
+      // Notifier propriÃ©taire (si diffÃ©rent et disponible)
       if (parcel.owner_id && parcel.owner_id !== user.id) {
         SupabaseDataService.createNotification({
           userId: parcel.owner_id,
           type: 'parcel_inquiry',
           title: 'Nouvelle demande sur votre parcelle',
-          body: `${user.email || 'Un utilisateur'} a envoyé une demande (${type}).`,
+          body: `${user.email || 'Un utilisateur'} a envoyÃ© une demande (${type}).`,
           data: { parcel_id: parcel.id, inquiry_id: inquiry?.id, inquiry_type: type }
         }).catch(()=>{});
       }
-      toast({ title: 'Demande envoyée', description: messageMap[type] });
+      toast({ title: 'Demande envoyÃ©e', description: messageMap[type] });
       if (type === 'buy') {
         // Rediriger vers messagerie (conversation potentielle)
         navigate('/messaging', { state: { parcelId: parcel.id, parcelName: parcel.name } });
       }
     } catch (e) {
-      console.error('Inquiry action failed', e);
       toast({ title: 'Erreur', description: "Impossible d'enregistrer la demande pour le moment.", variant: 'destructive' });
     }
   };
@@ -150,17 +128,17 @@ const ParcelDetailPage = () => {
   const handleCompareChange = (checked) => {
      if(checked) {
        addToCompare(id);
-        toast({ title: 'Ajouté au comparateur', description: `"${parcel.name}" a été ajouté.` });
+        toast({ title: 'AjoutÃ© au comparateur', description: `"${parcel.name}" a Ã©tÃ© ajoutÃ©.` });
      } else {
        removeFromCompare(id);
-        toast({ title: 'Retiré du comparateur', description: `"${parcel.name}" a été retiré.` });
+        toast({ title: 'RetirÃ© du comparateur', description: `"${parcel.name}" a Ã©tÃ© retirÃ©.` });
      }
   };
   
   const handleShare = () => {
     toast({
   title: "Partage",
-      description: "Le lien de partage a été copié dans le presse-papiers.",
+      description: "Le lien de partage a Ã©tÃ© copiÃ© dans le presse-papiers.",
     });
   };
 
@@ -178,7 +156,7 @@ const ParcelDetailPage = () => {
 
   const handleToggleFavorite = async () => {
     if (!user) {
-      toast({ title: 'Connexion requise', description: 'Connectez-vous pour gérer vos favoris.' });
+      toast({ title: 'Connexion requise', description: 'Connectez-vous pour gÃ©rer vos favoris.' });
       navigate('/login', { state: { redirectTo: `/parcelles/${id}` }});
       return;
     }
@@ -186,37 +164,36 @@ const ParcelDetailPage = () => {
       if (isFavorite) {
         await SupabaseDataService.removeFromFavorites(user.id, parcel.id);
         setIsFavorite(false);
-        toast({ title: 'Retiré des favoris' });
+        toast({ title: 'RetirÃ© des favoris' });
         SupabaseDataService.recordUserActivity({ userId: user.id, activityType:'favorite_removed', entityType:'parcel', entityId:parcel.id, description:`Retrait favori ${parcel.name}` });
       } else {
         await SupabaseDataService.addToFavorites(user.id, parcel.id);
         setIsFavorite(true);
-        toast({ title: 'Ajouté aux favoris' });
+        toast({ title: 'AjoutÃ© aux favoris' });
         SupabaseDataService.recordUserActivity({ userId: user.id, activityType:'favorite_added', entityType:'parcel', entityId:parcel.id, description:`Ajout favori ${parcel.name}` });
       }
     } catch (e) {
-      console.error('Toggle favorite failed', e);
-      toast({ title: 'Erreur', description: 'Impossible de mettre à jour le favori.', variant: 'destructive' });
+      toast({ title: 'Erreur', description: 'Impossible de mettre Ã© jour le favori.', variant: 'destructive' });
     }
   };
 
   const nearbyPointsOfInterest = [
-    { icon: School, name: "École Primaire (simulé)", distance: "500m" },
-    { icon: ShoppingCart, name: "Marché Local (simulé)", distance: "1.2km" },
-    { icon: Hospital, name: "Centre de Santé (simulé)", distance: "2km" },
-    { icon: MapPin, name: "Arrêt de Bus (simulé)", distance: "300m" },
+    { icon: School, name: "Ã©cole Primaire (simulÃ©)", distance: "500m" },
+    { icon: ShoppingCart, name: "MarchÃ© Local (simulÃ©)", distance: "1.2km" },
+    { icon: Hospital, name: "Centre de SantÃ© (simulÃ©)", distance: "2km" },
+    { icon: MapPin, name: "ArrÃ©t de Bus (simulÃ©)", distance: "300m" },
   ];
 
   const servicePacks = [
-      { icon: Handshake, title: "Pack Diaspora", description: "Mandataire de confiance pour visites, démarches et signatures.", link: "/contact?subject=Pack+Diaspora" },
-      { icon: Shield, title: "Pack Sécurité Juridique", description: "Accompagnement complet par un notaire partenaire, de A à Z.", link: "/contact?subject=Pack+Securite" },
+      { icon: Handshake, title: "Pack Diaspora", description: "Mandataire de confiance pour visites, dÃ©marches et signatures.", link: "/contact?subject=Pack+Diaspora" },
+      { icon: Shield, title: "Pack SÃ©curitÃ© Juridique", description: "Accompagnement complet par un notaire partenaire, de A Ã© Z.", link: "/contact?subject=Pack+Securite" },
   ];
 
   if (loading) return <div className="container mx-auto py-8 px-2 sm:px-4"><ParcelDetailSkeleton /></div>;
   if (error) return (
     <div className="container mx-auto py-10 text-center">
       <h2 className="text-2xl font-semibold text-red-600">{error}</h2>
-      <Link to="/parcelles" className="text-primary hover:underline mt-4 inline-block">Retourner à la liste des parcelles</Link>
+      <Link to="/parcelles" className="text-primary hover:underline mt-4 inline-block">Retourner Ã© la liste des parcelles</Link>
     </div>
   );
   if (!parcel) return null;
@@ -225,7 +202,7 @@ const ParcelDetailPage = () => {
     <>
     <Helmet>
         <title>{`${parcel.name} - ${parcel.zone}`} | Teranga Foncier</title>
-        <meta name="description" content={`Détails pour la parcelle ${parcel.name} de ${parcel.area} m² située à ${parcel.zone}. Prix: ${parcel.price} FCFA. Statut: ${parcel.status}.`} />
+        <meta name="description" content={`DÃ©tails pour la parcelle ${parcel.name} de ${parcel.area} mÃ© situÃ©e Ã© ${parcel.zone}. Prix: ${parcel.price} FCFA. Statut: ${parcel.status}.`} />
         <meta property="og:title" content={`${parcel.name} | Teranga Foncier`} />
         <meta property="og:description" content={parcel.description} />
         <meta property="og:image" content="https://images.unsplash.com/photo-1542364041-2cada653f4ee" />
@@ -248,7 +225,7 @@ const ParcelDetailPage = () => {
           onCompareChange={handleCompareChange}
         />
         <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={loadParcel} className="flex items-center"><RefreshCw className="h-4 w-4 mr-2"/>Rafraîchir</Button>
+          <Button variant="outline" size="sm" onClick={loadParcel} className="flex items-center"><RefreshCw className="h-4 w-4 mr-2"/>RafraÃ©chir</Button>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
@@ -263,8 +240,8 @@ const ParcelDetailPage = () => {
                     <User className="h-8 w-8 text-muted-foreground"/>
                     <div>
                         <p className="font-semibold">{parcel.ownerType}</p>
-                        <Badge variant={parcel.documentStatus === 'Vérifié' ? 'success' : 'secondary'}>
-                            {parcel.documentStatus === 'Vérifié' ? "Vendeur Certifié" : "Vérification en cours"}
+                        <Badge variant={parcel.documentStatus === 'VÃ©rifiÃ©' ? 'success' : 'secondary'}>
+                            {parcel.documentStatus === 'VÃ©rifiÃ©' ? "Vendeur CertifiÃ©" : "VÃ©rification en cours"}
                         </Badge>
                     </div>
                 </CardContent>
@@ -280,7 +257,7 @@ const ParcelDetailPage = () => {
               className="bg-card p-6 rounded-lg shadow border"
             >
               <h3 className="text-xl font-semibold mb-4 text-primary flex items-center">
-                <MapPin className="mr-2 h-5 w-5" /> Points d'Intérêt à Proximité (Simulé)
+                <MapPin className="mr-2 h-5 w-5" /> Points d'IntÃ©rÃ©t Ã© ProximitÃ© (SimulÃ©)
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {nearbyPointsOfInterest.map((poi, index) => (
@@ -333,7 +310,7 @@ const ParcelDetailPage = () => {
         
         <div className="mt-12 text-center">
             <Button asChild variant="outline" size="lg">
-                <Link to="/parcelles"><Home className="mr-2 h-5 w-5"/> Retour à toutes les parcelles</Link>
+                <Link to="/parcelles"><Home className="mr-2 h-5 w-5"/> Retour Ã© toutes les parcelles</Link>
             </Button>
         </div>
       </div>

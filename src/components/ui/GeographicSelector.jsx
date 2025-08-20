@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { geoUtils } from '@/data/senegalGeoData';
-import { MapPin, Building, Home } from 'lucide-react';
-
 const GeographicSelector = ({ 
   value = { region: '', department: '', commune: '' },
   onChange,

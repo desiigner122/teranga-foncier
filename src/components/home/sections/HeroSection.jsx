@@ -1,12 +1,4 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MapPin, Maximize, ShieldCheck } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
-
 const HeroSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();

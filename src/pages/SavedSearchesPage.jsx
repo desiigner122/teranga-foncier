@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { SupabaseDataService } from '@/services/supabaseDataService';
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bell, BellOff, SearchCheck, Trash2, Edit3, PlusCircle, ExternalLink, Filter, Info } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -25,17 +25,17 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const formatSearchParams = (params) => {
-  if (!params) return 'CritËres non dÈfinis.';
+  if (!params) return 'Crit√©res non d√©finis.';
   const parts = [];
   if (params.search) parts.push(`Terme: "${params.search}"`);
   if (params.zone && params.zone !== 'all') parts.push(`Zone: ${params.zone}`);
   if (params.status && params.status !== 'all') parts.push(`Statut: ${params.status}`);
   if (params.minPrice) parts.push(`Prix min: ${new Intl.NumberFormat('fr-SN', {style:'currency', currency:'XOF', maximumFractionDigits:0}).format(params.minPrice)}`);
   if (params.maxPrice) parts.push(`Prix max: ${new Intl.NumberFormat('fr-SN', {style:'currency', currency:'XOF', maximumFractionDigits:0}).format(params.maxPrice)}`);
-  if (params.minArea) parts.push(`Surface min: ${params.minArea} m≤`);
-  if (params.maxArea) parts.push(`Surface max: ${params.maxArea} m≤`);
+  if (params.minArea) parts.push(`Surface min: ${params.minArea} m√©`);
+  if (params.maxArea) parts.push(`Surface max: ${params.maxArea} m√©`);
   
-  if (parts.length === 0) return "Tous les terrains (aucun critËre spÈcifique).";
+  if (parts.length === 0) return "Tous les terrains (aucun crit√©re sp√©cifique).";
   return parts.join(' | ');
 };
 
@@ -56,13 +56,13 @@ const SavedSearchCard = ({ search, onToggleNotify, onDelete, onEdit, onViewResul
           </CardTitle>
           <Badge variant={search.notify ? 'success' : 'secondary'} className="flex items-center self-start sm:self-center text-xs py-1 px-2">
             {search.notify ? <Bell className="h-3.5 w-3.5 mr-1.5"/> : <BellOff className="h-3.5 w-3.5 mr-1.5"/>}
-            Notifications {search.notify ? 'ActivÈes' : 'DÈsactivÈes'}
+            Notifications {search.notify ? 'Activ√©es' : 'D√©sactiv√©es'}
           </Badge>
         </div>
-        <CardDescription className="text-xs mt-1">CrÈÈe le: {new Date(search.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</CardDescription>
+        <CardDescription className="text-xs mt-1">Cr√©√©e le: {new Date(search.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm font-medium mb-1.5 text-foreground">CritËres :</p>
+        <p className="text-sm font-medium mb-1.5 text-foreground">Crit√©res :</p>
         <p className="text-sm text-muted-foreground bg-muted/40 p-3 rounded-md border border-dashed border-border/70 text-xs leading-relaxed">
           {formatSearchParams(search.search_parameters)}
         </p>
@@ -81,7 +81,7 @@ const SavedSearchCard = ({ search, onToggleNotify, onDelete, onEdit, onViewResul
              <Button variant="outline" size="sm" onClick={() => onEdit(search)} title="Modifier cette recherche">
                  <Edit3 className="h-4 w-4"/>
              </Button>
-              <Button variant="default" size="sm" onClick={() => onViewResults(search.search_parameters)} title="Voir les rÈsultats actuels">
+              <Button variant="default" size="sm" onClick={() => onViewResults(search.search_parameters)} title="Voir les r√©sultats actuels">
                  <ExternalLink className="h-4 w-4"/>
              </Button>
              <AlertDialog>
@@ -94,7 +94,7 @@ const SavedSearchCard = ({ search, onToggleNotify, onDelete, onEdit, onViewResul
                    <AlertDialogHeader>
                      <AlertDialogTitle>Confirmer la Suppression</AlertDialogTitle>
                      <AlertDialogDescription>
-                       Voulez-vous vraiment supprimer la recherche sauvegardÈe "{search.search_name || 'Recherche Sans Nom'}" ? Cette action est irrÈversible et arrÍtera les notifications associÈes.
+                       Voulez-vous vraiment supprimer la recherche sauvegard√©e "{search.search_name || 'Recherche Sans Nom'}" ? Cette action est irr√©versible et arr√©tera les notifications associ√©es.
                      </AlertDialogDescription>
                    </AlertDialogHeader>
                    <AlertDialogFooter>
@@ -155,7 +155,7 @@ const SavedSearchesPage = () => {
     setError(null);
 
     if (!user) {
-      setError("Veuillez vous connecter pour gÈrer vos recherches sauvegardÈes.");
+      setError("Veuillez vous connecter pour g√©rer vos recherches sauvegard√©es.");
       setLoading(false);
       return;
     }
@@ -165,8 +165,7 @@ const SavedSearchesPage = () => {
         const userSearches = initialSampleSearches.filter(s => s.user_id === 'user1'); // Demo user_id
         setSavedSearches(userSearches.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)));
       } catch (err) {
-        console.error("Erreur de chargement des recherches sauvegardÈes:", err);
-        setError("Impossible de charger vos recherches sauvegardÈes.");
+        setError("Impossible de charger vos recherches sauvegard√©es.");
         setSavedSearches([]);
       } finally {
         setLoading(false);
@@ -178,7 +177,7 @@ const SavedSearchesPage = () => {
   const handleToggleNotify = (searchId, notify) => {
     try {
       setSavedSearches(prev => prev.map(s => s.id === searchId ? { ...s, notify: notify } : s));
-      toast({ title: `Alertes ${notify ? 'activÈes' : 'dÈsactivÈes'}`, description: `Les notifications pour cette recherche ont ÈtÈ ${notify ? 'activÈes' : 'dÈsactivÈes'}.` });
+      toast({ title: `Alertes ${notify ? 'activ√©es' : 'd√©sactiv√©es'}`, description: `Les notifications pour cette recherche ont √©t√© ${notify ? 'activ√©es' : 'd√©sactiv√©es'}.` });
     } catch (err) {
       toast({ title: "Erreur", description: "Impossible de modifier le statut des notifications.", variant: "destructive" });
     }
@@ -187,14 +186,14 @@ const SavedSearchesPage = () => {
   const handleDeleteSearch = (searchId) => {
     try {
       setSavedSearches(prev => prev.filter(s => s.id !== searchId));
-      toast({ title: "Recherche SupprimÈe", description: "La recherche sauvegardÈe a ÈtÈ supprimÈe avec succËs." });
+      toast({ title: "Recherche Supprim√©e", description: "La recherche sauvegard√©e a √©t√© supprim√©e avec succ√©s." });
     } catch (err) {
       toast({ title: "Erreur", description: "Impossible de supprimer la recherche.", variant: "destructive" });
     }
   };
 
   const handleEditSearch = (search) => {
-     toast({ title: "FonctionnalitÈ ‡ venir", description: "La modification des recherches sera bientÙt disponible. Pour l'instant, supprimez et recrÈez votre recherche." });
+     toast({ title: "Fonctionnalit√© √© venir", description: "La modification des recherches sera bient√©t disponible. Pour l'instant, supprimez et recr√©ez votre recherche." });
   };
 
    const handleAddNewSearch = () => {
@@ -205,8 +204,8 @@ const SavedSearchesPage = () => {
             <p className="mb-2">Pour sauvegarder une nouvelle recherche :</p>
             <ol className="list-decimal list-inside text-sm space-y-1">
               <li>Allez sur la <Link to="/parcelles" className="text-primary underline">page des parcelles</Link>.</li>
-              <li>Appliquez les filtres souhaitÈs (zone, prix, surface, etc.).</li>
-              <li>Cliquez sur le bouton "Sauvegarder la Recherche" (bientÙt disponible en haut des filtres).</li>
+              <li>Appliquez les filtres souhait√©s (zone, prix, surface, etc.).</li>
+              <li>Cliquez sur le bouton "Sauvegarder la Recherche" (bient√©t disponible en haut des filtres).</li>
             </ol>
           </div>
         ),
@@ -219,7 +218,7 @@ const SavedSearchesPage = () => {
     // Navigate to parcels list page with these params
     // This is a placeholder navigation, a real app would use react-router's navigate
     window.location.href = `/parcelles?${queryParams}`;
-    toast({ title: "Redirection...", description: "Affichage des rÈsultats correspondants."});
+    toast({ title: "Redirection...", description: "Affichage des r√©sultats correspondants."});
   };
 
   return (
@@ -232,12 +231,12 @@ const SavedSearchesPage = () => {
       <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="text-center sm:text-left">
           <h1 className="text-3xl md:text-4xl font-bold text-primary flex items-center">
-            <SearchCheck className="h-8 w-8 mr-3 text-primary"/> Mes Recherches SauvegardÈes
+            <SearchCheck className="h-8 w-8 mr-3 text-primary"/> Mes Recherches Sauvegard√©es
           </h1>
-          <p className="text-muted-foreground mt-1">GÈrez vos critËres de recherche et soyez alertÈ des nouvelles parcelles correspondantes.</p>
+          <p className="text-muted-foreground mt-1">G√©rez vos crit√©res de recherche et soyez alert√© des nouvelles parcelles correspondantes.</p>
         </div>
          <Button onClick={handleAddNewSearch} variant="default" size="lg" className="self-center sm:self-auto">
-             <PlusCircle className="h-5 w-5 mr-2"/> CrÈer une Nouvelle Recherche
+             <PlusCircle className="h-5 w-5 mr-2"/> Cr√©er une Nouvelle Recherche
          </Button>
       </div>
 
@@ -265,10 +264,10 @@ const SavedSearchesPage = () => {
       ) : (
         <div className="text-center py-16 bg-card rounded-lg border border-dashed border-border/70 shadow-sm">
           <SearchCheck className="h-16 w-16 mx-auto text-muted-foreground/70 mb-5" />
-          <h2 className="text-2xl font-semibold mb-2 text-foreground">Aucune recherche sauvegardÈe pour le moment.</h2>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">Sauvegardez vos critËres de recherche depuis la page des terrains pour Ítre alertÈ des nouvelles opportunitÈs.</p>
+          <h2 className="text-2xl font-semibold mb-2 text-foreground">Aucune recherche sauvegard√©e pour le moment.</h2>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">Sauvegardez vos crit√©res de recherche depuis la page des terrains pour √©tre alert√© des nouvelles opportunit√©s.</p>
           <Button asChild size="lg">
-            <Link to="/parcelles">Explorer les parcelles et dÈfinir des alertes</Link>
+            <Link to="/parcelles">Explorer les parcelles et d√©finir des alertes</Link>
           </Button>
         </div>
       )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,14 +10,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SupabaseDataService } from '@/services/supabaseDataService';
-
 const formatPrice = (price) => new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(price);
 
 const getStatusBadge = (status) => {
   switch (status) {
-    case 'Payé': return <Badge variant="success">{status}</Badge>;
+    case 'PayÃ©': return <Badge variant="success">{status}</Badge>;
     case 'En attente': return <Badge variant="warning">{status}</Badge>;
-    case 'Échoué': return <Badge variant="destructive">{status}</Badge>;
+    case 'Ã©chouÃ©': return <Badge variant="destructive">{status}</Badge>;
     default: return <Badge variant="secondary">{status}</Badge>;
   }
 };
@@ -26,8 +25,9 @@ const TransactionsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
-  // Loading géré par le hook temps réel
-  const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
+  // Ã‰tat local
+  const [loading, setLoading] = useState(false);
+  const [transactions, setTransactions] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -63,12 +63,12 @@ const TransactionsPage = () => {
 
   const handleDownloadInvoice = (transactionId) => {
     toast({
-      title: "Téléchargement de la facture...",
-      description: `La facture pour la transaction ${transactionId} est en cours de génération.`,
+      title: "TÃ©lÃ©chargement de la facture...",
+      description: `La facture pour la transaction ${transactionId} est en cours de gÃ©nÃ©ration.`,
     });
   };
 
-  if (loading || dataLoading) {
+  if (loading) {
     return <div className="flex items-center justify-center h-full"><LoadingSpinner size="large" /></div>;
   }
 
@@ -92,7 +92,7 @@ const TransactionsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>Historique des paiements</CardTitle>
-          <CardDescription>Retrouvez ici toutes les transactions effectuées sur la plateforme.</CardDescription>
+          <CardDescription>Retrouvez ici toutes les transactions effectuÃ©es sur la plateforme.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -122,7 +122,7 @@ const TransactionsPage = () => {
                           <Banknote className="mr-2 h-4 w-4"/> Payer
                         </Button>
                       )}
-                      {['Payé','paid','completed'].includes(tx.status) && (
+                      {['PayÃ©','paid','completed'].includes(tx.status) && (
                         <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(tx.id)}>
                           <Download className="mr-2 h-4 w-4"/> Facture
                         </Button>

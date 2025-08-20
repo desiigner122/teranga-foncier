@@ -54,9 +54,7 @@ export const getDashboardRoute = (profile) => {
       return '/dashboard/geometre';
     
     default:
-      // Par défaut, redirection vers particulier si type non reconnu
-      console.warn(`Type d'utilisateur non reconnu: ${profile.type}, redirection vers particulier`);
-      return '/dashboard/particulier';
+      // Par défaut, redirection vers particulier si type non reconnu      return '/dashboard/particulier';
   }
 };
 

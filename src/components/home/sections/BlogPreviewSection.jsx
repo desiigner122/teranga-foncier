@@ -1,12 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar } from 'lucide-react';
-// Importation de import { supabase } from '@/lib/supabaseClient'; // Assurez-vous que ce chemin est import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useToast } from '@/components/ui/use-toast';
-
 const BlogPreviewSection = () => {
   const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -34,9 +26,7 @@ const BlogPreviewSection = () => {
           throw error;
         }
 
-        if (data.length === 0) {
-            console.warn("Aucun article de blog trouvé dans la base de données. Affichage de données par défaut.");
-            // Optionnel: charger des données mockées si la DB est vide
+        if (data.length === 0) {            // Optionnel: charger des données mockées si la DB est vide
             setBlogPosts([
                 { id: 'bp1', title: '5 Conseils pour Acheter un Terrain au Sénégal depuis l\'Étranger', published_at: '2025-07-24', excerpt: 'Découvrez nos meilleurs conseils pour un investissement foncier réussi depuis la diaspora.', slug: '5-conseils-achat-terrain-diaspora', image_url: 'https://images.unsplash.com/photo-1504983875-d3b163aba9e6' },
                 { id: 'bp2', title: 'Titre Foncier vs Bail vs Délibération : Comprendre les Différences', published_at: '2025-07-17', excerpt: 'Une explication claire des documents fonciers au Sénégal pour sécuriser votre investissement.', slug: 'titre-foncier-bail-deliberation', image_url: 'https://images.unsplash.com/photo-1504983875-d3b163aba9e6' },
@@ -45,9 +35,7 @@ const BlogPreviewSection = () => {
         } else {
             setBlogPosts(data);
         }
-      } catch (error) {
-        console.error("Erreur lors de la récupération des articles de blog:", error.message);
-        toast({
+      } catch (error) {        toast({
           title: "Erreur",
           description: "Impossible de charger les articles de blog. Veuillez réessayer plus tard.",
           variant: "destructive",

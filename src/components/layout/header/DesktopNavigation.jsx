@@ -10,7 +10,7 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
-import { Building, Landmark, Leaf, Banknote, TrendingUp, HeartHandshake as Handshake, Scale, Users, FileSignature, AlertTriangle, Sprout, Map, LifeBuoy } from 'lucide-react';
+import { Building, Landmark, Leaf, Banknote, TrendingUp, HeartHandshake as Handshake, Scale, Users, FileSignature, AlertTriangle, LifeBuoy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const solutions = [

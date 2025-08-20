@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react"
-
+import { useEffect, useState } from 'react';
 const TOAST_LIMIT = 1
 
 let count = 0

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useToast } from "@/components/ui/use-toast";
-import { Users as UsersIcon, Briefcase, Building, Sprout, Banknote, Landmark, LandPlot, Store } from 'lucide-react';
+import { Users as UsersIcon, Store } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
 const accountTypes = [

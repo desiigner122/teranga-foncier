@@ -1,18 +1,5 @@
 // src/components/ui/GlobalAIChat.jsx - Chat IA principal à droite
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { MessageSquareText, X, Send, User, Bot, Brain, Sparkles, Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/ScrollArea';
-import { useAuth } from '@/context/AuthContext';
-import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
-import { motion, AnimatePresence } from 'framer-motion';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { hybridAI } from '@/lib/hybridAI';
-// Import correct hook
-import { useRealtimeMessages } from '@/hooks/useRealtimeTable';
-
 const GlobalAIChat = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
@@ -42,17 +29,17 @@ const GlobalAIChat = () => {
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
-    let greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon apr�s-midi" : "Bonsoir";
+    let greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon aprés-midi" : "Bonsoir";
     const username = isAuthenticated ? ` ${user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}` : '';
     
     return `?? ${greeting}${username} !
 
-?? Je suis **Teranga AI Global**, votre assistant intelligent pour la plateforme fonci�re.
+?? Je suis **Teranga AI Global**, votre assistant intelligent pour la plateforme fonciére.
 
-? **MES SP�CIALIT�S :**
-?? Recherche de propri�t�s personnalis�e
-?? �valuations et conseils de prix  
-?? Proc�dures et d�marches administratives
+? **MES SPéCIALITéS :**
+?? Recherche de propriétés personnalisée
+?? évaluations et conseils de prix  
+?? Procédures et démarches administratives
 ?? Conseils d'investissement immobilier
 ?? Navigation et aide sur la plateforme
 
@@ -90,11 +77,9 @@ Posez-moi vos questions en langage naturel !`;
         confidence: response.confidence
       }]);
       
-    } catch (error) {
-      console.error("Erreur IA Global:", error);
-      setMessages(prev => [...prev, { 
+    } catch (error) {      setMessages(prev => [...prev, { 
         sender: 'bot', 
-        text: "D�sol�, je rencontre des difficult�s. Veuillez r�essayer.",
+        text: "Désolé, je rencontre des difficultés. Veuillez réessayer.",
         error: true
       }]);
       toast({
@@ -114,7 +99,7 @@ Posez-moi vos questions en langage naturel !`;
 
   return (
     <>
-      {/* Bouton flottant � droite */}
+      {/* Bouton flottant é droite */}
       <motion.div
         className="fixed bottom-6 right-6 z-40"
         whileHover={{ scale: 1.05 }}
@@ -140,7 +125,7 @@ Posez-moi vos questions en langage naturel !`;
         </Button>
       </motion.div>
 
-      {/* Fen�tre de chat */}
+      {/* Fenétre de chat */}
       <AnimatePresence>
         {isOpen && (
           <motion.div

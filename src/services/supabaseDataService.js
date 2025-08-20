@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabaseClient';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
+
 import { realtimeStore } from '@/lib/realtimeStore';
 
+;
 /**
  * Service unifié pour toutes les opérations de données
  * Intègre le cache temps réel et les opérations CRUD
@@ -43,9 +44,7 @@ export class SupabaseDataService {
       realtimeStore.updateCache(tableName, data);
       
       return data || [];
-    } catch (error) {
-      console.error(`Erreur getAll ${tableName}:`, error);
-      return [];
+    } catch (error) {      return [];
     }
   }
 
@@ -59,9 +58,7 @@ export class SupabaseDataService {
       
       if (error) throw error;
       return data;
-    } catch (error) {
-      console.error(`Erreur getById ${tableName}:`, error);
-      return null;
+    } catch (error) {      return null;
     }
   }
 
@@ -79,9 +76,7 @@ export class SupabaseDataService {
       realtimeStore.invalidateCache(tableName);
       
       return data;
-    } catch (error) {
-      console.error(`Erreur create ${tableName}:`, error);
-      throw error;
+    } catch (error) {      throw error;
     }
   }
 
@@ -100,9 +95,7 @@ export class SupabaseDataService {
       realtimeStore.invalidateCache(tableName);
       
       return data;
-    } catch (error) {
-      console.error(`Erreur update ${tableName}:`, error);
-      throw error;
+    } catch (error) {      throw error;
     }
   }
 
@@ -119,9 +112,7 @@ export class SupabaseDataService {
       realtimeStore.invalidateCache(tableName);
       
       return true;
-    } catch (error) {
-      console.error(`Erreur delete ${tableName}:`, error);
-      throw error;
+    } catch (error) {      throw error;
     }
   }
 
@@ -205,9 +196,7 @@ export class SupabaseDataService {
       }));
 
       return stats;
-    } catch (error) {
-      console.error('Erreur getDashboardStats:', error);
-      return {};
+    } catch (error) {      return {};
     }
   }
 
@@ -248,9 +237,7 @@ export class SupabaseDataService {
         .select('id')
         .limit(1);
       
-      if (checkError && checkError.code === '42P01') {
-        console.warn('Table notifications does not exist yet');
-        return [];
+      if (checkError && checkError.code === '42P01') {        return [];
       }
       
       let query = supabase
@@ -269,15 +256,11 @@ export class SupabaseDataService {
       
       const { data, error } = await query;
       
-      if (error) {
-        console.error('Error fetching notifications:', error);
-        return [];
+      if (error) {        return [];
       }
       
       return data || [];
-    } catch (err) {
-      console.error('Exception in listNotifications:', err);
-      return [];
+    } catch (err) {      return [];
     }
   }
 
@@ -290,15 +273,11 @@ export class SupabaseDataService {
         .update({ read: true, read_at: new Date().toISOString() })
         .eq('id', notificationId);
       
-      if (error) {
-        console.error('Error marking notification as read:', error);
-        return false;
+      if (error) {        return false;
       }
       
       return true;
-    } catch (err) {
-      console.error('Exception in markNotificationRead:', err);
-      return false;
+    } catch (err) {      return false;
     }
   }
 
@@ -315,9 +294,7 @@ export class SupabaseDataService {
         .select('id')
         .limit(1);
       
-      if (checkError && checkError.code === '42P01') {
-        console.warn('Table conversations does not exist yet');
-        return [];
+      if (checkError && checkError.code === '42P01') {        return [];
       }
       
       const { data, error } = await supabase
@@ -326,15 +303,11 @@ export class SupabaseDataService {
         .or(`participant1_id.eq.${userId},participant2_id.eq.${userId},participants::text.ilike.%${userId}%`)
         .order('updated_at', { ascending: false });
       
-      if (error) {
-        console.error('Error fetching conversations:', error);
-        return [];
+      if (error) {        return [];
       }
       
       return data || [];
-    } catch (err) {
-      console.error('Exception in listConversations:', err);
-      return [];
+    } catch (err) {      return [];
     }
   }
 
@@ -348,9 +321,7 @@ export class SupabaseDataService {
         .select('id')
         .limit(1);
       
-      if (checkError && checkError.code === '42P01') {
-        console.warn('Table messages does not exist yet');
-        return [];
+      if (checkError && checkError.code === '42P01') {        return [];
       }
       
       const { data, error } = await supabase
@@ -360,15 +331,11 @@ export class SupabaseDataService {
         .order('created_at', { ascending: true })
         .limit(options.limit || 50);
       
-      if (error) {
-        console.error('Error fetching messages:', error);
-        return [];
+      if (error) {        return [];
       }
       
       return data || [];
-    } catch (err) {
-      console.error('Exception in getMessages:', err);
-      return [];
+    } catch (err) {      return [];
     }
   }
 
@@ -389,15 +356,11 @@ export class SupabaseDataService {
         }])
         .select();
       
-      if (error) {
-        console.error('Error sending message:', error);
-        return null;
+      if (error) {        return null;
       }
       
       return data?.[0] || null;
-    } catch (err) {
-      console.error('Exception in sendMessage:', err);
-      return null;
+    } catch (err) {      return null;
     }
   }
 
@@ -407,9 +370,7 @@ export class SupabaseDataService {
       const allParticipants = [...new Set([...participantIds, creatorId])];
       
       // We should have at least two participants for a conversation
-      if (allParticipants.length < 2) {
-        console.error('Need at least two participants for a conversation');
-        return null;
+      if (allParticipants.length < 2) {        return null;
       }
 
       const participant1 = allParticipants[0];
@@ -427,15 +388,11 @@ export class SupabaseDataService {
         }])
         .select();
       
-      if (error) {
-        console.error('Error creating conversation:', error);
-        return null;
+      if (error) {        return null;
       }
       
       return data?.[0] || null;
-    } catch (err) {
-      console.error('Exception in createConversation:', err);
-      return null;
+    } catch (err) {      return null;
     }
   }
 
@@ -448,15 +405,11 @@ export class SupabaseDataService {
         .neq('sender_id', userId)
         .eq('read', false);
       
-      if (error) {
-        console.error('Error marking messages as read:', error);
-        return false;
+      if (error) {        return false;
       }
       
       return true;
-    } catch (err) {
-      console.error('Exception in markConversationMessagesRead:', err);
-      return false;
+    } catch (err) {      return false;
     }
   }
 
@@ -469,15 +422,11 @@ export class SupabaseDataService {
         .neq('sender_id', userId)
         .eq('read', false);
       
-      if (error) {
-        console.error('Error getting unread count:', error);
-        return 0;
+      if (error) {        return 0;
       }
       
       return count || 0;
-    } catch (err) {
-      console.error('Exception in getConversationUnreadCount:', err);
-      return 0;
+    } catch (err) {      return 0;
     }
   }
 }

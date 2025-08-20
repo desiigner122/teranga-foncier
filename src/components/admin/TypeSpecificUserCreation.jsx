@@ -1,22 +1,5 @@
 // src/components/admin/TypeSpecificUserCreation.jsx
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { 
-  Building2, 
-  Landmark, 
-  UserCog, 
-  Users, 
-  TreePine, 
-  TrendingUp,
-  FileText,
-  UserCheck,
-  Plus
-} from 'lucide-react';
-import CompleteInstitutionModal from './CompleteInstitutionModal';
-import CreateUserModal from './CreateUserModal';
-
 /**
  * Système de Création d'Utilisateurs par Type Spécifique
  * Chaque type a son propre bouton et processus de création

@@ -1,18 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { DollarSign, Search, Filter, Users, BarChart, RefreshCw } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { ResponsiveContainer, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-
 const SalesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -29,13 +15,13 @@ const SalesPage = () => {
 
   // Placeholder: future implementation to update unit status / assign client
   const handleManageUnit = (sale) => {
-    toast({ title: 'Gestion indisponible', description: 'Mise à jour des lots à venir (backend requis).' });
+    toast({ title: 'Gestion indisponible', description: 'Mise Ã© jour des lots Ã© venir (backend requis).' });
   };
   
   const getStatusBadge = (status) => {
     switch(status) {
         case 'Vendu': return 'success';
-        case 'Réservé': return 'warning';
+        case 'RÃ©servÃ©': return 'warning';
         case 'Disponible': return 'info';
         default: return 'outline';
     }
@@ -59,7 +45,7 @@ const SalesPage = () => {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl md:text-3xl font-bold flex items-center"><DollarSign className="mr-3 h-8 w-8 text-primary"/>Ventes & Commercialisation</h1>
         <Button variant="outline" size="sm" onClick={loadUnits} disabled={refreshing} className="flex items-center">
-          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Rafraîchir
+          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> RafraÃ©chir
         </Button>
       </div>
       
@@ -113,7 +99,7 @@ const SalesPage = () => {
                 {salesData.length === 0 && (
                   <tr>
                     <td colSpan={5} className="p-4 text-center text-muted-foreground">
-                      Aucun lot trouvé. Ajoutez des entrées dans la table promoteur_project_units.
+                      Aucun lot trouvÃ©. Ajoutez des entrÃ©es dans la table promoteur_project_units.
                     </td>
                   </tr>
                 )}
@@ -128,7 +114,7 @@ const SalesPage = () => {
                     <td className="p-2"><Badge variant={getStatusBadge(sale.status)}>{sale.status}</Badge></td>
                     <td className="p-2 text-right">
                       <Button variant="outline" size="sm" onClick={() => handleManageUnit(sale)} disabled>
-                        <Users className="mr-1 h-4 w-4 hidden sm:inline-block" />Gérer
+                        <Users className="mr-1 h-4 w-4 hidden sm:inline-block" />GÃ©rer
                       </Button>
                     </td>
                   </tr>

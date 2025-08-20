@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable, useRealtimeParcels } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { ComparisonContext } from '@/context/ComparisonContext';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -9,7 +9,6 @@ import { ArrowRight, Maximize, MapPin, Trash2, CheckCircle, AlertCircle, FileTex
 import { Badge } from '@/components/ui/badge';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { supabase } from '@/lib/supabaseClient';
-import { useToast } from '@/components/ui/use-toast';
 
 const formatPrice = (price) => {
    return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(price);

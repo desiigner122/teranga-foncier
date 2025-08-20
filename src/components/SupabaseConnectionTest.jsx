@@ -1,10 +1,5 @@
 // Composant de test pour vérifier la connexion Supabase
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-
 const SupabaseConnectionTest = () => {
   const [connectionStatus, setConnectionStatus] = useState('testing');
   const [results, setResults] = useState({
@@ -20,10 +15,7 @@ const SupabaseConnectionTest = () => {
     setConnectionStatus('testing');
     setError(null);
     
-    try {
-      console.log('🔍 Test de connexion Supabase depuis React...');
-      
-      // Test des tables
+    try {      // Test des tables
       const tables = ['users', 'parcels', 'requests', 'blog_posts'];
       const newResults = {};
       
@@ -34,20 +26,14 @@ const SupabaseConnectionTest = () => {
             .select('*', { count: 'exact' })
             .limit(5);
           
-          if (tableError) {
-            console.error(`❌ Erreur table ${table}:`, tableError);
-            newResults[table] = { error: tableError.message, count: 0 };
-          } else {
-            console.log(`✅ Table ${table}: ${count || 0} enregistrements`);
-            newResults[table] = { 
+          if (tableError) {            newResults[table] = { error: tableError.message, count: 0 };
+          } else {            newResults[table] = { 
               data: data || [], 
               count: count || 0,
               success: true 
             };
           }
-        } catch (err) {
-          console.error(`💥 Erreur table ${table}:`, err);
-          newResults[table] = { error: err.message, count: 0 };
+        } catch (err) {          newResults[table] = { error: err.message, count: 0 };
         }
       }
       
@@ -70,9 +56,7 @@ const SupabaseConnectionTest = () => {
       setResults(newResults);
       setConnectionStatus('success');
       
-    } catch (error) {
-      console.error('💥 Erreur générale:', error);
-      setError(error.message);
+    } catch (error) {      setError(error.message);
       setConnectionStatus('error');
     }
   };

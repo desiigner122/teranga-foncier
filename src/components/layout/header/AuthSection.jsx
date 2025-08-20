@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { LayoutGrid, User, LogOut, Settings, Bell, MessageSquare } from 'lucide-react';
+import { LayoutGrid, User, LogOut, Settings, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useMessagingNotification } from '@/context/MessagingNotificationContext';
 import { useToast } from "@/components/ui/use-toast";
-import { cn } from '@/lib/utils';
+
 
 const getInitials = (email) => {
   if (!email) return '??';
@@ -34,7 +34,7 @@ const AuthSection = ({ isScrolled }) => {
 
   const handleLogout = async () => {
     await signOut();
-    toast({ title: "Déconnexion réussie" });
+    toast({ title: "DÃ©connexion rÃ©ussie" });
     navigate('/');
   };
 
@@ -80,10 +80,10 @@ const AuthSection = ({ isScrolled }) => {
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild><Link to="/dashboard"><LayoutGrid className="mr-2 h-4 w-4" /> Tableau de Bord</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/profile"><User className="mr-2 h-4 w-4" /> Mon Profil</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link to="/settings"><Settings className="mr-2 h-4 w-4" /> Paramètres</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link to="/settings"><Settings className="mr-2 h-4 w-4" /> ParamÃ©tres</Link></DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
-                <LogOut className="mr-2 h-4 w-4" /> Déconnexion
+                <LogOut className="mr-2 h-4 w-4" /> DÃ©connexion
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

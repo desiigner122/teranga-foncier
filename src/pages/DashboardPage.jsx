@@ -1,6 +1,6 @@
 // src/pages/DashboardPage.jsx - Dashboard Dispatcher
 import React, { useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
+
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -49,19 +49,16 @@ const DashboardPage = () => {
     });
 
     if (!authLoading && isAuthenticated) {
-      // Si l'utilisateur nécessite une vérification (sauf admin), on affiche le composant de vérification
+      // Si l'utilisateur nÃ©cessite une vÃ©rification (sauf admin), on affiche le composant de vÃ©rification
       if (profile && !isAdmin && (needsVerification || isPendingVerification)) {
-        return; // Le composant VerificationRequired sera affiché
+        return; // Le composant VerificationRequired sera affichÃ©
       }
 
       let dashboardPath = '/dashboard/particulier'; // Default fallback
 
-      // Si on a un profil, utiliser ses informations, sinon utiliser les métadonnées user
+      // Si on a un profil, utiliser ses informations, sinon utiliser les mÃ©tadonnÃ©es user
       const userType = profile?.type || user?.user_metadata?.type || 'Particulier';
       const userRole = profile?.role || user?.user_metadata?.role || 'user';
-
-      console.log('Determining dashboard path for:', { userType, userRole });
-
       // Determine dashboard path based on user role and type
       if (userRole === 'admin' || userType === 'Administrateur') {
         dashboardPath = '/dashboard/admin/new';
@@ -97,8 +94,6 @@ const DashboardPage = () => {
             break;
         }
       }
-
-      console.log('Redirecting to:', dashboardPath);
       // Redirect to the appropriate dashboard
       navigate(dashboardPath, { replace: true });
     }
@@ -131,17 +126,17 @@ const DashboardPage = () => {
         <p className="text-lg font-medium text-muted-foreground">Redirection vers votre tableau de bord...</p>
         {user && (
           <p className="text-sm text-muted-foreground mt-2">
-            Connecté en tant que: {user.email}
+            ConnectÃ© en tant que: {user.email}
           </p>
         )}
         {profile && (
           <p className="text-sm text-muted-foreground">
-            Type: {profile.type || 'Non défini'} | Rôle: {profile.role || 'Non défini'}
+            Type: {profile.type || 'Non dÃ©fini'} | RÃ©le: {profile.role || 'Non dÃ©fini'}
           </p>
         )}
         {!profile && user?.user_metadata && (
           <p className="text-sm text-muted-foreground">
-            Utilisation des métadonnées: {user.user_metadata.type || 'Particulier'}
+            Utilisation des mÃ©tadonnÃ©es: {user.user_metadata.type || 'Particulier'}
           </p>
         )}
       </div>

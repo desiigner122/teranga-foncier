@@ -18,7 +18,6 @@ export const ComparisonProvider = ({ children }) => {
       setComparisonList(prevList => [...prevList, parcelId]);
     } else if (comparisonList.length >= 4) {
        // Optionally show a toast message here
-       console.warn("Maximum comparison limit reached (4 items).");
     }
   };
 

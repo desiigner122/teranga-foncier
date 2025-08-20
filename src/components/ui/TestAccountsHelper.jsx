@@ -1,29 +1,5 @@
 // src/components/ui/TestAccountsHelper.jsx - Aide pour les comptes de test
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Users, 
-  Copy, 
-  Eye, 
-  EyeOff, 
-  ChevronDown, 
-  ChevronUp,
-  Info,
-  User,
-  Building,
-  TrendingUp,
-  Hammer,
-  Sprout,
-  CreditCard,
-  FileText,
-  Shield,
-  Settings
-} from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
-import { testAccounts } from '@/data/testAccounts';
-
 const TestAccountsHelper = ({ onAccountSelect }) => {
   // In production we hide the helper entirely to avoid exposing test account hints
   if (import.meta.env.PROD) {

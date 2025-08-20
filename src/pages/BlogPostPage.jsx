@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
@@ -29,7 +29,6 @@ const BlogPostPage = () => {
         if (error) throw error;
         setPost(blogPost);
       } catch (error) {
-        console.error('Erreur chargement article:', error);
         setPost(null);
       } finally {
         setLoading(false);

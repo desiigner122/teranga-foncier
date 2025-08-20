@@ -1,22 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PlusCircle, Search, Edit, Trash2, FileSignature, CheckCircle, XCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/components/ui/use-toast";
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from '@/lib/supabaseClient';
-
 const AdminRequestsPage = () => {
   const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeRequests();
   const [filteredData, setFilteredData] = useState([]);

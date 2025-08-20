@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Plane, ShieldCheck, MessageSquare, MapPin, ArrowRight } from 'lucide-react';
+import { Plane, ShieldCheck, MessageSquare, ArrowRight } from 'lucide-react';
 
 const guidePoints = [
   {

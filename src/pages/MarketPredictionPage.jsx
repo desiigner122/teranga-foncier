@@ -1,10 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Brain, BarChart3, AlertCircle } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
-
 const MarketPredictionPage = () => {
   const [selectedRegion, setSelectedRegion] = useState('dakar');
   const [timeFrame, setTimeFrame] = useState('6months');

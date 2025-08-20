@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
+
 import { BrowserRouter as Router, Route, Routes, Outlet, Link, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/Header';
@@ -136,7 +136,6 @@ import TransactionTrackingPage from '@/pages/TransactionTrackingPage';
 import MarketPredictionPage from '@/pages/MarketPredictionPage';
 import DocumentManagementPage from '@/pages/DocumentManagementPage';
 import AlertsNotificationsPage from '@/pages/AlertsNotificationsPage';
-
 const PublicLayout = () => (
   <div className="flex flex-col min-h-screen">
     <Header />
@@ -151,10 +150,10 @@ const NotFoundPage = () => (
    <div className="container mx-auto text-center py-20 flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
      <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 100 }}>
        <h1 className="text-6xl font-bold text-primary">404</h1>
-       <h2 className="text-2xl font-semibold mb-4">Page Non Trouvée</h2>
-       <p className="text-muted-foreground mb-8 max-w-md">Désolé, la page que vous recherchez semble s'être égarée dans le cadastre numérique.</p>
+       <h2 className="text-2xl font-semibold mb-4">Page Non TrouvÃ©e</h2>
+       <p className="text-muted-foreground mb-8 max-w-md">DÃ©solÃ©, la page que vous recherchez semble s'Ã©tre Ã©garÃ©e dans le cadastre numÃ©rique.</p>
        <Button asChild size="lg" className="bg-gradient-to-r from-green-500 to-primary hover:opacity-90 text-white">
-         <Link to="/">Retourner à l'Accueil</Link>
+         <Link to="/">Retourner Ã© l'Accueil</Link>
        </Button>
      </motion.div>
    </div>
@@ -166,13 +165,13 @@ function App() {
       <Router>
         <ComparisonProvider>
           <ScrollToTop />
-      <AuthProvider>
-        <RealtimeProvider>
-          <ChatbotProvider>
-            <MessagingNotificationProvider>
-              <FeatureFlagsProvider>
-                <Routes>
-                  {/* Public Routes */}
+          <AuthProvider>
+            <RealtimeProvider>
+              <ChatbotProvider>
+                <MessagingNotificationProvider>
+                  <FeatureFlagsProvider>
+                    <Routes>
+                      {/* Public Routes */}
                   <Route path="/" element={<PublicLayout />}>
                     <Route index element={<HomePage />} />
                     <Route path="login" element={<LoginPage />} />
@@ -324,14 +323,14 @@ function App() {
                 </Routes>
                 <Toaster />
                 <GlobalChatbot />
-                </FeatureFlagsProvider>
-                </MessagingNotificationProvider>
-              </ChatbotProvider>
-            </RealtimeProvider>
-          </AuthProvider>
-        </ComparisonProvider>
-      </Router>
-    </HelmetProvider>
+              </FeatureFlagsProvider>
+            </MessagingNotificationProvider>
+          </ChatbotProvider>
+        </RealtimeProvider>
+      </AuthProvider>
+    </ComparisonProvider>
+  </Router>
+</HelmetProvider>
   );
 }
 

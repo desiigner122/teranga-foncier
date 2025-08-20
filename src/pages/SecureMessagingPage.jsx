@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useMessagingNotification } from '@/context/MessagingNotificationContext';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -122,9 +122,8 @@ const SecureMessagingPage = () => {
 
     try {
       await sendMessage(selectedConversationId, messageContent);
-      toast({ title: "Message envoyé" });
+      toast({ title: "Message envoyÃ©" });
     } catch (error) {
-      console.error('Error sending message:', error);
       toast({ 
         title: "Erreur", 
         description: "Impossible d'envoyer le message",
@@ -138,7 +137,7 @@ const SecureMessagingPage = () => {
   // Set error state if user not logged in
   useEffect(() => {
     if (!user) {
-      setError("Veuillez vous connecter pour accéder à la messagerie.");
+      setError("Veuillez vous connecter pour accÃ©der Ã© la messagerie.");
     } else {
       setError(null);
     }
@@ -265,7 +264,7 @@ const SecureMessagingPage = () => {
                      <Skeleton className="h-10 w-3/5" />
                   </div>
                 ) : conversationMessages.length === 0 ? (
-                   <p className="text-center text-muted-foreground pt-10">Aucun message. Soyez le premier à en envoyer un !</p>
+                   <p className="text-center text-muted-foreground pt-10">Aucun message. Soyez le premier Ã© en envoyer un !</p>
                 ) : (
                   conversationMessages.map(msg => (
                     <div key={msg.id} className={cn("flex", (msg.sender_id||msg.senderId) === user.id ? 'justify-end' : 'justify-start')}>
@@ -288,7 +287,7 @@ const SecureMessagingPage = () => {
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                   <Input
                     type="text"
-                    placeholder="Écrivez votre message..."
+                    placeholder="Ã©crivez votre message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     className="flex-grow"
@@ -303,7 +302,7 @@ const SecureMessagingPage = () => {
           ) : (
             <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-muted/30">
                <MessageSquare className="h-20 w-20 text-muted-foreground/50 mb-4"/>
-              <h2 className="text-xl font-semibold text-muted-foreground">Sélectionnez une conversation</h2>
+              <h2 className="text-xl font-semibold text-muted-foreground">SÃ©lectionnez une conversation</h2>
               <p className="text-muted-foreground">Choisissez une conversation dans la liste de gauche pour afficher les messages.</p>
             </div>
           )}

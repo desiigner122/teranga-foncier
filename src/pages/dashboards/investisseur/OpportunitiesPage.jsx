@@ -1,15 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, RefreshCw, Filter } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 // NOTE: Requires table market_predictions (ai_real_data_schema.sql) and investments table (investments)
 
 const OpportunitiesPage = () => {

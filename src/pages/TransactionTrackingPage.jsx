@@ -1,15 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Bell, Clock, CheckCircle, AlertTriangle, Eye, Download } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const TransactionTrackingPage = () => {
   const { toast } = useToast();
   const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
@@ -28,24 +17,24 @@ const TransactionTrackingPage = () => {
         let userTransactions;
         
         if (user) {
-          // Si l'utilisateur est connecté, récupérer ses transactions
+          // Si l'utilisateur est connectÃ©, rÃ©cupÃ©rer ses transactions
           userTransactions = await SupabaseDataService.getTransactionsByUser(user.id);
         } else {
-          // Sinon, récupérer toutes les transactions (pour demo)
+          // Sinon, rÃ©cupÃ©rer toutes les transactions (pour demo)
           userTransactions = await SupabaseDataService.getTransactions(10);
         }
 
-        // Transformer les données pour le format attendu
+        // Transformer les donnÃ©es pour le format attendu
         const formattedTransactions = userTransactions.map((transaction, index) => ({
           id: transaction.reference || `TXN-${String(index + 1).padStart(3, '0')}`,
           parcelRef: transaction.parcel_reference || `ref-${transaction.id?.substring(0, 8)}`,
           type: transaction.type === 'sale' ? 'Vente' : 'Achat',
           amount: transaction.amount || 0,
-          buyer: transaction.buyer_name || (transaction.users ? transaction.users.full_name : 'Acheteur non spécifié'),
-          seller: transaction.seller_name || 'Vendeur non spécifié',
-          status: transaction.status === 'completed' ? 'Finalisé' : 
+          buyer: transaction.buyer_name || (transaction.users ? transaction.users.full_name : 'Acheteur non spÃ©cifiÃ©'),
+          seller: transaction.seller_name || 'Vendeur non spÃ©cifiÃ©',
+          status: transaction.status === 'completed' ? 'FinalisÃ©' : 
                   transaction.status === 'pending' ? 'En cours' : 
-                  transaction.status === 'cancelled' ? 'Annulé' : 'En attente',
+                  transaction.status === 'cancelled' ? 'AnnulÃ©' : 'En attente',
           progress: transaction.status === 'completed' ? 100 : 
                    transaction.status === 'pending' ? 50 : 25,
           steps: generateStepsFromStatus(transaction.status),
@@ -54,14 +43,12 @@ const TransactionTrackingPage = () => {
         }));
 
         setTransactions(formattedTransactions);
-      } catch (err) {
-        console.error('Erreur lors du chargement des transactions:', err);
-        // En cas d'erreur, utiliser des données par défaut
+      } catch (err) {        // En cas d'erreur, utiliser des donnÃ©es par dÃ©faut
         setTransactions(getDefaultTransactions());
         toast({
           variant: "destructive",
           title: "Erreur de chargement",
-          description: "Impossible de charger vos transactions. Données de démonstration affichées.",
+          description: "Impossible de charger vos transactions. DonnÃ©es de dÃ©monstration affichÃ©es.",
         });
       } finally {
         setLoading(false);
@@ -71,12 +58,12 @@ const TransactionTrackingPage = () => {
     loadTransactions();
   }, [user, toast]);
 
-  // Fonction pour générer les étapes basées sur le statut
+  // Fonction pour gÃ©nÃ©rer les Ã©tapes basÃ©es sur le statut
   const generateStepsFromStatus = (status) => {
     const baseSteps = [
-      { name: 'Offre acceptée', completed: true, date: '2025-01-05' },
-      { name: 'Documents vérifiés', completed: false, date: '2025-01-08' },
-      { name: 'Financement approuvé', completed: false, date: '2025-01-12' },
+      { name: 'Offre acceptÃ©e', completed: true, date: '2025-01-05' },
+      { name: 'Documents vÃ©rifiÃ©s', completed: false, date: '2025-01-08' },
+      { name: 'Financement approuvÃ©', completed: false, date: '2025-01-12' },
       { name: 'Rendez-vous notaire', completed: false, date: '2025-01-20' },
       { name: 'Signature finale', completed: false, date: '2025-01-25' }
     ];
@@ -94,14 +81,14 @@ const TransactionTrackingPage = () => {
   // Fonction pour obtenir la prochaine action
   const getNextActionFromStatus = (status) => {
     switch (status) {
-      case 'completed': return 'Transaction terminée';
+      case 'completed': return 'Transaction terminÃ©e';
       case 'pending': return 'Rendez-vous chez le notaire en attente';
-      case 'cancelled': return 'Transaction annulée';
+      case 'cancelled': return 'Transaction annulÃ©e';
       default: return 'En attente de validation';
     }
   };
 
-  // Données par défaut en cas d'erreur
+  // DonnÃ©es par dÃ©faut en cas d'erreur
   const getDefaultTransactions = () => [
     {
       id: 'TXN-001',
@@ -113,9 +100,9 @@ const TransactionTrackingPage = () => {
       status: 'En cours',
       progress: 75,
       steps: [
-        { name: 'Offre acceptée', completed: true, date: '2025-01-05' },
-        { name: 'Documents vérifiés', completed: true, date: '2025-01-08' },
-        { name: 'Financement approuvé', completed: true, date: '2025-01-12' },
+        { name: 'Offre acceptÃ©e', completed: true, date: '2025-01-05' },
+        { name: 'Documents vÃ©rifiÃ©s', completed: true, date: '2025-01-08' },
+        { name: 'Financement approuvÃ©', completed: true, date: '2025-01-12' },
         { name: 'Rendez-vous notaire', completed: false, date: '2025-01-20' },
         { name: 'Signature finale', completed: false, date: '2025-01-25' }
       ],
@@ -128,23 +115,23 @@ const TransactionTrackingPage = () => {
       amount: 32000000,
       buyer: 'Moussa Sow',
       seller: 'Aissatou Diop',
-      status: 'Finalisé',
+      status: 'FinalisÃ©',
       progress: 100,
       steps: [
-        { name: 'Offre acceptée', completed: true, date: '2024-12-15' },
-        { name: 'Documents vérifiés', completed: true, date: '2024-12-18' },
-        { name: 'Financement approuvé', completed: true, date: '2024-12-22' },
+        { name: 'Offre acceptÃ©e', completed: true, date: '2024-12-15' },
+        { name: 'Documents vÃ©rifiÃ©s', completed: true, date: '2024-12-18' },
+        { name: 'Financement approuvÃ©', completed: true, date: '2024-12-22' },
         { name: 'Rendez-vous notaire', completed: true, date: '2025-01-05' },
         { name: 'Signature finale', completed: true, date: '2025-01-08' }
       ],
-      nextAction: 'Transaction terminée'
+      nextAction: 'Transaction terminÃ©e'
     }
   ];
 
   const getStatusBadge = (status) => {
     const statusConfig = {
       'En cours': { color: 'bg-blue-100 text-blue-800', icon: Clock },
-      'Finalisé': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
+      'FinalisÃ©': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
       'En attente': { color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle },
       'Suspendu': { color: 'bg-red-100 text-red-800', icon: AlertTriangle },
     };
@@ -167,8 +154,8 @@ const TransactionTrackingPage = () => {
 
   const handleNotifyParties = (transactionId) => {
     toast({
-      title: "Notification envoyée",
-      description: `Toutes les parties ont été notifiées pour la transaction ${transactionId}.`,
+      title: "Notification envoyÃ©e",
+      description: `Toutes les parties ont Ã©tÃ© notifiÃ©es pour la transaction ${transactionId}.`,
     });
   };
 
@@ -187,7 +174,7 @@ const TransactionTrackingPage = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Suivi des Transactions</h1>
-        <p className="text-muted-foreground">Suivez l'avancement de vos transactions immobilières en temps réel</p>
+        <p className="text-muted-foreground">Suivez l'avancement de vos transactions immobiliÃ©res en temps rÃ©el</p>
       </div>
 
       {/* Statistiques */}
@@ -208,8 +195,8 @@ const TransactionTrackingPage = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Finalisées ce mois</p>
-                <p className="text-2xl font-bold">{transactions.filter(t => t.status === 'Finalisé').length}</p>
+                <p className="text-sm font-medium text-muted-foreground">FinalisÃ©es ce mois</p>
+                <p className="text-2xl font-bold">{transactions.filter(t => t.status === 'FinalisÃ©').length}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
@@ -257,13 +244,13 @@ const TransactionTrackingPage = () => {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   {getStatusBadge(transaction.status)}
-                  <span className="text-sm text-muted-foreground">{transaction.progress}% complété</span>
+                  <span className="text-sm text-muted-foreground">{transaction.progress}% complÃ©tÃ©</span>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Parties impliquées */}
+                {/* Parties impliquÃ©es */}
                 <div className="grid grid-cols-2 gap-4 text-sm border-b pb-4">
                   <div>
                     <p className="text-muted-foreground">Acheteur</p>
@@ -284,9 +271,9 @@ const TransactionTrackingPage = () => {
                   <Progress value={transaction.progress} className="h-3" />
                 </div>
 
-                {/* Étapes détaillées */}
+                {/* Ã©tapes dÃ©taillÃ©es */}
                 <div>
-                  <h4 className="font-semibold mb-3">Étapes de la transaction</h4>
+                  <h4 className="font-semibold mb-3">Ã©tapes de la transaction</h4>
                   <div className="space-y-3">
                     {transaction.steps.map((step, index) => (
                       <div key={index} className="flex items-center gap-3">
@@ -297,7 +284,7 @@ const TransactionTrackingPage = () => {
                           </p>
                           {step.date && (
                             <p className="text-xs text-muted-foreground">
-                              {step.completed ? 'Terminé le' : 'Prévu le'} {new Date(step.date).toLocaleDateString('fr-FR')}
+                              {step.completed ? 'TerminÃ© le' : 'PrÃ©vu le'} {new Date(step.date).toLocaleDateString('fr-FR')}
                             </p>
                           )}
                         </div>
@@ -319,7 +306,7 @@ const TransactionTrackingPage = () => {
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4 mr-1" />
-                    Voir détails
+                    Voir dÃ©tails
                   </Button>
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-1" />

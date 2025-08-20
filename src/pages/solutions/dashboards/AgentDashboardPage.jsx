@@ -1,28 +1,5 @@
 // src/pages/solutions/dashboards/AgentDashboardPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Users, 
-  LandPlot, 
-  ClipboardList, 
-  TrendingUp, 
-  CalendarDays, 
-  Phone, 
-  Mail,
-  MapPin,
-  Star,
-  CheckCircle2,
-  Clock,
-  AlertCircle
-} from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-
 const AgentDashboardPage = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
@@ -40,7 +17,7 @@ const AgentDashboardPage = () => {
       phone: '+221 77 123 45 67',
       status: 'active',
       lastContact: '2024-01-20',
-      interest: 'Achat terrain résidentiel'
+      interest: 'Achat terrain rÃ©sidentiel'
     },
     {
       id: 2,
@@ -49,7 +26,7 @@ const AgentDashboardPage = () => {
       phone: '+221 76 987 65 43',
       status: 'pending',
       lastContact: '2024-01-18',
-      interest: 'Vente propriété commerciale'
+      interest: 'Vente propriÃ©tÃ© commerciale'
     },
     {
       id: 3,
@@ -124,20 +101,20 @@ const AgentDashboardPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* En-tête de bienvenue */}
+      {/* En-tÃ©te de bienvenue */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             Bienvenue, {user?.full_name || user?.email} ??
           </h1>
           <p className="text-muted-foreground">
-            Voici un aperçu de votre activité d'agent foncier
+            Voici un aperÃ©u de votre activitÃ© d'agent foncier
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Badge variant="outline" className="px-3 py-1">
             <Clock className="h-4 w-4 mr-1" />
-            {stats.pendingTasks} tâches en attente
+            {stats.pendingTasks} tÃ©ches en attente
           </Badge>
         </div>
       </div>
@@ -179,7 +156,7 @@ const AgentDashboardPage = () => {
                 <ClipboardList className="h-6 w-6 text-orange-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Tâches en Cours</p>
+                <p className="text-sm font-medium text-muted-foreground">TÃ©ches en Cours</p>
                 <p className="text-2xl font-bold">{stats.pendingTasks}</p>
               </div>
             </div>
@@ -193,7 +170,7 @@ const AgentDashboardPage = () => {
                 <TrendingUp className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Ventes Réalisées</p>
+                <p className="text-sm font-medium text-muted-foreground">Ventes RÃ©alisÃ©es</p>
                 <p className="text-2xl font-bold">{stats.completedDeals}</p>
               </div>
             </div>
@@ -212,7 +189,7 @@ const AgentDashboardPage = () => {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Ventes réalisées</span>
+              <span>Ventes rÃ©alisÃ©es</span>
               <span>{monthlyTargets.deals.current}/{monthlyTargets.deals.target}</span>
             </div>
             <Progress 
@@ -246,10 +223,10 @@ const AgentDashboardPage = () => {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Clients récents */}
+        {/* Clients rÃ©cents */}
         <Card>
           <CardHeader>
-            <CardTitle>Clients Récents</CardTitle>
+            <CardTitle>Clients RÃ©cents</CardTitle>
             <CardDescription>
               Vos derniers clients et leurs statuts
             </CardDescription>
@@ -294,12 +271,12 @@ const AgentDashboardPage = () => {
           </CardContent>
         </Card>
 
-        {/* Tâches actives */}
+        {/* TÃ©ches actives */}
         <Card>
           <CardHeader>
-            <CardTitle>Tâches à Faire</CardTitle>
+            <CardTitle>TÃ©ches Ã© Faire</CardTitle>
             <CardDescription>
-              Vos prochaines tâches et rendez-vous
+              Vos prochaines tÃ©ches et rendez-vous
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -348,7 +325,7 @@ const AgentDashboardPage = () => {
         <CardHeader>
           <CardTitle>Actions Rapides</CardTitle>
           <CardDescription>
-            Accès direct aux fonctionnalités principales
+            AccÃ©s direct aux fonctionnalitÃ©s principales
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -363,7 +340,7 @@ const AgentDashboardPage = () => {
             </Button>
             <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
               <ClipboardList className="h-6 w-6" />
-              <span className="text-sm">Nouvelle Tâche</span>
+              <span className="text-sm">Nouvelle TÃ©che</span>
             </Button>
             <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
               <CalendarDays className="h-6 w-6" />

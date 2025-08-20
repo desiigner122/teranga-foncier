@@ -1,56 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { 
-  FileSignature, 
-  LandPlot, 
-  AlertTriangle, 
-  Landmark,
-  Map,
-  Users,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Eye,
-  Search,
-  MessageSquare,
-  FileText,
-  Download,
-  Building,
-  Shield,
-  BarChart3,
-  TrendingUp,
-  DollarSign,
-  Globe,
-  Brain,
-  Activity,
-  Calendar,
-  MapPin,
-  TreePine,
-  Leaf,
-  Settings,
-  Bell,
-  Archive,
-  Plus
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { supabase } from '@/lib/supabaseClient';
-import { hybridAI } from '@/lib/hybridAI';
-import { antiFraudAI } from '@/lib/antiFraudAI';
-import GlobalChatbot from '@/components/GlobalChatbot';
-
 // Carte de cadastre interactive réelle
 const CadastreMapReal = ({ onAction }) => (
   <div className="h-full bg-gradient-to-br from-blue-50 to-sky-100 dark:from-blue-900/30 dark:to-sky-800/30 rounded-lg p-4 flex flex-col items-center justify-center shadow-inner">
@@ -123,9 +71,7 @@ const MairiesDashboard = () => {
         securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
       }));
 
-    } catch (error) {
-      console.error('Erreur chargement utilisateur:', error);
-    }
+    } catch (error) {    }
   };
 
   const loadMairieData = async () => {
@@ -261,9 +207,7 @@ const MairiesDashboard = () => {
       // Générer insights IA
       await generateMunicipalInsights();
 
-    } catch (error) {
-      console.error('Erreur chargement données mairie:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur de chargement",
         description: "Certaines données municipales n'ont pas pu être chargées (aucune donnée simulée utilisée)",
@@ -310,9 +254,7 @@ const MairiesDashboard = () => {
           }))
         }));
       }
-    } catch (error) {
-      console.error('Erreur génération insights IA:', error);
-    }
+    } catch (error) {    }
   };
 
   const formatCurrency = (amount) => {
@@ -375,9 +317,7 @@ const MairiesDashboard = () => {
           description: "Prévisions de revenus générées avec succès",
         });
         break;
-      default:
-        console.log('Action IA municipale:', actionType, result);
-    }
+      default:    }
   };
 
   const openModal = (type, title, description, data = null) => {
@@ -399,9 +339,7 @@ const MairiesDashboard = () => {
       
       await loadMairieData();
       closeModal();
-    } catch (error) {
-      console.error('Erreur lors de la décision:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de traiter la demande",

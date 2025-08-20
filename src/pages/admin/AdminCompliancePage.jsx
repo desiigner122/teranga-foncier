@@ -1,20 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ShieldCheck, PlusCircle, Edit, Trash2, Search, Filter } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";

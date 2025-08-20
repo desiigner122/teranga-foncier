@@ -1,46 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { motion } from 'framer-motion';
-import { 
-  FileClock, 
-  Gavel, 
-  History, 
-  Scale, 
-  FileText, 
-  CheckCircle, 
-  XCircle, 
-  Clock,
-  Eye,
-  Search,
-  Calendar,
-  User,
-  MapPin,
-  Brain,
-  Zap,
-  Shield,
-  AlertTriangle,
-  TrendingUp,
-  CheckSquare,
-  FileDown
-} from 'lucide-react';
-import jsPDF from 'jspdf';
-import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
-import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
-import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { hybridAI } from '@/lib/hybridAI';
-
 const NotairesDashboard = () => {
   const { toast } = useToast();
   const { profile } = useAuth();
@@ -49,7 +7,7 @@ const NotairesDashboard = () => {
   const [currentDossier, setCurrentDossier] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  // Loading géré par le hook temps réel
+  // Loading gÃ©rÃ© par le hook temps rÃ©el
   const { data: dossiers, loading: dossiersLoading, error: dossiersError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -80,9 +38,7 @@ const NotairesDashboard = () => {
         .or(`notary_id.eq.${profile.id},assigned_notary.eq.${profile.id}`)
         .order('created_at', { ascending: false });
 
-      if (dossiersError) {
-        console.log('Erreur dossiers:', dossiersError);
-        // Fallback: chercher dans les contrats
+      if (dossiersError) {        // Fallback: chercher dans les contrats
         const { data: contractsData, error: contractsError } = await supabase
           .from('contracts')
           .select('*')
@@ -96,7 +52,7 @@ const NotairesDashboard = () => {
         setDossiers(dossiersData || []);
       }
 
-      // Charger les activités récentes depuis les notifications
+      // Charger les activitÃ©s rÃ©centes depuis les notifications
       const { data: activitiesData, error: activitiesError } = await supabase
         .from('notifications')
         .select('*')
@@ -108,33 +64,33 @@ const NotairesDashboard = () => {
         setRecentActivities(activitiesData || []);
       }
 
-      // Calculer les statistiques avec les vraies données
+      // Calculer les statistiques avec les vraies donnÃ©es
       const dossiersStats = calculateStats(dossiersData || []);
       
       setStats([
         { 
-          title: "Dossiers à Vérifier", 
+          title: "Dossiers Ã© VÃ©rifier", 
           value: dossiersStats.pending, 
           icon: FileClock, 
           color: "text-yellow-500",
           trend: dossiersStats.pendingTrend
         },
         { 
-          title: "Actes Authentifiés (Mois)", 
+          title: "Actes AuthentifiÃ©s (Mois)", 
           value: dossiersStats.authenticated, 
           icon: Gavel, 
           color: "text-green-500",
           trend: dossiersStats.authenticatedTrend
         },
         { 
-          title: "Procédures en Attente", 
+          title: "ProcÃ©dures en Attente", 
           value: dossiersStats.inProgress, 
           icon: History, 
           color: "text-blue-500",
           trend: dossiersStats.inProgressTrend
         },
         { 
-          title: "Vérifications de Conformité", 
+          title: "VÃ©rifications de ConformitÃ©", 
           value: dossiersStats.compliant, 
           icon: Scale, 
           color: "text-indigo-500",
@@ -142,12 +98,10 @@ const NotairesDashboard = () => {
         },
       ]);
 
-    } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de charger les données du notaire",
+        description: "Impossible de charger les donnÃ©es du notaire",
       });
     } finally {
       setLoading(false);
@@ -173,7 +127,7 @@ const NotairesDashboard = () => {
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
     
-    // Statistiques basées sur les statuts de transactions/contrats
+    // Statistiques basÃ©es sur les statuts de transactions/contrats
     const pending = dossiersData.filter(d => 
       d.status === 'pending_notary' || 
       d.status === 'awaiting_verification' || 
@@ -195,7 +149,7 @@ const NotairesDashboard = () => {
       d.status === 'compliant'
     ).length;
 
-    // Statistiques du mois précédent pour calculer les tendances
+    // Statistiques du mois prÃ©cÃ©dent pour calculer les tendances
     const lastMonthAuthenticated = dossiersData.filter(d => 
       (d.status === 'notarized' || d.status === 'authenticated' || d.status === 'completed') && 
       new Date(d.updated_at) >= lastMonth &&
@@ -214,7 +168,7 @@ const NotairesDashboard = () => {
     };
   };
 
-  // Fonction helper pour calculer les tendances réelles
+  // Fonction helper pour calculer les tendances rÃ©elles
   const calculateTrend = (data, status, lastMonthStart, lastMonthEnd, currentMonthStart) => {
     const currentMonth = data.filter(d => 
       (d.status === status || 
@@ -232,22 +186,20 @@ const NotairesDashboard = () => {
     return currentMonth - lastMonth;
   };
 
-  // Générer des insights IA basés sur les données du notaire
+  // GÃ©nÃ©rer des insights IA basÃ©s sur les donnÃ©es du notaire
   const generateAIInsights = async () => {
     try {
       const context = {
         role: 'notaire',
         totalDossiers: dossiers.length,
-        dossiersEnAttente: dossiers.filter(d => d.status === 'En attente vérification').length
+        dossiersEnAttente: dossiers.filter(d => d.status === 'En attente vÃ©rification').length
       };
 
-      const query = `Analyse les données de ce notaire et donne 3 recommandations intelligentes pour optimiser son travail. ${JSON.stringify(context)}`;
+      const query = `Analyse les donnÃ©es de ce notaire et donne 3 recommandations intelligentes pour optimiser son travail. ${JSON.stringify(context)}`;
       
       const response = await hybridAI.generateResponse(query, [], { role: 'notaire', domain: 'legal_analysis' });
       setAiInsights(response);
-    } catch (error) {
-      console.error('Erreur génération insights IA:', error);
-    }
+    } catch (error) {    }
   };
 
   // Analyser un document avec l'IA
@@ -255,7 +207,7 @@ const NotairesDashboard = () => {
     if (!profile?.id) return;
     try {
       setAuthenticating(dossier.id);
-      // Mettre à jour la transaction comme authentifiée
+      // Mettre Ã© jour la transaction comme authentifiÃ©e
       const { data, error } = await supabase
         .from('transactions')
         .update({ status:'authenticated', authenticated_at: new Date().toISOString(), updated_at: new Date().toISOString(), assigned_notary: profile.id })
@@ -264,10 +216,8 @@ const NotairesDashboard = () => {
         .single();
       if (error) throw error;
       setDossiers(ds => ds.map(d=> d.id===dossier.id? { ...d, ...data }: d));
-      toast({ title:'Acte authentifié', description:`Dossier ${dossier.reference || dossier.id}` });
-    } catch (e) {
-      console.error(e);
-      toast({ variant:'destructive', title:'Erreur', description:'Authentification impossible' });
+      toast({ title:'Acte authentifiÃ©', description:`Dossier ${dossier.reference || dossier.id}` });
+    } catch (e) {      toast({ variant:'destructive', title:'Erreur', description:'Authentification impossible' });
     } finally {
       setAuthenticating(null);
     }
@@ -277,7 +227,7 @@ const NotairesDashboard = () => {
     try {
       setDocumentAnalysis({ loading: true, dossierId: dossier.id });
       
-      // Analyse réelle basée sur les données du dossier
+      // Analyse rÃ©elle basÃ©e sur les donnÃ©es du dossier
       const documentContent = {
         reference: dossier.reference || dossier.id,
         type: dossier.type,
@@ -292,20 +242,20 @@ const NotairesDashboard = () => {
       const query = `Analyse approfondie du dossier notarial ${documentContent.reference}:
       
 Type: ${documentContent.type}
-Valeur: ${documentContent.valuation ? documentContent.valuation.toLocaleString() + ' XOF' : 'Non définie'}
+Valeur: ${documentContent.valuation ? documentContent.valuation.toLocaleString() + ' XOF' : 'Non dÃ©finie'}
 Statut: ${documentContent.status}
-Client: ${documentContent.buyerInfo || 'Non renseigné'}
-Parcelle: ${documentContent.parcelInfo || 'Non référencée'}
-Date création: ${new Date(documentContent.createdAt).toLocaleDateString('fr-FR')}
+Client: ${documentContent.buyerInfo || 'Non renseignÃ©'}
+Parcelle: ${documentContent.parcelInfo || 'Non rÃ©fÃ©rencÃ©e'}
+Date crÃ©ation: ${new Date(documentContent.createdAt).toLocaleDateString('fr-FR')}
 
-En tant qu'expert notaire, effectue une analyse complète:
-1. Vérification de la cohérence des informations
+En tant qu'expert notaire, effectue une analyse complÃ©te:
+1. VÃ©rification de la cohÃ©rence des informations
 2. Identification des risques potentiels
-3. Conformité légale et réglementaire
+3. ConformitÃ© lÃ©gale et rÃ©glementaire
 4. Recommandations d'actions prioritaires
 5. Score de risque (0-100)
 
-Fournis une réponse structurée avec score et recommandations.`;
+Fournis une rÃ©ponse structurÃ©e avec score et recommandations.`;
       
       const response = await hybridAI.generateResponse(query, [], { 
         role: 'notaire', 
@@ -314,7 +264,7 @@ Fournis une réponse structurée avec score et recommandations.`;
         analysisMode: 'detailed'
       });
 
-      // Calcul du score de risque basé sur des critères réels
+      // Calcul du score de risque basÃ© sur des critÃ©res rÃ©els
       let riskScore = 0;
       
       // Facteurs de risque
@@ -323,11 +273,11 @@ Fournis une réponse structurée avec score et recommandations.`;
       if (!dossier.parcels?.reference) riskScore += 15;
       if (!dossier.users?.full_name) riskScore += 10;
       
-      // Ancienneté du dossier
+      // AnciennetÃ© du dossier
       const daysOld = Math.floor((new Date() - new Date(dossier.created_at)) / (1000 * 60 * 60 * 24));
       if (daysOld > 30) riskScore += Math.min(20, daysOld - 30);
       
-      // Dernière mise à jour
+      // DerniÃ©re mise Ã© jour
       const daysSinceUpdate = Math.floor((new Date() - new Date(dossier.updated_at)) / (1000 * 60 * 60 * 24));
       if (daysSinceUpdate > 7) riskScore += Math.min(10, daysSinceUpdate - 7);
 
@@ -335,22 +285,20 @@ Fournis une réponse structurée avec score et recommandations.`;
         loading: false,
         dossierId: dossier.id,
         result: response,
-        riskScore: Math.min(100, riskScore), // Cap à 100
+        riskScore: Math.min(100, riskScore), // Cap Ã© 100
         timestamp: new Date(),
         analysisDetails: {
-          completeness: !dossier.valuation ? 'Incomplète' : 'Complète',
-          urgency: riskScore > 70 ? 'Élevée' : riskScore > 40 ? 'Moyenne' : 'Faible',
-          recommendation: riskScore > 70 ? 'Action immédiate requise' : 'Suivi standard'
+          completeness: !dossier.valuation ? 'IncomplÃ©te' : 'ComplÃ©te',
+          urgency: riskScore > 70 ? 'Ã©levÃ©e' : riskScore > 40 ? 'Moyenne' : 'Faible',
+          recommendation: riskScore > 70 ? 'Action immÃ©diate requise' : 'Suivi standard'
         }
       });
 
       toast({
-        title: "Analyse IA terminée",
-        description: `Document ${dossier.reference || dossier.id} analysé - Risque: ${Math.min(100, riskScore)}%`,
+        title: "Analyse IA terminÃ©e",
+        description: `Document ${dossier.reference || dossier.id} analysÃ© - Risque: ${Math.min(100, riskScore)}%`,
       });
-    } catch (error) {
-      console.error('Erreur analyse IA:', error);
-      setDocumentAnalysis({ loading: false, error: error.message });
+    } catch (error) {      setDocumentAnalysis({ loading: false, error: error.message });
       toast({
         variant: "destructive",
         title: "Erreur d'analyse IA",
@@ -363,25 +311,23 @@ Fournis une réponse structurée avec score et recommandations.`;
     switch(action) {
       case 'verify':
         toast({
-          title: "Vérification initiée",
-          description: `Vérification du dossier ${dossierId} en cours.`,
+          title: "VÃ©rification initiÃ©e",
+          description: `VÃ©rification du dossier ${dossierId} en cours.`,
         });
         break;
       case 'authenticate':
         toast({
           title: "Authentification",
-          description: `Processus d'authentification démarré pour ${dossierId}.`,
+          description: `Processus d'authentification dÃ©marrÃ© pour ${dossierId}.`,
         });
         break;
       case 'schedule':
         toast({
-          title: "Rendez-vous planifié",
-          description: "Consultation programmée avec succès.",
+          title: "Rendez-vous planifiÃ©",
+          description: "Consultation programmÃ©e avec succÃ©s.",
         });
         break;
-      default:
-        console.log('Action:', action, 'ID:', dossierId);
-    }
+      default:    }
   };
   
   const openModal = (dossier) => {
@@ -398,9 +344,9 @@ Fournis une réponse structurée avec score et recommandations.`;
     if (currentDossier) {
       try {
         const newStatus = decision === 'approve' ? 'notarized' : 'rejected';
-        const notes = decision === 'approve' ? 'Dossier approuvé par le notaire' : 'Dossier rejeté par le notaire';
+        const notes = decision === 'approve' ? 'Dossier approuvÃ© par le notaire' : 'Dossier rejetÃ© par le notaire';
         
-        // Mise à jour dans la table transactions
+        // Mise Ã© jour dans la table transactions
         const { error: transactionError } = await supabase
           .from('transactions')
           .update({ 
@@ -425,30 +371,28 @@ Fournis une réponse structurée avec score et recommandations.`;
           if (contractError) throw contractError;
         }
 
-        // Créer une notification pour l'utilisateur
+        // CrÃ©er une notification pour l'utilisateur
         await supabase
           .from('notifications')
           .insert([{
             user_id: currentDossier.buyer_id || currentDossier.user_id,
-            title: decision === 'approve' ? 'Dossier approuvé' : 'Dossier rejeté',
-            message: `Votre dossier ${currentDossier.id} a été ${decision === 'approve' ? 'approuvé' : 'rejeté'} par le notaire.`,
+            title: decision === 'approve' ? 'Dossier approuvÃ©' : 'Dossier rejetÃ©',
+            message: `Votre dossier ${currentDossier.id} a Ã©tÃ© ${decision === 'approve' ? 'approuvÃ©' : 'rejetÃ©'} par le notaire.`,
             type: decision === 'approve' ? 'success' : 'warning',
             created_at: new Date().toISOString()
           }]);
 
-        // Recharger les données
+        // Recharger les donnÃ©es
         await loadNotaireData();
 
         toast({
-          title: decision === 'approve' ? "Dossier approuvé" : "Dossier rejeté",
-          description: `${currentDossier.id} - ${decision === 'approve' ? 'Approuvé' : 'Rejeté'} avec succès.`,
+          title: decision === 'approve' ? "Dossier approuvÃ©" : "Dossier rejetÃ©",
+          description: `${currentDossier.id} - ${decision === 'approve' ? 'ApprouvÃ©' : 'RejetÃ©'} avec succÃ©s.`,
         });
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour:', error);
-        toast({
+      } catch (error) {        toast({
           variant: "destructive",
           title: "Erreur",
-          description: "Impossible de mettre à jour le dossier",
+          description: "Impossible de mettre Ã© jour le dossier",
         });
       }
       closeModal();
@@ -461,7 +405,7 @@ Fournis une réponse structurée avec score et recommandations.`;
         await loadNotaireData();
         break;
       case 'SEARCH_DATA':
-        // Filtrer les dossiers selon les résultats de l'IA
+        // Filtrer les dossiers selon les rÃ©sultats de l'IA
         break;
       default:
         await loadNotaireData();
@@ -483,12 +427,12 @@ Fournis une réponse structurée avec score et recommandations.`;
       'compliant': { variant: 'default', color: 'bg-green-100 text-green-800' },
       'rejected': { variant: 'default', color: 'bg-red-100 text-red-800' },
       'cancelled': { variant: 'default', color: 'bg-gray-100 text-gray-800' },
-      // Anciens statuts pour compatibilité
+      // Anciens statuts pour compatibilitÃ©
       'En cours': { variant: 'default', color: 'bg-yellow-100 text-yellow-800' },
-      'Terminé': { variant: 'default', color: 'bg-green-100 text-green-800' },
+      'TerminÃ©': { variant: 'default', color: 'bg-green-100 text-green-800' },
       'Nouveau': { variant: 'default', color: 'bg-blue-100 text-blue-800' },
-      'Confirmée': { variant: 'default', color: 'bg-purple-100 text-purple-800' },
-      'En attente vérification': { variant: 'default', color: 'bg-yellow-100 text-yellow-800' },
+      'ConfirmÃ©e': { variant: 'default', color: 'bg-purple-100 text-purple-800' },
+      'En attente vÃ©rification': { variant: 'default', color: 'bg-yellow-100 text-yellow-800' },
       'Authentification requise': { variant: 'default', color: 'bg-orange-100 text-orange-800' },
       'Conforme': { variant: 'default', color: 'bg-green-100 text-green-800' },
     };
@@ -512,7 +456,7 @@ Fournis une réponse structurée avec score et recommandations.`;
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Rechercher par dossier, client, ou référence..."
+                  placeholder="Rechercher par dossier, client, ou rÃ©fÃ©rence..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -538,7 +482,7 @@ Fournis une réponse structurée avec score et recommandations.`;
                 <Card>
                   <CardContent className="p-8 text-center">
                     <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">Aucun dossier trouvé</p>
+                    <p className="text-muted-foreground">Aucun dossier trouvÃ©</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -584,7 +528,7 @@ Fournis une réponse structurée avec score et recommandations.`;
                             <p className="font-medium">{dossier.valuation ? `${dossier.valuation.toLocaleString()} XOF` : 'N/A'}</p>
                           </div>
                           <div>
-                            <Label className="text-muted-foreground">Date création</Label>
+                            <Label className="text-muted-foreground">Date crÃ©ation</Label>
                             <p className="font-medium">{new Date(dossier.created_at).toLocaleDateString('fr-FR')}</p>
                           </div>
                           <div className="flex gap-2">
@@ -601,7 +545,7 @@ Fournis une réponse structurée avec score et recommandations.`;
                               onClick={() => handleAction('verify', dossier.id)}
                             >
                               <FileText className="h-4 w-4 mr-1" />
-                              Vérifier
+                              VÃ©rifier
                             </Button>
                             <Button size="sm" variant="secondary" disabled={authenticating===dossier.id || ['authenticated','notarized','completed'].includes(dossier.status)} onClick={()=>authenticateDossier(dossier)}>
                               {authenticating===dossier.id? '...':'Authentifier'}
@@ -625,7 +569,7 @@ Fournis une réponse structurée avec score et recommandations.`;
                           </div>
                         </div>
                         
-                        {/* Résultat d'analyse IA */}
+                        {/* RÃ©sultat d'analyse IA */}
                         {documentAnalysis?.dossierId === dossier.id && documentAnalysis?.result && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
@@ -693,7 +637,7 @@ Fournis une réponse structurée avec score et recommandations.`;
           <Card>
             <CardHeader>
               <CardTitle>Planning des Consultations</CardTitle>
-              <CardDescription>Gérez vos rendez-vous et consultations</CardDescription>
+              <CardDescription>GÃ©rez vos rendez-vous et consultations</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -705,7 +649,7 @@ Fournis une réponse structurée avec score et recommandations.`;
                 </div>
                 <div className="border rounded-lg p-4">
                   <p className="text-center text-muted-foreground">
-                    Calendrier des consultations à venir
+                    Calendrier des consultations Ã© venir
                   </p>
                 </div>
               </div>
@@ -720,10 +664,10 @@ Fournis une réponse structurée avec score et recommandations.`;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* En-tête */}
+      {/* En-tÃ©te */}
       <div>
         <h1 className="text-3xl font-bold">Dashboard Notaire</h1>
-        <p className="text-muted-foreground">Gestion des actes notariés et vérifications foncières</p>
+        <p className="text-muted-foreground">Gestion des actes notariÃ©s et vÃ©rifications fonciÃ©res</p>
       </div>
 
       {/* Statistiques avec tendances */}
@@ -801,7 +745,7 @@ Fournis une réponse structurée avec score et recommandations.`;
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="dossiers">Dossiers</TabsTrigger>
-          <TabsTrigger value="activites">Activités Récentes</TabsTrigger>
+          <TabsTrigger value="activites">ActivitÃ©s RÃ©centes</TabsTrigger>
           <TabsTrigger value="planning">Planning</TabsTrigger>
         </TabsList>
 
@@ -810,13 +754,13 @@ Fournis une réponse structurée avec score et recommandations.`;
         </TabsContent>
       </Tabs>
 
-      {/* Modal de détails */}
+      {/* Modal de dÃ©tails */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Détails du Dossier {currentDossier?.id}</DialogTitle>
+            <DialogTitle>DÃ©tails du Dossier {currentDossier?.id}</DialogTitle>
             <DialogDescription>
-              Vérification et validation du dossier notarial
+              VÃ©rification et validation du dossier notarial
             </DialogDescription>
           </DialogHeader>
           
@@ -828,7 +772,7 @@ Fournis une réponse structurée avec score et recommandations.`;
                   <p>{currentDossier.client}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Référence Parcelle</Label>
+                  <Label className="text-sm font-medium">RÃ©fÃ©rence Parcelle</Label>
                   <p>{currentDossier.parcelRef}</p>
                 </div>
                 <div>
@@ -849,7 +793,7 @@ Fournis une réponse structurée avec score et recommandations.`;
               </div>
 
               <div>
-                <Label htmlFor="notes">Notes de vérification</Label>
+                <Label htmlFor="notes">Notes de vÃ©rification</Label>
                 <Textarea 
                   id="notes"
                   placeholder="Ajoutez vos observations..."
@@ -883,8 +827,8 @@ Fournis une réponse structurée avec score et recommandations.`;
         dashboardContext={{
           role: 'notaire',
           totalDossiers: dossiers.length,
-          dossiersEnAttente: dossiers.filter(d => d.status === 'En attente vérification').length,
-          actesAuthentifies: stats.find(s => s.title.includes('Authentifiés'))?.value || 0,
+          dossiersEnAttente: dossiers.filter(d => d.status === 'En attente vÃ©rification').length,
+          actesAuthentifies: stats.find(s => s.title.includes('AuthentifiÃ©s'))?.value || 0,
           aiInsights: aiInsights,
           documentAnalysis: documentAnalysis
         }}

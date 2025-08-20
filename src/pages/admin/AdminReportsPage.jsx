@@ -1,13 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useToast } from "@/components/ui/use-toast";
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { BarChart, PieChart, Users, MapPin, FileSignature, DollarSign, TrendingUp } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient'; // <-- CORRECTION ICI : Import nommé
-import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, Pie, Cell, Bar } from 'recharts';
-
 // Composant de graphique à barres simple (réutilisable)
 const SimpleBarChart = ({ data, dataKey, labelKey, barColorClass, title }) => {
   const color = barColorClass.replace('bg-', ''); // Extraire la couleur de la classe Tailwind

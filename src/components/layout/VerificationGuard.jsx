@@ -6,8 +6,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import VerificationRequired from '@/components/VerificationRequired';
 
 /**
- * Composant de protection strict pour la vérification d'identité
- * Empêche toute navigation si la vérification n'est pas complète
+ * Composant de protection strict pour la vÃ©rification d'identitÃ©
+ * EmpÃ©che toute navigation si la vÃ©rification n'est pas complÃ©te
  */
 const VerificationGuard = ({ children, allowedPaths = [] }) => {
   const { 
@@ -23,7 +23,7 @@ const VerificationGuard = ({ children, allowedPaths = [] }) => {
   // Chemin actuel
   const currentPath = window.location.pathname;
   
-  // Chemins autorisés sans vérification
+  // Chemins autorisÃ©s sans vÃ©rification
   const defaultAllowedPaths = [
     '/verification',
     '/identity-verification',
@@ -42,45 +42,39 @@ const VerificationGuard = ({ children, allowedPaths = [] }) => {
     );
   }
 
-  // Si pas authentifié, rediriger vers login
+  // Si pas authentifiÃ©, rediriger vers login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // Administrateurs exempts de vérification
+  // Administrateurs exempts de vÃ©rification
   if (profile?.role === 'admin' || profile?.type === 'Administrateur') {
     return children;
   }
 
-  // Vérifier si l'utilisateur existe encore dans Auth (sécurité supplémentaire)
-  if (user && !user.id) {
-    console.warn('Session utilisateur corrompue - redirection vers login');
-    return <Navigate to="/login" replace />;
+  // VÃ©rifier si l'utilisateur existe encore dans Auth (sÃ©curitÃ© supplÃ©mentaire)
+  if (user && !user.id) {    return <Navigate to="/login" replace />;
   }
 
-  // Si le chemin actuel est autorisé, laisser passer
+  // Si le chemin actuel est autorisÃ©, laisser passer
   if (allAllowedPaths.some(path => currentPath.startsWith(path))) {
     return children;
   }
 
-  // Si la vérification est nécessaire
-  if (needsVerification) {
-    console.log('Vérification requise - redirection vers /verification');
-    return <Navigate to="/verification" replace />;
+  // Si la vÃ©rification est nÃ©cessaire
+  if (needsVerification) {    return <Navigate to="/verification" replace />;
   }
 
-  // Si en attente de vérification, afficher le composant d'attente
+  // Si en attente de vÃ©rification, afficher le composant d'attente
   if (isPendingVerification) {
     return <VerificationRequired />;
   }
 
-  // Si pas vérifié et pas admin, bloquer l'accès
-  if (!isVerified) {
-    console.log('Utilisateur non vérifié - accès bloqué');
-    return <Navigate to="/verification" replace />;
+  // Si pas vÃ©rifiÃ© et pas admin, bloquer l'accÃ©s
+  if (!isVerified) {    return <Navigate to="/verification" replace />;
   }
 
-  // Utilisateur vérifié, accès autorisé
+  // Utilisateur vÃ©rifiÃ©, accÃ©s autorisÃ©
   return children;
 };
 

@@ -88,7 +88,6 @@ class AntiFraudAIService {
       };
 
     } catch (error) {
-      console.error('Erreur analyse anti-fraude:', error);
       throw error;
     }
   }
@@ -169,7 +168,6 @@ class AntiFraudAIService {
       };
 
     } catch (error) {
-      console.error('Erreur analyse transaction:', error);
       throw error;
     }
   }
@@ -238,7 +236,6 @@ class AntiFraudAIService {
       };
 
     } catch (error) {
-      console.error('Erreur analyse utilisateur:', error);
       throw error;
     }
   }
@@ -307,7 +304,6 @@ class AntiFraudAIService {
       };
 
     } catch (error) {
-      console.error('Erreur analyse parcelle:', error);
       throw error;
     }
   }
@@ -333,7 +329,6 @@ class AntiFraudAIService {
       };
 
     } catch (error) {
-      console.error('Erreur analyse réseau:', error);
       throw error;
     }
   }
@@ -423,7 +418,6 @@ class AntiFraudAIService {
       };
 
     } catch (error) {
-      console.error('Erreur analyse prix:', error);
       return { suspicious: false, reason: 'analysis_error' };
     }
   }
@@ -475,7 +469,6 @@ class AntiFraudAIService {
         ai_version: '1.0.0'
       });
     } catch (error) {
-      console.error('Erreur logging fraude:', error);
     }
   }
 

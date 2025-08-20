@@ -1,33 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  Heart, 
-  Search, 
-  MapPin, 
-  DollarSign, 
-  Eye,
-  Share2,
-  Trash2,
-  Filter,
-  Star,
-  Home,
-  TreePine,
-  Building2
-} from 'lucide-react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const MyFavoritesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: favorites, loading: favoritesLoading, error: favoritesError, refetch } = useRealtimeTable();
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -47,9 +26,7 @@ const MyFavoritesPage = () => {
       setLoading(true);
       const userFavorites = await SupabaseDataService.getUserFavorites(user.id);
       setFavorites(userFavorites || []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des favoris:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger vos favoris"
@@ -64,12 +41,10 @@ const MyFavoritesPage = () => {
       await SupabaseDataService.removeFavorite(user.id, favoriteId);
       setFavorites(prev => prev.filter(f => f.id !== favoriteId));
       toast({
-        title: "Favori supprimé",
-        description: `"${itemTitle}" a été retiré de vos favoris`
+        title: "Favori supprimÃ©",
+        description: `"${itemTitle}" a Ã©tÃ© retirÃ© de vos favoris`
       });
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de supprimer ce favori"
@@ -108,7 +83,7 @@ const MyFavoritesPage = () => {
   };
 
   const formatPrice = (price) => {
-    if (!price) return 'Prix non spécifié';
+    if (!price) return 'Prix non spÃ©cifiÃ©';
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'XOF',
@@ -223,7 +198,7 @@ const MyFavoritesPage = () => {
               <div className="flex items-center space-x-2">
                 <Star className="h-5 w-5 text-yellow-500" />
                 <span className="text-sm text-muted-foreground">
-                  {filteredFavorites.length} favoris affichés
+                  {filteredFavorites.length} favoris affichÃ©s
                 </span>
               </div>
             </div>
@@ -245,12 +220,12 @@ const MyFavoritesPage = () => {
             <CardContent className="p-8 text-center">
               <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">
-                {favorites.length === 0 ? "Aucun favori" : "Aucun résultat"}
+                {favorites.length === 0 ? "Aucun favori" : "Aucun rÃ©sultat"}
               </h3>
               <p className="text-muted-foreground">
                 {favorites.length === 0 
-                  ? "Vous n'avez pas encore ajouté de biens à vos favoris. Explorez les annonces et ajoutez vos coups de cœur !"
-                  : "Aucun favori ne correspond à vos critères de recherche."
+                  ? "Vous n'avez pas encore ajoutÃ© de biens Ã  vos favoris. Explorez les annonces et ajoutez vos coups de cÅ“ur !"
+                  : "Aucun favori ne correspond Ã  vos critÃ¨res de recherche."
                 }
               </p>
             </CardContent>
@@ -268,7 +243,7 @@ const MyFavoritesPage = () => {
                     </div>
                     <div className="absolute bottom-2 left-2">
                       <Badge variant="secondary" className="text-xs">
-                        Ajouté le {formatDate(favorite.created_at)}
+                        AjoutÃ© le {formatDate(favorite.created_at)}
                       </Badge>
                     </div>
                   </div>
@@ -309,7 +284,7 @@ const MyFavoritesPage = () => {
                       
                       {favorite.surface && (
                         <div className="text-sm text-muted-foreground">
-                          Surface: {favorite.surface} m²
+                          Surface: {favorite.surface} mÂ²
                         </div>
                       )}
                     </div>
@@ -317,7 +292,7 @@ const MyFavoritesPage = () => {
                     <div className="flex gap-2 mt-4">
                       <Button variant="outline" size="sm" className="flex-1">
                         <Eye className="h-4 w-4 mr-2" />
-                        Voir détails
+                        Voir dÃ©tails
                       </Button>
                       <Button variant="outline" size="sm">
                         <Share2 className="h-4 w-4" />

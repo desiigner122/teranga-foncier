@@ -1,4 +1,4 @@
-// src/lib/hybridAI.import { openAIService } from './openai';
+// src/lib/hybridAI.
 
 /**
  * Service d'IA hybride optimisé - Gemini + ChatGPT seulement
@@ -199,11 +199,7 @@ class HybridAIService {
    * Génère une réponse optimisée avec Gemini ou OpenAI
    */
   async generateHybridResponse(query, messages = [], context = {}) {
-    const selectedModel = this.selectBestModel(query, context);
-    
-    console.log(`🤖 Modèle sélectionné: ${selectedModel.toUpperCase()} pour: "${query.substring(0, 50)}..."`);
-
-    // Vérifier quels modèles sont disponibles
+    const selectedModel = this.selectBestModel(query, context);    // Vérifier quels modèles sont disponibles
     const availableModels = [];
     if (this.openaiApiKey) availableModels.push('openai');
     if (this.geminiApiKey) availableModels.push('gemini');
@@ -211,9 +207,7 @@ class HybridAIService {
     // Si le modèle sélectionné n'est pas disponible, choisir un disponible
     let modelToUse = selectedModel;
     if (!availableModels.includes(selectedModel)) {
-      modelToUse = availableModels.length > 0 ? availableModels[0] : 'mock';
-      console.log(`⚠️ ${selectedModel} non disponible, utilisation de ${modelToUse}`);
-    }
+      modelToUse = availableModels.length > 0 ? availableModels[0] : 'mock';    }
 
     try {
       let response;
@@ -236,17 +230,11 @@ class HybridAIService {
       response.timestamp = new Date().toISOString();
       
       return response;
-    } catch (error) {
-      console.error(`Erreur avec ${modelToUse}:`, error);
-      
-      // Fallback vers l'autre modèle en cas d'erreur
+    } catch (error) {      // Fallback vers l'autre modèle en cas d'erreur
       const fallbackModels = availableModels.filter(m => m !== modelToUse);
       
       for (const fallback of fallbackModels) {
-        try {
-          console.log(`🔄 Tentative de fallback vers ${fallback.toUpperCase()}`);
-          
-          let response;
+        try {          let response;
           switch (fallback) {
             case 'openai':
               response = await this.callOpenAI([...messages, { sender: 'user', text: query }]);
@@ -261,15 +249,11 @@ class HybridAIService {
           response.originalModel = selectedModel;
           
           return response;
-        } catch (fallbackError) {
-          console.error(`Erreur avec fallback ${fallback}:`, fallbackError);
-          continue;
+        } catch (fallbackError) {          continue;
         }
       }
       
-      // Si tous les modèles échouent, utiliser le mode simulation
-      console.log('🎭 Utilisation du mode simulation en dernier recours');
-      return await this.getMockResponse(query, messages, context);
+      // Si tous les modèles échouent, utiliser le mode simulation      return await this.getMockResponse(query, messages, context);
     }
   }
 
@@ -439,10 +423,7 @@ class HybridAIService {
     try {
       const response = await this.generateHybridResponse(query, messages, context);
       return this.validateAndEnhanceResponse(response, context);
-    } catch (error) {
-      console.error('Erreur du service IA hybride:', error);
-      
-      return {
+    } catch (error) {      return {
         text: `Désolé, je rencontre des difficultés techniques. ${error.message}. Veuillez réessayer dans quelques instants.`,
         suggestions: [
           "Réessayer",

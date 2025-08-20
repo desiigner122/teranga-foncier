@@ -1,14 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FolderCheck, Download, Filter, Search } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Input } from '@/components/ui/input';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { supabase } from '@/lib/supabaseClient';
-
 // We reuse documents table (category='compliance_report') as data source for compliance reports
 
 const CompliancePage = () => {

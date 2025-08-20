@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { UploadCloud, MapPin, DollarSign, FileText, Send, User, Phone, Mail, Award, Check, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { UploadCloud, FileText, Award, Check, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 
@@ -85,7 +85,6 @@ const SellPropertyPage = () => {
       });
       nextStep();
     } catch (err) {
-      console.error(err);
       toast({ title:'Erreur', description:"La soumission a échoué. Réessayez.", variant:'destructive' });
     } finally {
       setIsSubmitting(false);

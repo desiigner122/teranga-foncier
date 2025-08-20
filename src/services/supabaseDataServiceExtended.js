@@ -1,6 +1,6 @@
 // src/services/supabaseDataServiceExtended.js
 import SupabaseDataService from './supabaseDataService';
-import { extendSupabaseDataService, createUserWithPassword } from './supabaseUserExtension';
+import { extendSupabaseDataService } from './supabaseUserExtension';
 
 // Étendre le service avec les nouvelles méthodes
 const ExtendedSupabaseDataService = extendSupabaseDataService(SupabaseDataService);

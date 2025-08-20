@@ -1,50 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
-import { Alert, AlertDescription } from '../../components/ui/alert';
-import { 
-  LayoutDashboard, 
-  TrendingUp, 
-  DollarSign, 
-  PieChart as PieChartIcon, 
-  Calculator,
-  Search,
-  Briefcase,
-  ClipboardList,
-  BarChart3,
-  FileText,
-  Target,
-  AlertCircle,
-  ArrowUp,
-  ArrowDown,
-  Minus,
-  MapPin,
-  Brain,
-  Zap,
-  Shield,
-  Activity,
-  TrendingDown,
-  Eye,
-  Star
-} from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import AIAssistantWidget from '../../components/ui/AIAssistantWidget';
-import AntiFraudDashboard from '../../components/ui/AntiFraudDashboard';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { hybridAI } from '../../lib/hybridAI';
-import { antiFraudAI } from '../../lib/antiFraudAI';
-
 const InvestisseurDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  // Loading géré par le hook temps réel
+  // Loading gÃ©rÃ© par le hook temps rÃ©el
   const [marketData, setMarketData] = useState({
     totalProperties: 0,
     averagePrice: 0,
@@ -52,7 +10,7 @@ const InvestisseurDashboard = () => {
     bestROI: 0,
     hotZones: [],
     marketTrends: [],
-    riskLevel: 'Modéré'
+    riskLevel: 'ModÃ©rÃ©'
   });
   const [portfolio, setPortfolio] = useState({
     totalInvestments: 0,
@@ -84,7 +42,7 @@ const InvestisseurDashboard = () => {
     try {
       setLoading(true);
 
-      // Récupérer les données du marché avec plus de détails
+      // RÃ©cupÃ©rer les donnÃ©es du marchÃ© avec plus de dÃ©tails
       const { data: properties, error: propertiesError } = await supabase
         .from('parcels')
         .select(`
@@ -107,7 +65,7 @@ const InvestisseurDashboard = () => {
 
       if (propertiesError) throw propertiesError;
 
-      // Récupérer les investissements de l'utilisateur avec détails complets
+      // RÃ©cupÃ©rer les investissements de l'utilisateur avec dÃ©tails complets
       const { data: investments, error: investmentsError } = await supabase
         .from('user_investments')
         .select(`
@@ -129,7 +87,7 @@ const InvestisseurDashboard = () => {
 
       if (investmentsError) throw investmentsError;
 
-      // Récupérer les données de watchlist
+      // RÃ©cupÃ©rer les donnÃ©es de watchlist
       const { data: watchlistData, error: watchlistError } = await supabase
         .from('user_favorites')
         .select(`
@@ -147,7 +105,7 @@ const InvestisseurDashboard = () => {
 
       if (watchlistError) throw watchlistError;
 
-      // Récupérer les alertes de prix
+      // RÃ©cupÃ©rer les alertes de prix
       const { data: alertsData, error: alertsError } = await supabase
         .from('price_alerts')
         .select('*')
@@ -156,7 +114,7 @@ const InvestisseurDashboard = () => {
 
       if (alertsError) throw alertsError;
 
-      // Calculer les données du marché avec intelligence
+      // Calculer les donnÃ©es du marchÃ© avec intelligence
       const totalProperties = properties?.length || 0;
       const averagePrice = totalProperties > 0 
         ? properties.reduce((sum, p) => sum + (p.price_per_sqm || 0), 0) / totalProperties 
@@ -174,13 +132,13 @@ const InvestisseurDashboard = () => {
       const priceGrowth = calculatePriceGrowth(priceHistory);
       const hotZones = identifyHotZones(properties);
 
-      // Calculer les données du portfolio avec métriques avancées
+      // Calculer les donnÃ©es du portfolio avec mÃ©triques avancÃ©es
       const totalInvestments = investments?.length || 0;
       const currentValue = investments?.reduce((sum, inv) => sum + (inv.current_value || 0), 0) || 0;
       const initialValue = investments?.reduce((sum, inv) => sum + (inv.initial_investment || 0), 0) || 0;
       const totalROI = initialValue > 0 ? ((currentValue - initialValue) / initialValue) * 100 : 0;
 
-      // Calculer métriques de performance avancées
+      // Calculer mÃ©triques de performance avancÃ©es
       const performanceHistory = calculatePerformanceHistory(investments);
       const diversificationScore = calculateDiversificationScore(investments);
       const sharpeRatio = calculateSharpeRatio(performanceHistory);
@@ -217,12 +175,10 @@ const InvestisseurDashboard = () => {
       setWatchlist(watchlistData || []);
       setAlertsData(alertsData || []);
 
-      // Générer des opportunités basées sur l'IA
+      // GÃ©nÃ©rer des opportunitÃ©s basÃ©es sur l'IA
       await generateInvestmentOpportunities(properties, investments);
 
-    } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
-      // Fallback avec données de démonstration enrichies
+    } catch (error) {      // Fallback avec donnÃ©es de dÃ©monstration enrichies
       setMarketData({
         totalProperties: 1247,
         averagePrice: 2890000,
@@ -230,7 +186,7 @@ const InvestisseurDashboard = () => {
         bestROI: 18.7,
         hotZones: ['Dakar Plateau', 'Almadies', 'Rufisque'],
         marketTrends: priceEvolutionData,
-        riskLevel: 'Modéré'
+        riskLevel: 'ModÃ©rÃ©'
       });
 
       setPortfolio({
@@ -250,7 +206,7 @@ const InvestisseurDashboard = () => {
         beta: 0.72
       });
 
-      // Opportunities simulées avec scoring IA
+      // Opportunities simulÃ©es avec scoring IA
       setOpportunities([
         {
           id: 1,
@@ -258,7 +214,7 @@ const InvestisseurDashboard = () => {
           type: 'Terrain',
           price: 5000000,
           expectedROI: 15.2,
-          risk: 'Modéré',
+          risk: 'ModÃ©rÃ©',
           location: 'Dakar Plateau',
           aiScore: 87,
           marketSentiment: 'Positif',
@@ -267,13 +223,13 @@ const InvestisseurDashboard = () => {
         {
           id: 2,
           title: 'Appartement - Almadies',
-          type: 'Résidentiel',
+          type: 'RÃ©sidentiel',
           price: 12000000,
           expectedROI: 12.8,
           risk: 'Faible',
           location: 'Almadies',
           aiScore: 91,
-          marketSentiment: 'Très Positif',
+          marketSentiment: 'TrÃ©s Positif',
           liquidityScore: 9.2
         },
         {
@@ -282,7 +238,7 @@ const InvestisseurDashboard = () => {
           type: 'Commercial',
           price: 8500000,
           expectedROI: 18.5,
-          risk: 'Élevé',
+          risk: 'Ã©levÃ©',
           location: 'Rufisque',
           aiScore: 76,
           marketSentiment: 'Neutre',
@@ -294,7 +250,7 @@ const InvestisseurDashboard = () => {
     }
   };
 
-  // Fonctions utilitaires avancées pour l'analyse financière
+  // Fonctions utilitaires avancÃ©es pour l'analyse financiÃ©re
   const calculatePriceGrowth = (priceHistory) => {
     if (!priceHistory || priceHistory.length < 2) return 0;
     const recent = priceHistory.slice(-6); // 6 derniers mois
@@ -351,7 +307,7 @@ const InvestisseurDashboard = () => {
     const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
     const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
     const stdDev = Math.sqrt(variance);
-    const riskFreeRate = 3.5; // Taux sans risque supposé
+    const riskFreeRate = 3.5; // Taux sans risque supposÃ©
     return stdDev > 0 ? (avgReturn - riskFreeRate) / stdDev : 0;
   };
 
@@ -379,7 +335,7 @@ const InvestisseurDashboard = () => {
 
   const calculateBeta = (portfolioHistory, marketHistory) => {
     if (!portfolioHistory || !marketHistory || portfolioHistory.length < 2) return 1;
-    // Calcul simplifié du beta
+    // Calcul simplifiÃ© du beta
     const portfolioReturns = portfolioHistory.map(p => p.roi);
     const marketReturns = marketHistory.map(m => m.growth || 0);
     const minLength = Math.min(portfolioReturns.length, marketReturns.length);
@@ -418,12 +374,12 @@ const InvestisseurDashboard = () => {
   };
 
   const assessMarketRisk = (priceHistory, volatility) => {
-    if (volatility > 20) return 'Élevé';
-    if (volatility > 15) return 'Modéré';
+    if (volatility > 20) return 'Ã©levÃ©';
+    if (volatility > 15) return 'ModÃ©rÃ©';
     return 'Faible';
   };
 
-  // Génération d'opportunités avec IA
+  // GÃ©nÃ©ration d'opportunitÃ©s avec IA
   const generateInvestmentOpportunities = async (properties, investments) => {
     try {
       const context = {
@@ -431,21 +387,21 @@ const InvestisseurDashboard = () => {
         portfolioValue: portfolio.currentValue,
         riskTolerance: performanceMetrics.volatility < 15 ? 'conservative' : 'aggressive',
         preferredZones: investments?.map(inv => inv.parcels?.location).filter(Boolean) || [],
-        budget: 50000000 // Budget estimé
+        budget: 50000000 // Budget estimÃ©
       };
 
-      const query = `En tant qu'expert en investissement immobilier au Sénégal, analyse ces ${properties?.length || 0} propriétés disponibles et recommande les 5 meilleures opportunités d'investissement pour un investisseur avec:
+      const query = `En tant qu'expert en investissement immobilier au SÃ©nÃ©gal, analyse ces ${properties?.length || 0} propriÃ©tÃ©s disponibles et recommande les 5 meilleures opportunitÃ©s d'investissement pour un investisseur avec:
       - Portfolio actuel: ${context.portfolioValue.toLocaleString()} XOF
       - ${context.userInvestments} investissements existants
       - Profil de risque: ${context.riskTolerance}
       - Budget disponible: ${context.budget.toLocaleString()} XOF
       
-      Pour chaque opportunité, fournis:
-      1. Score d'attractivité (0-100)
-      2. ROI estimé
+      Pour chaque opportunitÃ©, fournis:
+      1. Score d'attractivitÃ© (0-100)
+      2. ROI estimÃ©
       3. Niveau de risque
-      4. Potentiel d'appréciation
-      5. Liquidité du marché`;
+      4. Potentiel d'apprÃ©ciation
+      5. LiquiditÃ© du marchÃ©`;
 
       const response = await hybridAI.generateResponse(query, [], { 
         role: 'investment_advisor', 
@@ -454,9 +410,7 @@ const InvestisseurDashboard = () => {
       });
 
       setAiInsights(response);
-    } catch (error) {
-      console.error('Erreur génération opportunités IA:', error);
-    }
+    } catch (error) {    }
   };
 
   // Analyse IA des insights d'investissement
@@ -470,14 +424,14 @@ const InvestisseurDashboard = () => {
         totalInvestments: portfolio.totalInvestments
       };
 
-      const query = `Analyse mon portfolio d'investissement immobilier au Sénégal:
+      const query = `Analyse mon portfolio d'investissement immobilier au SÃ©nÃ©gal:
       - ROI total: ${context.portfolioROI}%
       - Score de diversification: ${context.diversificationScore}/100
-      - Croissance du marché: ${context.marketGrowth}%
-      - Volatilité: ${context.volatility}%
+      - Croissance du marchÃ©: ${context.marketGrowth}%
+      - VolatilitÃ©: ${context.volatility}%
       - ${context.totalInvestments} investissements actifs
       
-      Fournis 3 recommandations stratégiques pour optimiser mes investissements et 2 alertes de risque potentiels.`;
+      Fournis 3 recommandations stratÃ©giques pour optimiser mes investissements et 2 alertes de risque potentiels.`;
 
       const response = await hybridAI.generateResponse(query, [], { 
         role: 'investment_advisor', 
@@ -485,12 +439,10 @@ const InvestisseurDashboard = () => {
       });
       
       setAiInsights(response);
-    } catch (error) {
-      console.error('Erreur génération insights IA:', error);
-    }
+    } catch (error) {    }
   };
 
-  // Analyse anti-fraude des opportunités d'investissement
+  // Analyse anti-fraude des opportunitÃ©s d'investissement
   const performFraudAnalysis = async () => {
     try {
       const analysisData = {
@@ -505,9 +457,7 @@ const InvestisseurDashboard = () => {
 
       const analysis = await antiFraudAI.analyzeInvestmentOpportunities(analysisData);
       setFraudAnalysis(analysis);
-    } catch (error) {
-      console.error('Erreur analyse anti-fraude:', error);
-    }
+    } catch (error) {    }
   };
 
   const formatCurrency = (amount) => {
@@ -529,11 +479,11 @@ const InvestisseurDashboard = () => {
   const getRiskBadge = (risk) => {
     const riskConfig = {
       'Faible': { color: 'bg-green-100 text-green-800' },
-      'Modéré': { color: 'bg-yellow-100 text-yellow-800' },
-      'Élevé': { color: 'bg-red-100 text-red-800' }
+      'ModÃ©rÃ©': { color: 'bg-yellow-100 text-yellow-800' },
+      'Ã©levÃ©': { color: 'bg-red-100 text-red-800' }
     };
     
-    const config = riskConfig[risk] || riskConfig['Modéré'];
+    const config = riskConfig[risk] || riskConfig['ModÃ©rÃ©'];
     return <Badge className={config.color}>{risk}</Badge>;
   };
 
@@ -569,9 +519,7 @@ const InvestisseurDashboard = () => {
       case 'OPTIMIZE_PORTFOLIO':
         await generateAIInsights();
         break;
-      default:
-        console.log('Action IA:', actionType, result);
-    }
+      default:    }
   };
 
   const addToWatchlist = async (opportunity) => {
@@ -593,9 +541,7 @@ const InvestisseurDashboard = () => {
         .eq('user_id', user.id);
       
       setWatchlist(updatedWatchlist || []);
-    } catch (error) {
-      console.error('Erreur ajout watchlist:', error);
-    }
+    } catch (error) {    }
   };
 
   if (loading || dataLoading) {
@@ -615,7 +561,7 @@ const InvestisseurDashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* En-tête */}
+      {/* En-tÃ©te */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
@@ -623,7 +569,7 @@ const InvestisseurDashboard = () => {
             Dashboard Investisseur
           </h1>
           <p className="text-gray-600 mt-1">
-            Analysez le marché et gérez vos investissements immobiliers
+            Analysez le marchÃ© et gÃ©rez vos investissements immobiliers
           </p>
         </div>
         <div className="flex gap-2">
@@ -632,13 +578,13 @@ const InvestisseurDashboard = () => {
             onClick={() => navigate('/dashboard/investisseur/market-analysis')}
           >
             <BarChart3 className="h-4 w-4 mr-2" />
-            Analyse de marché
+            Analyse de marchÃ©
           </Button>
           <Button 
             onClick={() => navigate('/dashboard/investisseur/opportunities')}
           >
             <Search className="h-4 w-4 mr-2" />
-            Opportunités
+            OpportunitÃ©s
           </Button>
         </div>
       </div>
@@ -680,14 +626,14 @@ const InvestisseurDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{portfolio.totalInvestments}</div>
             <p className="text-xs text-muted-foreground">
-              Dans {portfolioDistribution.length} catégories
+              Dans {portfolioDistribution.length} catÃ©gories
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Meilleur ROI Marché</CardTitle>
+            <CardTitle className="text-sm font-medium">Meilleur ROI MarchÃ©</CardTitle>
             <Calculator className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -748,14 +694,14 @@ const InvestisseurDashboard = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-gray-600" />
-                <CardTitle>Analyse de Sécurité des Investissements</CardTitle>
+                <CardTitle>Analyse de SÃ©curitÃ© des Investissements</CardTitle>
                 <Badge className={
                   fraudAnalysis.riskLevel === 'high' ? 'bg-red-100 text-red-800' :
                   fraudAnalysis.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-green-100 text-green-800'
                 }>
-                  {fraudAnalysis.riskLevel === 'high' ? 'Risque Élevé' :
-                   fraudAnalysis.riskLevel === 'medium' ? 'Attention' : 'Sécurisé'}
+                  {fraudAnalysis.riskLevel === 'high' ? 'Risque Ã©levÃ©' :
+                   fraudAnalysis.riskLevel === 'medium' ? 'Attention' : 'SÃ©curisÃ©'}
                 </Badge>
               </div>
             </CardHeader>
@@ -780,12 +726,12 @@ const InvestisseurDashboard = () => {
       <AntiFraudDashboard userRole="investisseur" />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Métriques de risque avancées */}
+        {/* MÃ©triques de risque avancÃ©es */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
-              Métriques de Performance Avancées
+              MÃ©triques de Performance AvancÃ©es
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -850,7 +796,7 @@ const InvestisseurDashboard = () => {
                 className="w-full"
                 onClick={() => navigate('/dashboard/investisseur/watchlist')}
               >
-                Gérer la watchlist
+                GÃ©rer la watchlist
               </Button>
             </div>
           </CardContent>
@@ -858,12 +804,12 @@ const InvestisseurDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Évolution des prix avec volume */}
+        {/* Ã©volution des prix avec volume */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Évolution Marché & Volume
+              Ã©volution MarchÃ© & Volume
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -926,7 +872,7 @@ const InvestisseurDashboard = () => {
                 <p className="font-bold">{performanceMetrics.sharpeRatio.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Volatilité</p>
+                <p className="text-sm text-gray-500">VolatilitÃ©</p>
                 <p className="font-bold">{formatPercentage(performanceMetrics.volatility)}</p>
               </div>
               <div>
@@ -944,7 +890,7 @@ const InvestisseurDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              ROI par Zone Géographique
+              ROI par Zone GÃ©ographique
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -966,7 +912,7 @@ const InvestisseurDashboard = () => {
                     </div>
                     <p className="text-xs text-gray-500">ROI attendu</p>
                     <p className="text-xs text-blue-500">
-                      +{formatPercentage(zone.appreciation)} appréciation
+                      +{formatPercentage(zone.appreciation)} apprÃ©ciation
                     </p>
                   </div>
                 </div>
@@ -976,10 +922,10 @@ const InvestisseurDashboard = () => {
         </Card>
       </div>
 
-      {/* Actions rapides améliorées */}
+      {/* Actions rapides amÃ©liorÃ©es */}
       <Card>
         <CardHeader>
-          <CardTitle>Outils d'Analyse Avancés</CardTitle>
+          <CardTitle>Outils d'Analyse AvancÃ©s</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -997,7 +943,7 @@ const InvestisseurDashboard = () => {
               onClick={() => navigate('/dashboard/investisseur/market-analysis')}
             >
               <BarChart3 className="h-6 w-6 mb-2" />
-              Analyse de Marché
+              Analyse de MarchÃ©
             </Button>
             <Button 
               variant="outline" 

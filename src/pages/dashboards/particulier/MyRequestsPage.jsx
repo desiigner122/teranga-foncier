@@ -1,34 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  FileText, 
-  Search, 
-  Filter,
-  Eye,
-  MessageCircle,
-  Calendar,
-  MapPin,
-  DollarSign,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle
-} from 'lucide-react';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const MyRequestsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeRequests();
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -48,9 +27,7 @@ const MyRequestsPage = () => {
       setLoading(true);
       const userRequests = await SupabaseDataService.getUserRequests(user.id);
       setRequests(userRequests || []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des demandes:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger vos demandes"
@@ -79,8 +56,8 @@ const MyRequestsPage = () => {
     const statusConfig = {
       'en_attente': { label: 'En attente', variant: 'default' },
       'en_cours': { label: 'En cours', variant: 'secondary' },
-      'approuvee': { label: 'Approuvée', variant: 'success' },
-      'rejetee': { label: 'Rejetée', variant: 'destructive' }
+      'approuvee': { label: 'ApprouvÃ©e', variant: 'success' },
+      'rejetee': { label: 'RejetÃ©e', variant: 'destructive' }
     };
 
     const config = statusConfig[status] || { label: status, variant: 'default' };
@@ -147,7 +124,7 @@ const MyRequestsPage = () => {
           Mes Demandes
         </h1>
         <p className="text-muted-foreground">
-          Suivez l'état de vos demandes de terrain et de financement
+          Suivez l'Ã©tat de vos demandes de terrain et de financement
         </p>
       </div>
 
@@ -175,8 +152,8 @@ const MyRequestsPage = () => {
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="en_attente">En attente</SelectItem>
                   <SelectItem value="en_cours">En cours</SelectItem>
-                  <SelectItem value="approuvee">Approuvée</SelectItem>
-                  <SelectItem value="rejetee">Rejetée</SelectItem>
+                  <SelectItem value="approuvee">ApprouvÃ©e</SelectItem>
+                  <SelectItem value="rejetee">RejetÃ©e</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -242,7 +219,7 @@ const MyRequestsPage = () => {
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Approuvées</p>
+                <p className="text-sm text-muted-foreground">ApprouvÃ©es</p>
                 <p className="text-2xl font-bold">
                   {requests.filter(r => r.status === 'approuvee').length}
                 </p>
@@ -258,11 +235,11 @@ const MyRequestsPage = () => {
           <Card>
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Aucune demande trouvée</h3>
+              <h3 className="text-lg font-semibold mb-2">Aucune demande trouvÃ©e</h3>
               <p className="text-muted-foreground">
                 {requests.length === 0 
-                  ? "Vous n'avez pas encore fait de demande. Créez votre première demande pour commencer."
-                  : "Aucune demande ne correspond à vos critères de recherche."
+                  ? "Vous n'avez pas encore fait de demande. CrÃ©ez votre premiÃ¨re demande pour commencer."
+                  : "Aucune demande ne correspond Ã  vos critÃ¨res de recherche."
                 }
               </p>
             </CardContent>
@@ -284,7 +261,7 @@ const MyRequestsPage = () => {
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>Créée le {formatDate(request.created_at)}</span>
+                        <span>CrÃ©Ã©e le {formatDate(request.created_at)}</span>
                       </div>
                       
                       <div className="flex items-center gap-1">
@@ -311,7 +288,7 @@ const MyRequestsPage = () => {
                   <div className="flex flex-col gap-2">
                     <Button variant="outline" size="sm">
                       <Eye className="h-4 w-4 mr-2" />
-                      Voir détails
+                      Voir dÃ©tails
                     </Button>
                     
                     {request.status === 'en_cours' && (

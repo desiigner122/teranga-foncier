@@ -1,18 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { LandPlot, PlusCircle, Map, BookOpen, Search, RefreshCw, Filter } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const MyLandsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -39,7 +25,7 @@ const MyLandsPage = () => {
         return;
       }
 
-      // Récupérer les parcelles agricoles de l'utilisateur
+      // RÃ©cupÃ©rer les parcelles agricoles de l'utilisateur
       const { data: parcelsData, error } = await SupabaseDataService.supabaseClient
         .from('parcels')
         .select(`
@@ -50,15 +36,11 @@ const MyLandsPage = () => {
         .or('usage.eq.agricultural,usage.eq.farming')
         .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erreur chargement parcelles:', error);
-      }
+      if (error && error.code !== 'PGRST116') {      }
 
       setLands(parcelsData || []);
 
-    } catch (error) {
-      console.error('Erreur chargement mes terres:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger vos parcelles agricoles"
@@ -78,12 +60,12 @@ const MyLandsPage = () => {
     if (health >= 80) return { status: 'excellent', label: 'Excellente', color: 'success' };
     if (health >= 60) return { status: 'good', label: 'Bonne', color: 'info' };
     if (health >= 40) return { status: 'average', label: 'Moyenne', color: 'warning' };
-    return { status: 'poor', label: 'Préoccupante', color: 'destructive' };
+    return { status: 'poor', label: 'PrÃ©occupante', color: 'destructive' };
   };
 
   const getCropType = (agriculturalData) => {
-    if (!agriculturalData || !agriculturalData[0]) return 'Culture non spécifiée';
-    return agriculturalData[0].crop_type || 'Culture non spécifiée';
+    if (!agriculturalData || !agriculturalData[0]) return 'Culture non spÃ©cifiÃ©e';
+    return agriculturalData[0].crop_type || 'Culture non spÃ©cifiÃ©e';
   };
 
   const getYield = (agriculturalData) => {
@@ -114,7 +96,7 @@ const MyLandsPage = () => {
     return matchesSearch && matchesStatus && matchesCulture;
   });
 
-  const uniqueCultures = Array.from(new Set(lands.map(land => getCropType(land.agricultural_data)).filter(c => c !== 'Culture non spécifiée')));
+  const uniqueCultures = Array.from(new Set(lands.map(land => getCropType(land.agricultural_data)).filter(c => c !== 'Culture non spÃ©cifiÃ©e')));
 
   if (loading || dataLoading) {
     return (
@@ -131,7 +113,7 @@ const MyLandsPage = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6 p-4 md:p-6"
     >
-      {/* En-tête */}
+      {/* En-tÃ©te */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex items-center">
@@ -139,15 +121,15 @@ const MyLandsPage = () => {
             Mes Parcelles Agricoles
           </h1>
           <p className="text-sm text-muted-foreground max-w-prose mt-1">
-            Gérez et surveillez toutes vos terres agricoles
+            GÃ©rez et surveillez toutes vos terres agricoles
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={loadMyLands} disabled={refreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Rafraîchir
+            RafraÃ©chir
           </Button>
-          <Button size="sm" disabled title="Recherche de parcelles à venir">
+          <Button size="sm" disabled title="Recherche de parcelles Ã© venir">
             <PlusCircle className="mr-2 h-4 w-4" />
             Trouver une nouvelle parcelle
           </Button>
@@ -208,7 +190,7 @@ const MyLandsPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Nécessitent attention</p>
+                  <p className="text-sm font-medium text-muted-foreground">NÃ©cessitent attention</p>
                   <p className="text-2xl font-bold text-yellow-600">
                     {lands.filter(land => {
                       const health = getCultureHealth(land.agricultural_data);
@@ -279,12 +261,12 @@ const MyLandsPage = () => {
               <CardContent className="p-8 text-center">
                 <LandPlot className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  {lands.length === 0 ? 'Aucune parcelle agricole' : 'Aucun résultat'}
+                  {lands.length === 0 ? 'Aucune parcelle agricole' : 'Aucun rÃ©sultat'}
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {lands.length === 0 
-                    ? 'Commencez par acquérir votre première parcelle'
-                    : 'Essayez de modifier vos critères de recherche'
+                    ? 'Commencez par acquÃ©rir votre premiÃ©re parcelle'
+                    : 'Essayez de modifier vos critÃ©res de recherche'
                   }
                 </p>
                 {lands.length === 0 && (
@@ -340,7 +322,7 @@ const MyLandsPage = () => {
                       )}
                       {lastActivity && (
                         <div>
-                          <span className="text-muted-foreground">Dernière activité:</span>
+                          <span className="text-muted-foreground">DerniÃ©re activitÃ©:</span>
                           <p className="font-medium">
                             {new Date(lastActivity).toLocaleDateString('fr-FR')}
                           </p>

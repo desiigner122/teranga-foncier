@@ -36,7 +36,6 @@ export const MessagingNotificationProvider = ({ children }) => {
       const convList = await SupabaseDataService.listConversations(user.id);
       setConversations(convList || []);
     } catch (e) {
-      console.error('loadConversations failed', e);
     } finally {
       setLoading(false);
     }
@@ -61,7 +60,7 @@ export const MessagingNotificationProvider = ({ children }) => {
           });
           // Append to messages cache
           setMessages(prev => {
-            const existing = prev[msg.conversation_id] || [];
+            const existing = prev[msg.conversation_id] || [messages, error];
             return { ...prev, [msg.conversation_id]: [...existing, msg] };
           });
         }
@@ -78,7 +77,6 @@ export const MessagingNotificationProvider = ({ children }) => {
       const list = await SupabaseDataService.listNotifications(user.id, { unreadOnly:false, limit:100 });
       setNotifications(list);
     } catch (e) {
-      console.error('loadNotifications failed', e);
     } finally { setIsLoadingNotifications(false); }
   }, [user]);
 
@@ -130,7 +128,6 @@ export const MessagingNotificationProvider = ({ children }) => {
       // Update conversation metadata in local state
       setConversations(prev => prev.map(c => c.id===conversationId ? { ...c, lastMessage: content, lastMessageAt: new Date().toISOString(), updatedAt: new Date().toISOString() } : c));
     } catch (e) {
-      console.error('sendMessage failed', e);
       toast({ title:'Erreur', description:"Impossible d'envoyer le message", variant:'destructive' });
     }
   };

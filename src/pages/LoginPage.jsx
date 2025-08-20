@@ -1,7 +1,7 @@
 // src/pages/LoginPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -12,23 +12,23 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { LogIn, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
 import { getDashboardRoute } from '@/services/authRoutingService';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false); // État de chargement du formulaire
+  const [loading, setLoading] = useState(false); // Ã©tat de chargement du formulaire
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  // Récupérer l'état complet du contexte
+  // RÃ©cupÃ©rer l'Ã©tat complet du contexte
   const { user, profile, loading: authLoading, isAuthenticated } = useAuth(); 
 
   const from = location.state?.from?.pathname || "/dashboard";
 
-  // Redirection basée sur l'état du contexte
+  // Redirection basÃ©e sur l'Ã©tat du contexte
   useEffect(() => {
     if (isAuthenticated && profile) {
       // Utiliser le service de routage intelligent
@@ -52,11 +52,10 @@ const LoginPage = () => {
         throw authError;
       }
       
-      // Le listener `onAuthStateChange` de AuthContext va gérer la suite.
+      // Le listener `onAuthStateChange` de AuthContext va gÃ©rer la suite.
       // Le `useEffect` ci-dessus va prendre le relais et rediriger l'utilisateur.
 
     } catch (err) {
-      console.error("Erreur de connexion:", err);
       let errorMessage = "Une erreur inattendue est survenue lors de la connexion.";
       if (err.message.includes("Invalid login credentials")) {
         errorMessage = "Email ou mot de passe incorrect.";
@@ -67,7 +66,7 @@ const LoginPage = () => {
       }
       setError(errorMessage);
       toast({
-        title: "Échec de la Connexion",
+        title: "Ã©chec de la Connexion",
         description: errorMessage,
         variant: "destructive",
       });
@@ -80,7 +79,7 @@ const LoginPage = () => {
   const handleQuickLogin = (testEmail, testPassword) => {
     setEmail(testEmail);
     setPassword(testPassword);
-    // Auto-submit après un petit délai pour que l'utilisateur voit les champs se remplir
+    // Auto-submit aprÃ©s un petit dÃ©lai pour que l'utilisateur voit les champs se remplir
     setTimeout(() => {
       const fakeEvent = { preventDefault: () => {} };
       handleLogin(fakeEvent);
@@ -97,7 +96,7 @@ const LoginPage = () => {
       <Card className="w-full max-w-md shadow-xl border-border/50 bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-primary">Connexion</CardTitle>
-          <CardDescription>Accédez à votre espace Teranga Foncier</CardDescription>
+          <CardDescription>AccÃ©dez Ã© votre espace Teranga Foncier</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -108,7 +107,7 @@ const LoginPage = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                   <Label htmlFor="password">Mot de passe</Label>
-                  <Link to="#" className="text-sm text-primary hover:underline" onClick={(e) => {e.preventDefault(); toast({title:"Fonctionnalité à venir", description: "La récupération de mot de passe n'est pas encore implémentée."})}}>Mot de passe oublié ?</Link>
+                  <Link to="#" className="text-sm text-primary hover:underline" onClick={(e) => {e.preventDefault(); toast({title:"FonctionnalitÃ© Ã© venir", description: "La rÃ©cupÃ©ration de mot de passe n'est pas encore implÃ©mentÃ©e."})}}>Mot de passe oubliÃ© ?</Link>
               </div>
               <Input id="password" type="password" placeholder="********" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading}/>
             </div>

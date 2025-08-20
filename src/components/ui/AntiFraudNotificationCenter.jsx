@@ -1,30 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bell, 
-  Shield, 
-  AlertTriangle, 
-  CheckCircle, 
-  X, 
-  Eye, 
-  Clock,
-  Users,
-  FileX,
-  TrendingDown,
-  MapPin,
-  Zap,
-  Settings,
-  Volume2,
-  VolumeX
-} from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
-import { antiFraudAI } from '@/lib/antiFraudAI';
-
 const AntiFraudNotificationCenter = ({ userRole, userId }) => {
   const { toast } = useToast();
   const { data: notifications, loading: notificationsLoading, error: notificationsError, refetch } = useRealtimeTable();
@@ -71,9 +45,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
       setNotifications(transformedNotifications);
       setUnreadCount(transformedNotifications.filter(n => !n.read).length);
 
-    } catch (error) {
-      console.error('Erreur chargement notifications:', error);
-    }
+    } catch (error) {    }
   };
 
   const setupRealtimeSubscription = () => {
@@ -200,9 +172,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
         await notifyAdministrators(alertData);
       }
 
-    } catch (error) {
-      console.error('Erreur actions automatiques:', error);
-    }
+    } catch (error) {    }
   };
 
   const notifyAdministrators = async (alertData) => {
@@ -227,9 +197,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
           .from('notifications')
           .insert(adminNotifications);
       }
-    } catch (error) {
-      console.error('Erreur notification admins:', error);
-    }
+    } catch (error) {    }
   };
 
   const playAlertSound = (severity) => {
@@ -251,9 +219,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
           audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAXBDGS2e/MeSsFJYDJ8NyPRAkWhLPl6KVSFQ1Xn+Hx';
       }
       audio.play();
-    } catch (error) {
-      console.log('Son non disponible:', error);
-    }
+    } catch (error) {    }
   };
 
   const loadUserSettings = async () => {
@@ -268,9 +234,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
         setNotificationSettings(settings.notification_settings);
         setSoundEnabled(settings.notification_settings.soundEnabled !== false);
       }
-    } catch (error) {
-      console.log('Paramètres par défaut utilisés');
-    }
+    } catch (error) {    }
   };
 
   const markAsRead = async (notificationId) => {
@@ -288,9 +252,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
       
       setUnreadCount(prev => Math.max(0, prev - 1));
 
-    } catch (error) {
-      console.error('Erreur marquage lecture:', error);
-    }
+    } catch (error) {    }
   };
 
   const markAllAsRead = async () => {
@@ -306,9 +268,7 @@ const AntiFraudNotificationCenter = ({ userRole, userId }) => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         setUnreadCount(0);
       }
-    } catch (error) {
-      console.error('Erreur marquage lecture globale:', error);
-    }
+    } catch (error) {    }
   };
 
   const getRoleFilter = () => {

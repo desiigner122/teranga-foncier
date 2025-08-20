@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Users, Scale, Globe, CreditCard, Plane, AlertOctagon, TrendingUp } from 'lucide-react';
+import { ShieldCheck, Scale, Globe, CreditCard, Plane, AlertOctagon, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import CountUp from 'react-countup';

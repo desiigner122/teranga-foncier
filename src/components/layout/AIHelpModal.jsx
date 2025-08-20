@@ -1,11 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Send, Info, Search, Lightbulb, FileQuestion, Home, UserCircle, Banknote, Building2, Leaf, TrendingUp } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { useLocation } from 'react-router-dom';
-
 const AIHelpModal = ({ isOpen, onClose }) => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);

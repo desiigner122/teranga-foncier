@@ -1,17 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Clock, Shield, Upload } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { motion } from 'framer-motion';
-
 const VerificationRequired = () => {
   const { profile, needsVerification, isPendingVerification } = useAuth();
   const navigate = useNavigate();
 
-  // Vérifier si l'utilisateur a déjà soumis ses documents et est en attente
+  // VÃ©rifier si l'utilisateur a dÃ©jÃ© soumis ses documents et est en attente
   const [seconds, setSeconds] = useState(60);
   useEffect(()=>{
     if(!isPendingVerification) return;
@@ -37,10 +29,10 @@ const VerificationRequired = () => {
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2">
               <Clock className="h-6 w-6 text-yellow-500" />
-              Vérification en Cours
+              VÃ©rification en Cours
             </CardTitle>
             <CardDescription>
-              Votre compte est en cours de vérification par notre équipe
+              Votre compte est en cours de vÃ©rification par notre Ã©quipe
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -48,8 +40,8 @@ const VerificationRequired = () => {
               <Clock className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
               <h3 className="font-semibold text-yellow-800 mb-2">Documents Soumis</h3>
               <p className="text-sm text-yellow-700">
-                Vos documents d'identité ont été reçus et sont en cours d'examen. 
-                Notre équipe vous contactera sous 24-48h.
+                Vos documents d'identitÃ© ont Ã©tÃ© reÃ©us et sont en cours d'examen. 
+                Notre Ã©quipe vous contactera sous 24-48h.
               </p>
               {profile?.verification_submitted_at && (
                 <p className="text-xs text-yellow-600 mt-2">
@@ -68,16 +60,16 @@ const VerificationRequired = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Statut actuel:</span>
                 <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                  En attente de vérification
+                  En attente de vÃ©rification
                 </Badge>
               </div>
               
               <div className="text-sm text-gray-600 space-y-2">
-                <h4 className="font-medium">Prochaines étapes:</h4>
+                <h4 className="font-medium">Prochaines Ã©tapes:</h4>
                 <ul className="list-disc list-inside space-y-1 text-xs">
-                  <li>Examen de vos documents par notre équipe</li>
-                  <li>Vérification de l'authenticité</li>
-                  <li>Activation complète de votre compte</li>
+                  <li>Examen de vos documents par notre Ã©quipe</li>
+                  <li>VÃ©rification de l'authenticitÃ©</li>
+                  <li>Activation complÃ©te de votre compte</li>
                 </ul>
               </div>
             </div>
@@ -86,9 +78,9 @@ const VerificationRequired = () => {
               <div className="text-center text-xs text-gray-500">Prochaine actualisation automatique possible dans {seconds}s</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Button variant="outline" onClick={() => navigate('/dashboard')}>Tableau de bord</Button>
-                <Button onClick={handleManualRefresh} disabled={seconds>0} className="bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50">Rafraîchir statut</Button>
+                <Button onClick={handleManualRefresh} disabled={seconds>0} className="bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50">RafraÃ©chir statut</Button>
               </div>
-              <p className="text-center text-[11px] text-gray-400">Vous recevrez un email dès que la vérification sera terminée.</p>
+              <p className="text-center text-[11px] text-gray-400">Vous recevrez un email dÃ©s que la vÃ©rification sera terminÃ©e.</p>
             </div>
           </CardContent>
         </Card>
@@ -108,10 +100,10 @@ const VerificationRequired = () => {
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2">
               <AlertTriangle className="h-6 w-6 text-red-500" />
-              Vérification Requise
+              VÃ©rification Requise
             </CardTitle>
             <CardDescription>
-              Votre compte nécessite une vérification d'identité pour accéder aux fonctionnalités
+              Votre compte nÃ©cessite une vÃ©rification d'identitÃ© pour accÃ©der aux fonctionnalitÃ©s
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -119,8 +111,8 @@ const VerificationRequired = () => {
               <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
               <h3 className="font-semibold text-red-800 mb-2">Action Requise</h3>
               <p className="text-sm text-red-700">
-                Pour des raisons de sécurité et de conformité, vous devez vérifier votre identité 
-                en soumettant une photo recto-verso de votre carte d'identité.
+                Pour des raisons de sÃ©curitÃ© et de conformitÃ©, vous devez vÃ©rifier votre identitÃ© 
+                en soumettant une photo recto-verso de votre carte d'identitÃ©.
               </p>
             </div>
 
@@ -128,23 +120,23 @@ const VerificationRequired = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Statut actuel:</span>
                 <Badge variant="destructive">
-                  Non vérifié
+                  Non vÃ©rifiÃ©
                 </Badge>
               </div>
               
               <div className="text-sm text-gray-600 space-y-2">
                 <h4 className="font-medium">Documents requis:</h4>
                 <ul className="list-disc list-inside space-y-1 text-xs">
-                  <li>Photo du recto de votre carte d'identité</li>
-                  <li>Photo du verso de votre carte d'identité</li>
+                  <li>Photo du recto de votre carte d'identitÃ©</li>
+                  <li>Photo du verso de votre carte d'identitÃ©</li>
                   <li>Images claires et lisibles (max 5MB chacune)</li>
                 </ul>
               </div>
 
               <div className="text-sm text-gray-600">
-                <h4 className="font-medium">Accès limité:</h4>
+                <h4 className="font-medium">AccÃ©s limitÃ©:</h4>
                 <p className="text-xs text-gray-500">
-                  En attendant la vérification, l'accès à certaines fonctionnalités est restreint.
+                  En attendant la vÃ©rification, l'accÃ©s Ã© certaines fonctionnalitÃ©s est restreint.
                 </p>
               </div>
             </div>
@@ -155,7 +147,7 @@ const VerificationRequired = () => {
                 className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600"
               >
                 <Upload className="mr-2 h-4 w-4" />
-                Commencer la Vérification
+                Commencer la VÃ©rification
               </Button>
               
               <Button 
@@ -163,13 +155,13 @@ const VerificationRequired = () => {
                 onClick={() => navigate('/dashboard')} 
                 className="w-full"
               >
-                Accès Limité au Tableau de Bord
+                AccÃ©s LimitÃ© au Tableau de Bord
               </Button>
             </div>
 
             <div className="text-center">
               <p className="text-xs text-gray-500">
-                Ce processus est conforme aux réglementations de sécurité et prend généralement 24-48 heures.
+                Ce processus est conforme aux rÃ©glementations de sÃ©curitÃ© et prend gÃ©nÃ©ralement 24-48 heures.
               </p>
             </div>
           </CardContent>

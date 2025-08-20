@@ -1,38 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtime } from '@/context/RealtimeContext.jsx';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/components/ui/use-toast";
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  FileSignature, 
-  LandPlot, 
-  AlertTriangle, 
-  Landmark,
-  Map,
-  Users,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Eye,
-  Search,
-  MessageSquare,
-  FileText,
-  Download,
-  Building,
-  Shield,
-  BarChart3,
-  TrendingUp,
-  DollarSign,
-  Plus,
-  MapPin
-} from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-
 const MairieDashboard = () => {
   const { toast } = useToast();
   // Loading géré par le hook temps réel
@@ -72,9 +38,7 @@ const MairieDashboard = () => {
         recentActivity: requests.slice(0, 5)
       });
 
-    } catch (error) {
-      console.error('Erreur chargement dashboard:', error);
-      toast({
+    } catch (error) {      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les données du dashboard"

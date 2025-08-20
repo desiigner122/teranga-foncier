@@ -1,14 +1,4 @@
 import React, { useState, useContext } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Maximize, MapPin, Layers, ShieldCheck, ShoppingCart, PercentSquare } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { ComparisonContext } from '@/context/ComparisonContext';
-import InstallmentPaymentModal from '@/components/parcel-detail/InstallmentPaymentModal';
-
 const formatPrice = (price) => {
   if (price === null || price === undefined) return 'Prix sur demande';
   return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(price);

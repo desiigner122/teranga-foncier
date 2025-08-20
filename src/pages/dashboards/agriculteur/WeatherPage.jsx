@@ -1,11 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { CloudSun, Wind, Droplets, Thermometer } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
 const weatherData = {
   'Champ Kagnout 1': { temp: '31°C', humidity: '65%', wind: '12 km/h NE', forecast: 'Ensoleillé avec passages nuageux.' },
   'Verger Anacardiers Bignona': { temp: '32°C', humidity: '70%', wind: '10 km/h E', forecast: 'Risque d\'averses en soirée.' },
