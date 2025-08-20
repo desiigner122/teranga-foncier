@@ -1,4 +1,4 @@
-// src/components/layout/DashboardLayout.jsx
+﻿// src/components/layout/DashboardLayout.jsx
 import React, { useState } from 'react';
 import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
 import { Outlet, useLocation } from 'react-router-dom';
@@ -7,7 +7,7 @@ import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import GlobalAIChat from '@/components/ui/GlobalAIChat';
 import DashboardAIAssistant from '@/components/ui/DashboardAIAssistant';
 

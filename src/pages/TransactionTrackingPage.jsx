@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Bell, Clock, CheckCircle, AlertTriangle, Eye, Download } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const TransactionTrackingPage = () => {
@@ -343,3 +343,4 @@ const TransactionTrackingPage = () => {
 };
 
 export default TransactionTrackingPage;
+

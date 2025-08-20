@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -17,7 +17,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Home, MapPin, School, ShoppingCart, Hotel as Hospital, HeartHandshake as Handshake, Shield, User, Award, RefreshCw } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useContext } from 'react';
 import { ComparisonContext } from '@/context/ComparisonContext';
 import { Helmet } from 'react-helmet-async';

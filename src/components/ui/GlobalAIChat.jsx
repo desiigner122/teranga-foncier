@@ -1,10 +1,10 @@
-// src/components/ui/GlobalAIChat.jsx - Chat IA principal à droite
+﻿// src/components/ui/GlobalAIChat.jsx - Chat IA principal à droite
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageSquareText, X, Send, User, Bot, Brain, Sparkles, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/ScrollArea';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -265,3 +265,4 @@ Posez-moi vos questions en langage naturel !`;
 };
 
 export default GlobalAIChat;
+

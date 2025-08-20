@@ -1,6 +1,6 @@
-// src/hooks/useAuthValidation.js
+﻿// src/hooks/useAuthValidation.js
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -128,3 +128,4 @@ export const useAuthValidation = () => {
     lastValidation
   };
 };
+

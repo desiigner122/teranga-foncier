@@ -1,4 +1,4 @@
-// src/pages/solutions/dashboards/AgentDashboardPage.jsx
+﻿// src/pages/solutions/dashboards/AgentDashboardPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
@@ -21,7 +21,7 @@ import {
   Clock,
   AlertCircle
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 const AgentDashboardPage = () => {
   const { user } = useAuth();
@@ -377,3 +377,4 @@ const AgentDashboardPage = () => {
 };
 
 export default AgentDashboardPage;
+

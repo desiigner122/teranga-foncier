@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { UploadCloud, FileText, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -80,3 +80,4 @@ const MyDocumentsPage = () => {
 };
 
 export default MyDocumentsPage;
+

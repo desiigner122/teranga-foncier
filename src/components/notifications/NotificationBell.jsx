@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Bell, CheckCheck, ExternalLink } from 'lucide-react';
 import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useMessagingNotification } from '@/context/MessagingNotificationContext';
@@ -85,3 +85,4 @@ const NotificationBell = () => {
 };
 
 export default NotificationBell;
+

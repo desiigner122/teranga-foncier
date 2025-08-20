@@ -1,11 +1,11 @@
-// src/pages/MunicipalLandRequestInfoPage.jsx
+﻿// src/pages/MunicipalLandRequestInfoPage.jsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, LogIn, UserPlus, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext'; // Pour vérifier l'authentification
+import { useAuth } from '@/context/AuthContext'; // Pour vérifier l'authentification
 
 const MunicipalLandRequestInfoPage = () => {
   const { isAuthenticated } = useAuth();
@@ -98,3 +98,4 @@ const MunicipalLandRequestInfoPage = () => {
 };
 
 export default MunicipalLandRequestInfoPage;
+

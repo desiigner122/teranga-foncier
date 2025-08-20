@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,7 @@ import {
   Factory
 } from 'lucide-react';
 import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 const CreateRequestPage = () => {
   const { toast } = useToast();
@@ -449,3 +449,4 @@ const CreateRequestPage = () => {
 };
 
 export default CreateRequestPage;
+

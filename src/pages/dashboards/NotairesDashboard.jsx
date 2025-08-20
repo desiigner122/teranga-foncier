@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -896,3 +896,4 @@ Fournis une réponse structurée avec score et recommandations.`;
 };
 
 export default NotairesDashboard;
+

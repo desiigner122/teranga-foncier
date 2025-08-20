@@ -1,10 +1,10 @@
-// src/components/GlobalChatbot.jsx
+﻿// src/components/GlobalChatbot.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageSquareText, X, Send, User, Bot, Loader2, Trash2, Sparkles, MessageCircle, HelpCircle, MapPin, Search, Phone, Brain, Zap, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/ScrollArea';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -441,3 +441,4 @@ const GlobalChatbot = () => {
 };
 
 export default GlobalChatbot;
+

@@ -1,7 +1,7 @@
-// src/components/layout/VerificationGuard.jsx
+﻿// src/components/layout/VerificationGuard.jsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import VerificationRequired from '@/components/VerificationRequired';
 
@@ -85,3 +85,4 @@ const VerificationGuard = ({ children, allowedPaths = [] }) => {
 };
 
 export default VerificationGuard;
+

@@ -1,8 +1,8 @@
-// src/context/MessagingNotificationContext.jsx
+﻿// src/context/MessagingNotificationContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
 const MessagingNotificationContext = createContext();
@@ -192,3 +192,4 @@ export const MessagingNotificationProvider = ({ children }) => {
     </MessagingNotificationContext.Provider>
   );
 };
+

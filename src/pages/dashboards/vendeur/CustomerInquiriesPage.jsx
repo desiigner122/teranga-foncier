@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { SupabaseDataService } from '@/services/supabaseDataService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const CustomerInquiriesPage = () => {
@@ -489,3 +489,4 @@ const CustomerInquiriesPage = () => {
 };
 
 export default CustomerInquiriesPage;
+

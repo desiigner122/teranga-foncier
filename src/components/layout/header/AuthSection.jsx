@@ -1,4 +1,4 @@
-// src/components/layout/header/AuthSection.jsx
+﻿// src/components/layout/header/AuthSection.jsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { LayoutGrid, User, LogOut, Settings, Bell, MessageSquare } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useMessagingNotification } from '@/context/MessagingNotificationContext';
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from '@/lib/utils';

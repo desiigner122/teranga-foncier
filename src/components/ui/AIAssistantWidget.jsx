@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,7 @@ import {
   Bell
 } from 'lucide-react';
 import { aiAssistant } from '@/lib/aiAssistant';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
   const { toast } = useToast();
@@ -394,3 +394,4 @@ const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
 };
 
 export default AIAssistantWidget;
+

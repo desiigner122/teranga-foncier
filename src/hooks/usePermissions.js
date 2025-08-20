@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+﻿import { useEffect, useState, useCallback } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 
 /**
@@ -38,3 +38,4 @@ export default function usePermissions() {
 
   return { loading, permissions: perms, hasPermission, featureFlags: features, hasFeature, refresh: load };
 }
+

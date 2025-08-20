@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ import {
   Bell
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -507,3 +507,4 @@ const AdminUsersPageWithAI = () => {
 };
 
 export default AdminUsersPageWithAI;
+

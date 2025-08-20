@@ -1,7 +1,7 @@
-// src/pages/DashboardPage.jsx - Dashboard Dispatcher
+﻿// src/pages/DashboardPage.jsx - Dashboard Dispatcher
 import React, { useEffect } from 'react';
 import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import VerificationRequired from '@/components/VerificationRequired';
@@ -150,3 +150,4 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
