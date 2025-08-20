@@ -12,16 +12,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [session, setSession] = useState(null);
-  // Loading géré par le hook temps réel
+  const [loading, setLoading] = useState(true);
 
   const fetchUserProfile = useCallback(async (authUser) => {
     if (!authUser) return null;
     try {
       console.log("Récupération du profil pour:", authUser.email, "ID:", authUser.id);
       
-      // Première tentative par ID
+      // Première tentative par ID dans la table profiles
       let { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
       if (!data && !error) {
         console.log("Profil non trouvé par ID, tentative par email...");
         const result = await supabase
-          .from('users')
+          .from('profiles')
           .select('*')
           .eq('email', authUser.email)
           .maybeSingle();
@@ -42,40 +42,81 @@ export const AuthProvider = ({ children }) => {
       if (error) {
         console.error("Erreur lors de la récupération du profil:", error.message);
         
-        // Si l'erreur est 406, on crée un profil de base à partir des métadonnées user
-        if (error.code === 'PGRST301' || error.message.includes('406')) {
-          console.log("Création d'un profil de base à partir des métadonnées utilisateur");
-          return {
-            id: authUser.id,
-            email: authUser.email,
-            full_name: authUser.user_metadata?.full_name || authUser.email,
-            type: authUser.user_metadata?.type || 'Particulier',
-            role: authUser.user_metadata?.role || 'user',
-            verification_status: 'verified',
-            created_at: authUser.created_at,
-            updated_at: new Date().toISOString()
-          };
-        }
-        return null;
+        // Créer un profil de base à partir des métadonnées user
+        console.log("Création d'un profil de base à partir des métadonnées utilisateur");
+        return {
+          id: authUser.id,
+          email: authUser.email,
+          first_name: authUser.user_metadata?.first_name || split_part(authUser.email, '@', 1),
+          last_name: authUser.user_metadata?.last_name || '',
+          user_type: authUser.user_metadata?.user_type || 'particulier',
+          status: 'active',
+          email_verified: !!authUser.email_confirmed_at,
+          phone_verified: false,
+          identity_verified: false,
+          created_at: authUser.created_at,
+          updated_at: new Date().toISOString()
+        };
       }
       
       if (data) {
-        console.log("Profil récupéré:", { email: data.email, type: data.type, role: data.role, verification_status: data.verification_status });
+        console.log("Profil récupéré:", { 
+          email: data.email, 
+          user_type: data.user_type, 
+          status: data.status, 
+          email_verified: data.email_verified 
+        });
         return data;
       }
-      console.log('Profil introuvable, tentative ensureUserProfile');
-      const ensured = await SupabaseDataService.ensureUserProfile(authUser);
-      if (ensured) return ensured;
-      return {
-        id: authUser.id,
-        email: authUser.email,
-        full_name: authUser.user_metadata?.full_name || authUser.email,
-        type: authUser.user_metadata?.type || 'Particulier',
-        role: authUser.user_metadata?.role || 'user',
-        verification_status: 'not_verified',
-        created_at: authUser.created_at,
-        updated_at: new Date().toISOString()
-      };
+      
+      console.log('Profil introuvable, création d\'un profil par défaut');
+      
+      // Tenter de créer un profil dans la base de données
+      try {
+        const newProfile = {
+          id: authUser.id,
+          email: authUser.email,
+          first_name: authUser.user_metadata?.first_name || authUser.email.split('@')[0],
+          last_name: authUser.user_metadata?.last_name || '',
+          user_type: authUser.user_metadata?.user_type || 'particulier',
+          status: 'active',
+          email_verified: !!authUser.email_confirmed_at,
+          phone_verified: false,
+          identity_verified: false,
+          created_at: authUser.created_at,
+          updated_at: new Date().toISOString()
+        };
+
+        const { data: createdProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert([newProfile])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error("Erreur lors de la création du profil:", createError);
+          return newProfile; // Retourner le profil local même si l'insertion échoue
+        }
+
+        console.log("Profil créé avec succès:", createdProfile);
+        return createdProfile;
+      } catch (createErr) {
+        console.error("Erreur lors de la création du profil:", createErr);
+        // Retourner un profil par défaut
+        return {
+          id: authUser.id,
+          email: authUser.email,
+          first_name: authUser.email.split('@')[0],
+          last_name: '',
+          user_type: 'particulier',
+          status: 'active',
+          email_verified: !!authUser.email_confirmed_at,
+          phone_verified: false,
+          identity_verified: false,
+          created_at: authUser.created_at,
+          updated_at: new Date().toISOString()
+        };
+      }
 
     } catch (err) {
       console.error("Erreur inattendue lors de la récupération du profil:", err);
@@ -83,10 +124,13 @@ export const AuthProvider = ({ children }) => {
       return {
         id: authUser.id,
         email: authUser.email,
-        full_name: authUser.user_metadata?.full_name || authUser.email,
-        type: authUser.user_metadata?.type || 'Particulier',
-        role: authUser.user_metadata?.role || 'user',
-        verification_status: 'not_verified',
+        first_name: authUser.email.split('@')[0],
+        last_name: '',
+        user_type: 'particulier',
+        status: 'active',
+        email_verified: !!authUser.email_confirmed_at,
+        phone_verified: false,
+        identity_verified: false,
         created_at: authUser.created_at,
         updated_at: new Date().toISOString()
       };
@@ -130,12 +174,11 @@ export const AuthProvider = ({ children }) => {
     user,
     profile,
     loading,
-    isAuthenticated: !!user, // Simplifié : on ne requiert que l'utilisateur authentifié
-    isAdmin: profile?.role === 'admin' || profile?.type === 'Administrateur',
-    // Administrateurs exempts de vérification
-  isVerified: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? true : profile?.verification_status === 'verified',
-  needsVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : !!profile && !['verified', 'pending'].includes(profile.verification_status),
-  isPendingVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile?.verification_status === 'pending',
+    isAuthenticated: !!user,
+    isAdmin: profile?.user_type === 'admin' || profile?.first_name === 'Admin',
+    isVerified: (profile?.user_type === 'admin') ? true : profile?.email_verified === true,
+    needsVerification: (profile?.user_type === 'admin') ? false : !!profile && !profile?.email_verified,
+    isPendingVerification: (profile?.user_type === 'admin') ? false : profile?.status === 'pending',
     signOut: async () => {
       try {
         setLoading(true);

@@ -24,7 +24,7 @@ export const useAuth = () => {
 export const SupabaseAuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
-  // Loading géré par le hook temps réel
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Récupérer la session initiale
