@@ -1,35 +1,77 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { realtimeStore } from '../lib/realtimeStore';
 
 /**
- * Hook générique pour les tables avec temps réel
+ * Hook générique temps réel basé sur realtimeStore
+ * Corrige la récursion infinie précédente et fournit un contrat stable:
+ *  - data: tableau (vide par défaut)
+ *  - loading: bool
+ *  - error: objet ou null
+ *  - refetch(): force un rafraîchissement depuis l'API
  */
 export function useRealtimeTable(tableName, options = {}) {
-  const { data: data, loading: dataLoading, error: dataError, refetch } = useRealtimeTable();
-  const [filteredData, setFilteredData] = useState([]);
-  
-  useEffect(() => {
-    if (data) {
-      setFilteredData(data);
-    }
-  }, [data]);
-  
-  useEffect(() => {
-    // S'abonner aux changements temps réel
-    const unsubscribe = realtimeStore.subscribeToTable(tableName, (newData) => {
-      setData(newData || []);
-      setLoading(false);
-    });
+  const {
+    select = '*',
+    filter = null,          // String PostgREST pour .or() éventuel
+    orderBy = 'created_at',
+    ascending = false,
+    limit = 1000,
+    pk = 'id'
+  } = options;
 
-    // Charger les données initiales
-    refetch();
+  const [state, setState] = useState({ data: [], loading: !!tableName, error: null });
+  const filterKey = filter || '__all__';
+  const cacheKey = tableName ? `table:${tableName}:${filterKey}` : null;
+  const mountedRef = useRef(true);
+
+  useEffect(() => () => { mountedRef.current = false; }, []);
+
+  useEffect(() => {
+    if (!tableName) {
+      // Pas de table -> fournir un état neutre (évite crash des usages existants sans param)
+      setState({ data: [], loading: false, error: null });
+      return;
+    }
+
+    let unsubscribe;
+    let primed = false;
+    let cancelled = false;
+
+    const prime = async () => {
+      setState(s => ({ ...s, loading: true, error: null }));
+      try {
+        const { error } = await realtimeStore.primeTable(tableName, { select, pk, filter, orderBy, ascending, limit });
+        if (error && !cancelled) {
+          setState({ data: [], loading: false, error });
+        }
+        primed = true;
+      } catch (e) {
+        if (!cancelled) setState({ data: [], loading: false, error: e });
+      }
+    };
+
+    prime();
+
+    if (cacheKey) {
+      unsubscribe = realtimeStore.subscribe(cacheKey, (data) => {
+        if (!mountedRef.current) return;
+        setState(prev => ({ ...prev, data: data || [], loading: false }));
+      });
+    }
 
     return () => {
+      cancelled = true;
       unsubscribe?.();
     };
-  }, [tableName, refetch]);
+  }, [tableName, select, filter, orderBy, ascending, limit, pk, cacheKey]);
 
-  return { data, loading, error, refetch };
+  const refetch = useCallback(async () => {
+    if (!tableName) return;
+    setState(s => ({ ...s, loading: true }));
+    await realtimeStore.invalidateTable(tableName, filter);
+  }, [tableName, filter]);
+
+  return { data: state.data, loading: state.loading, error: state.error, refetch };
 }
 
 /**
@@ -49,7 +91,7 @@ export const useRealtimeMessages = (options) => useRealtimeTable('messages', opt
  */
 export function useRealtimeStats(queries = []) {
   const [stats, setStats] = useState({});
-  // Loading géré par le hook temps réel
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const updateStats = async () => {

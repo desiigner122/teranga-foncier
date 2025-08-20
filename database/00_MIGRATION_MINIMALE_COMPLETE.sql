@@ -5,6 +5,9 @@
 -- 📅 Date : 20 Août 2025
 -- ⚡ URGENT - Exécuter en PREMIER
 
+-- Assurer la disponibilité des fonctions UUID
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- =================================================================
 -- 🔧 1. CRÉATION TABLE PROFILES (SI N'EXISTE PAS)
 -- =================================================================

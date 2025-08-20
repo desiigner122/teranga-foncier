@@ -12,12 +12,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link } from 'react-router-dom';
 import { useChatbot } from '@/context/ChatbotContext';
 import { hybridAI } from '@/lib/hybridAI';
+// Hook temps rÃ©el spÃ©cialisÃ© messages (corrige ReferenceError prÃ©cÃ©dent)
+import { useRealtimeMessages } from '@/hooks/useRealtimeTable';
 
 const GlobalChatbot = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const { isChatbotOpen, toggleChatbot, closeChatbot } = useChatbot();
-  const { data: messages, loading: messagesLoading, error: messagesError, refetch } = useRealtimeTable();
+  // Abonnement temps rÃ©el Ã  la table messages (retourne {data, loading, error, refetch})
+  const { data: messages, loading: messagesLoading, error: messagesError, refetch } = useRealtimeMessages();
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -45,7 +48,7 @@ const GlobalChatbot = () => {
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInputValue('');
     setIsTyping(true);
-    setCurrentSuggestions([]); // Efface les suggestions après l'envoi d'un message
+    setCurrentSuggestions([]); // Efface les suggestions aprï¿½s l'envoi d'un message
     
     const startTime = Date.now();
 
@@ -65,7 +68,7 @@ const GlobalChatbot = () => {
       setResponseTime(endTime - startTime);
       setCurrentModel(response.modelUsed || 'hybrid');
       
-      // Ajoute la réponse avec les métadonnées
+      // Ajoute la rï¿½ponse avec les mï¿½tadonnï¿½es
       const botMessage = {
         sender: 'bot',
         text: response.text,
@@ -76,21 +79,21 @@ const GlobalChatbot = () => {
       };
       
       setMessages((prevMessages) => [...prevMessages, botMessage]);
-      setCurrentSuggestions(response.suggestions || []); // Met à jour les suggestions
+      setCurrentSuggestions(response.suggestions || []); // Met ï¿½ jour les suggestions
       
-      // Notification si fallback utilisé
+      // Notification si fallback utilisï¿½
       if (response.fallback) {
         toast({
-          title: "Modèle de secours utilisé",
-          description: `${response.originalModel} indisponible, ${response.modelUsed} utilisé`,
+          title: "Modï¿½le de secours utilisï¿½",
+          description: `${response.originalModel} indisponible, ${response.modelUsed} utilisï¿½`,
         });
       }
       
     } catch (err) {
-      console.error("Erreur lors de l'appel à l'IA hybride:", err);
+      console.error("Erreur lors de l'appel ï¿½ l'IA hybride:", err);
       setMessages((prevMessages) => [...prevMessages, { 
         sender: 'bot', 
-        text: `Une erreur est survenue: ${err.message}. Veuillez réessayer plus tard.`,
+        text: `Une erreur est survenue: ${err.message}. Veuillez rï¿½essayer plus tard.`,
         error: true
       }]);
       toast({
@@ -98,7 +101,7 @@ const GlobalChatbot = () => {
         title: "Erreur de l'assistant IA",
         description: `Impossible de communiquer avec l'IA. ${err.message}.`,
       });
-      setCurrentSuggestions(initialSuggestions); // Réinitialise les suggestions initiales en cas d'erreur
+      setCurrentSuggestions(initialSuggestions); // Rï¿½initialise les suggestions initiales en cas d'erreur
     } finally {
       setIsTyping(false);
     }
@@ -109,7 +112,7 @@ const GlobalChatbot = () => {
     setInputValue('');
     setIsTyping(false);
     setMessages([{ sender: 'bot', text: getWelcomeMessage() }]);
-    setCurrentSuggestions(initialSuggestions); // Réinitialise les suggestions
+    setCurrentSuggestions(initialSuggestions); // Rï¿½initialise les suggestions
   };
 
   const handleSuggestionClick = (suggestion) => {
@@ -178,7 +181,7 @@ const GlobalChatbot = () => {
         </Button>
       </motion.div>
 
-      {/* Fenêtre du chatbot avec taille responsive */}
+      {/* Fenï¿½tre du chatbot avec taille responsive */}
       <AnimatePresence>
         {isChatbotOpen && (
           <motion.div
@@ -215,13 +218,13 @@ const GlobalChatbot = () => {
                       </div>
                       {responseTime && (
                         <div className="text-xs text-white/70">
-                          • {responseTime}ms
+                          ï¿½ {responseTime}ms
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1 text-xs text-white/80">
                       <Sparkles className="h-3 w-3" />
-                      <span>Claude • ChatGPT • Gemini</span>
+                      <span>Claude ï¿½ ChatGPT ï¿½ Gemini</span>
                     </div>
                   </div>
                 </div>
@@ -247,7 +250,7 @@ const GlobalChatbot = () => {
                 </div>
               </div>
               
-              {/* Effet d'onde décoratif amélioré */}
+              {/* Effet d'onde dï¿½coratif amï¿½liorï¿½ */}
               <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
                 <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="h-full w-full">
                   <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="rgba(255,255,255,0.15)"></path>
@@ -255,7 +258,7 @@ const GlobalChatbot = () => {
               </div>
             </div>
 
-            {/* Zone de messages avec scroll amélioré */}
+            {/* Zone de messages avec scroll amï¿½liorï¿½ */}
             <ScrollArea className="flex-1 p-4 bg-gray-50 dark:bg-gray-800">
               <div className="space-y-4">
                 {messages.map((msg, index) => (
@@ -287,7 +290,7 @@ const GlobalChatbot = () => {
                       >
                         <div className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</div>
                         
-                        {/* Métadonnées pour les messages IA */}
+                        {/* Mï¿½tadonnï¿½es pour les messages IA */}
                         {msg.sender === 'bot' && (msg.modelUsed || msg.confidence) && (
                           <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                             {msg.modelUsed && (
@@ -321,7 +324,7 @@ const GlobalChatbot = () => {
                   </motion.div>
                 ))}
                 
-                {/* Indicateur de frappe avec animation améliorée */}
+                {/* Indicateur de frappe avec animation amï¿½liorï¿½e */}
                 {isTyping && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -361,7 +364,7 @@ const GlobalChatbot = () => {
               </div>
             </ScrollArea>
 
-            {/* Suggestions avec icônes et design amélioré - Positionnement amélioré */}
+            {/* Suggestions avec icï¿½nes et design amï¿½liorï¿½ - Positionnement amï¿½liorï¿½ */}
             {currentSuggestions.length > 0 && (
               <div className="p-3 bg-gradient-to-b from-gray-50/90 to-white dark:from-gray-800/90 dark:to-gray-900 border-t border-gray-200 dark:border-gray-700 backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-3">
@@ -404,7 +407,7 @@ const GlobalChatbot = () => {
             <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-2">
                 <Input
-                  placeholder="Écrivez votre message..."
+                  placeholder="ï¿½crivez votre message..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
@@ -428,7 +431,7 @@ const GlobalChatbot = () => {
               
               {/* Footer avec logo */}
               <div className="flex items-center justify-center mt-3 text-xs text-gray-500">
-                <span>Propulsé par </span>
+                <span>Propulsï¿½ par </span>
                 <Sparkles className="h-3 w-3 mx-1" />
                 <span className="font-medium">Teranga AI</span>
               </div>

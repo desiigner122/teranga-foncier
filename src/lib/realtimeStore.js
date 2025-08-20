@@ -1,4 +1,5 @@
-// src/lib/realtimeStore.import { supabase } from './supabaseClient';
+// src/lib/realtimeStore.js
+import { supabase } from './supabaseClient';
 
 /**
  * Gestionnaire centralisé des données temps réel et cache
