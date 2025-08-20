@@ -26,7 +26,7 @@ import GeographicSelector from '@/components/ui/GeographicSelector';
 import SupabaseDataService from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
 
-const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
+const CreateUserModal = ({ isOpen, onClose, onUserCreated, userType }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -39,7 +39,7 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
     confirmPassword: '',
     full_name: '',
     phone: '',
-    type: '',
+    type: userType || '',
     role: 'user',
     
     // Informations géographiques
@@ -248,14 +248,18 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
       // Créer l'utilisateur
       let newUser;
       
-      if (formData.type === 'banque' || formData.type === 'mairie' || formData.type === 'notaire') {
+      // Normaliser le type d'utilisateur (première lettre en majuscule)
+      const normalizedType = formData.type.charAt(0).toUpperCase() + formData.type.slice(1).toLowerCase();
+      userData.type = normalizedType;
+      
+      if (normalizedType === 'Banque' || normalizedType === 'Mairie' || normalizedType === 'Notaire') {
         // Pour ces types institutionnels, utiliser la méthode spécifique
         newUser = await SupabaseDataService.createInstitutionUser({
           email: userData.email,
           password: userData.password,
           full_name: userData.full_name,
           phone: userData.phone,
-          type: userData.type,
+          type: normalizedType,
           role: 'institution',
           location: formData.location,
           metadata: userData.metadata

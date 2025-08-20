@@ -1037,6 +1037,10 @@ export class SupabaseDataService {
   // ============== CREATE OPERATIONS ==============
   static async createUser(userData) {
     try {
+      // Normaliser le type d'utilisateur (première lettre en majuscule)
+      const normalizedType = userData.type.charAt(0).toUpperCase() + userData.type.slice(1).toLowerCase();
+      userData.type = normalizedType;
+      
       // 1. Créer l'utilisateur dans Auth avec mot de passe
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
@@ -1044,7 +1048,7 @@ export class SupabaseDataService {
         options: {
           data: {
             full_name: userData.full_name,
-            type: userData.type,
+            type: normalizedType,
             role: userData.role || 'user'
           }
         }
@@ -1061,7 +1065,7 @@ export class SupabaseDataService {
         email: userData.email,
         full_name: userData.full_name,
         phone: userData.phone,
-        type: userData.type,
+        type: normalizedType,
         role: userData.role || 'user',
         metadata: {
           ...userData.metadata,
@@ -1125,6 +1129,10 @@ export class SupabaseDataService {
    */
   static async createInstitutionUser(institutionData) {
     try {
+      // Normaliser le type d'institution (première lettre en majuscule)
+      const normalizedType = institutionData.type.charAt(0).toUpperCase() + institutionData.type.slice(1).toLowerCase();
+      institutionData.type = normalizedType;
+      
       // 1. Créer l'utilisateur dans Auth avec mot de passe
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: institutionData.email,
@@ -1132,7 +1140,7 @@ export class SupabaseDataService {
         options: {
           data: {
             full_name: institutionData.full_name,
-            type: institutionData.type,
+            type: normalizedType,
             role: institutionData.role || 'institution'
           }
         }
@@ -1149,7 +1157,7 @@ export class SupabaseDataService {
         email: institutionData.email,
         full_name: institutionData.full_name,
         phone: institutionData.phone,
-        type: institutionData.type,
+        type: normalizedType,
         role: institutionData.role || 'institution',
         metadata: {
           ...institutionData.metadata,

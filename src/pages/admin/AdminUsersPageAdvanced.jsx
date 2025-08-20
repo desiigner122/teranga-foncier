@@ -96,6 +96,12 @@ const AdminUsersPageAdvanced = () => {
     documents: []
   });
 
+  // Fonction pour normaliser un type d'utilisateur
+  const normalizeUserType = (type) => {
+    if (!type) return '';
+    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+  };
+
   useEffect(() => {
     loadUsers();
   }, []);
@@ -137,7 +143,14 @@ const AdminUsersPageAdvanced = () => {
         SupabaseDataService.listRoles(),
         SupabaseDataService.listAllUserRoles()
       ]);
-      setUsers(allUsers);
+      
+      // Normalisons les types pour tous les utilisateurs chargés
+      const normalizedUsers = allUsers.map(user => ({
+        ...user,
+        type: normalizeUserType(user.type)
+      }));
+      
+      setUsers(normalizedUsers);
       setAvailableRoles(allRoles);
       const grouped = {};
       (allUserRoles||[]).forEach(r => {
@@ -168,7 +181,7 @@ const AdminUsersPageAdvanced = () => {
     }
 
     if (filterType !== 'all') {
-      filtered = filtered.filter(user => user.type === filterType);
+      filtered = filtered.filter(user => normalizeUserType(user.type) === normalizeUserType(filterType));
     }
 
     // Filtres par onglet
@@ -504,6 +517,7 @@ const AdminUsersPageAdvanced = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Utilisateur</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Rôle</TableHead>
                 <TableHead>Rôles multiples</TableHead>
                 <TableHead>Statut</TableHead>
@@ -519,6 +533,11 @@ const AdminUsersPageAdvanced = () => {
                       <div className="font-medium">{user.full_name || 'Nom non défini'}</div>
                       <div className="text-sm text-muted-foreground">{user.email}</div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="font-medium">
+                      {normalizeUserType(user.type) || 'Non défini'}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     {getRoleBadge(user.role)}

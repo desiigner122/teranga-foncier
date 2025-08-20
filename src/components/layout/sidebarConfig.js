@@ -258,7 +258,7 @@ export const getSidebarConfig = (user) => {
     }
     
     const userRole = user.role;
-    const userType = user.type;
+    const userType = user.type ? user.type.charAt(0).toUpperCase() + user.type.slice(1).toLowerCase() : '';
 
     if (userRole === 'admin' || userType === 'Administrateur') {
         return adminConfig;
