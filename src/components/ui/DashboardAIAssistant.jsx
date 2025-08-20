@@ -18,6 +18,16 @@ const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' })
   const [isOpen, setIsOpen] = useState(false);
   const { data: messages, loading: messagesLoading, error: messagesError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
+  const [chatMessages, setMessages] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+  
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   
   useEffect(() => {
     if (messages) {
@@ -27,7 +37,7 @@ const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' })
   
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [chatMessages]);
 
   const getWelcomeMessage = () => {
     const roleMessages = {
@@ -89,10 +99,10 @@ Utilisez les actions rapides ou posez vos questions directement.`;
   };
 
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
+    if (isOpen && chatMessages.length === 0) {
       setMessages([{ sender: 'bot', text: getWelcomeMessage() }]);
     }
-  }, [isOpen, userRole]);
+  }, [isOpen, userRole, chatMessages.length]);
 
   const handleSendMessage = async (textToSend = inputValue) => {
     if (!textToSend.trim()) return;
@@ -138,6 +148,7 @@ Utilisez les actions rapides ou posez vos questions directement.`;
       });
     } finally {
       setIsTyping(false);
+      setTimeout(scrollToBottom, 100);
     }
   };
 
@@ -224,7 +235,7 @@ Utilisez les actions rapides ou posez vos questions directement.`;
             {/* Messages */}
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
-                {messages.map((msg, index) => (
+                {chatMessages.map((msg, index) => (
                   <div key={index}>
                     <div
                       className={cn(

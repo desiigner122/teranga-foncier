@@ -323,7 +323,7 @@ export class SupabaseDataService {
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
-        .filter('participants', 'cs', `{"${userId}"}`)
+        .or(`participant1_id.eq.${userId},participant2_id.eq.${userId},participants::text.ilike.%${userId}%`)
         .order('updated_at', { ascending: false });
       
       if (error) {
@@ -406,11 +406,22 @@ export class SupabaseDataService {
       // Ensure creator is included in participants
       const allParticipants = [...new Set([...participantIds, creatorId])];
       
+      // We should have at least two participants for a conversation
+      if (allParticipants.length < 2) {
+        console.error('Need at least two participants for a conversation');
+        return null;
+      }
+
+      const participant1 = allParticipants[0];
+      const participant2 = allParticipants[1];
+      
       const { data, error } = await supabase
         .from('conversations')
         .insert([{
           title: subject || 'Nouvelle conversation',
           participants: allParticipants,
+          participant1_id: participant1,
+          participant2_id: participant2,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])

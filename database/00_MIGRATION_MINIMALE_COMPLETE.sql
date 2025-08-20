@@ -134,6 +134,8 @@ CREATE TABLE IF NOT EXISTS conversations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT,
   participants JSONB DEFAULT '[]',
+  participant1_id UUID REFERENCES profiles(id),
+  participant2_id UUID REFERENCES profiles(id),
   last_message TEXT,
   last_message_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -236,10 +238,12 @@ CREATE POLICY "Users can insert own messages" ON messages
 
 -- RLS pour les conversations
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can view own conversations" ON conversations
+CREATE POLICY "Users can view own conversations via participants" ON conversations
   FOR SELECT USING (participants::jsonb @> jsonb_build_array(auth.uid()));
+CREATE POLICY "Users can view own conversations via direct fields" ON conversations
+  FOR SELECT USING (participant1_id = auth.uid() OR participant2_id = auth.uid());
 CREATE POLICY "Users can manage own conversations" ON conversations
-  FOR ALL USING (participants::jsonb @> jsonb_build_array(auth.uid()));
+  FOR ALL USING (participants::jsonb @> jsonb_build_array(auth.uid()) OR participant1_id = auth.uid() OR participant2_id = auth.uid());
 
 -- =================================================================
 -- 🔧 5. FONCTION AUTO-CREATION PROFIL
