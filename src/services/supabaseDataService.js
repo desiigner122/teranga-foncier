@@ -345,6 +345,67 @@ export class SupabaseDataService {
     return data || [];
   }
 
+  /**
+   * getAllUsers (legacy compatibility)
+   * Fournit une API plus flexible attendue par certains composants minifiés (ex: Ge.getAllUsers)
+   * Options:
+   *  - select: colonnes (par défaut id,email,full_name,type,role,created_at,is_active,verification_status)
+   *  - limit / offset pagination
+   *  - search: filtre sur email / full_name (ilike)
+   *  - types: array de types à filtrer
+   *  - activeOnly: filtre is_active=true
+   * Retourne { data, count }
+   */
+  static async getAllUsers({
+    select = 'id,email,full_name,type,role,created_at,is_active,verification_status',
+    limit = 200,
+    offset = 0,
+    search = null,
+    types = null,
+    activeOnly = false
+  } = {}) {
+    try {
+      if (limit > 1000) limit = 1000; // garde-fou
+      let query = supabase
+        .from('users')
+        .select(select, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (activeOnly) query = query.eq('is_active', true).is('deleted_at', null);
+      if (types && Array.isArray(types) && types.length) query = query.in('type', types);
+      if (search && search.trim()) {
+        const s = search.trim();
+        query = query.or(`full_name.ilike.%${s}%,email.ilike.%${s}%`);
+      }
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { data: data || [], count: count || 0 };
+    } catch (e) {
+      console.error('getAllUsers failed:', e.message || e);
+      return { data: [], count: 0 };
+    }
+  }
+
+  /**
+   * getUserTypeCounts : renvoie un objet mappant chaque type -> nombre d'utilisateurs
+   */
+  static async getUserTypeCounts() {
+    try {
+      const { data, error } = await supabase.from('users').select('type');
+      if (error) throw error;
+      const counts = {};
+      (data || []).forEach(u => {
+        const t = u.type || 'Inconnu';
+        counts[t] = (counts[t] || 0) + 1;
+      });
+      return counts;
+    } catch (e) {
+      console.error('getUserTypeCounts failed:', e.message || e);
+      return {};
+    }
+  }
+
   // ============== GEO & REFERENCE DATA (NEW) ==============
   static async listRegions() {
     try {
