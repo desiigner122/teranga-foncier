@@ -16,8 +16,37 @@ import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const HomePage = () => {
   const { openChatbot } = useChatbot();
-  const { data: featuredParcels, loading: featuredParcelsLoading, error: featuredParcelsError, refetch } = useRealtimeTable();
-  const [filteredData, setFilteredData] = useState([]);
+  const { data: featuredParcelsRaw, loading: featuredParcelsLoading, error: featuredParcelsError, refetch } = useRealtimeTable('parcels', { limit: 6 });
+  const [featuredParcels, setFeaturedParcels] = useState([]);
+  const [blogArticles, setBlogArticles] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+
+  // Initialisation des datasets avec fallback si vide / erreur
+  useEffect(() => {
+    if (featuredParcelsRaw?.length) {
+  setFeaturedParcels(featuredParcelsRaw.map(p => ({
+        id: p.id,
+        name: p.title || p.name || 'Parcelle',
+        reference: p.reference || p.id?.slice(0,8),
+        location: p.location || p.region || 'Localisation inconnue',
+        area: p.area_sqm ? `${p.area_sqm} m²` : 'Surface N/A',
+        price: p.price ? `${p.price.toLocaleString('fr-FR')} XOF` : 'Prix sur demande',
+        image: (Array.isArray(p.images) ? p.images[0] : null) || 'https://placehold.co/400x250/0052A3/FFFFFF?text=Parcelle',
+        status: p.status || 'Disponible'
+  })));
+    } else if (!featuredParcelsLoading) {
+      setFeaturedParcels(getDefaultParcels());
+    }
+  }, [featuredParcelsRaw, featuredParcelsLoading]);
+
+  useEffect(() => {
+    // Blog: dataset statique pour l'instant → fallback par défaut
+    setBlogArticles(getDefaultBlogs());
+  }, []);
+
+  useEffect(() => {
+    setTestimonials(getDefaultTestimonials());
+  }, []);
   
   // Chargement géré par les hooks temps réel
 
