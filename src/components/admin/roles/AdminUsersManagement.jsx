@@ -48,31 +48,24 @@ export default function AdminUsersManagement() {
     fetchUsers();
   };
 
-  const usersByType = users.reduce((acc, user) => {
-    const type = user.type || 'Autre';
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(user);
+  const usersByRole = users.reduce((acc, user) => {
+    const role = user.role || 'user';
+    if (!acc[role]) acc[role] = [];
+    acc[role].push(user);
     return acc;
   }, {});
 
-  const typeOrder = [
-    'Administrateur', 
-    'Agent', 
-    'Mairie', 
-    'Banque', 
-    'Notaire', 
-    'Vendeur', 
-    'Particulier', 
-    'Investisseur',
-    'Promoteur',
-    'Agriculteur'
+  const roleOrder = [
+    'admin', 
+    'agent', 
+    'user'
   ];
 
-  const sortedTypes = [...new Set([...typeOrder, ...Object.keys(usersByType)])];
+  const sortedRoles = [...new Set([...roleOrder, ...Object.keys(usersByRole)])];
 
   const filteredUsers = activeTab === 'tous' 
     ? users 
-    : users.filter(user => user.type === activeTab);
+    : users.filter(user => user.role === activeTab);
 
   return (
     <div className="space-y-6">
@@ -108,7 +101,7 @@ export default function AdminUsersManagement() {
                     <CardTitle className="text-base flex justify-between items-start">
                       <span className="truncate max-w-[200px]">{user.full_name || user.email}</span>
                       <span className="text-xs bg-primary/10 px-2 py-1 rounded-full">
-                        {user.type || 'Non défini'}
+                        {user.role || 'user'}
                       </span>
                     </CardTitle>
                   </CardHeader>

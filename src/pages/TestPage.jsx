@@ -322,7 +322,7 @@ const TestPage = () => {
                   <div className="mt-2 text-xs">
                     <p>Premiers utilisateurs:</p>
                     {connectionTest.data.slice(0, 3).map((user, index) => (
-                      <p key={index}>• {user.email} ({user.type})</p>
+                      <p key={index}>• {user.email} ({user.role || 'user'})</p>
                     ))}
                   </div>
                 )}

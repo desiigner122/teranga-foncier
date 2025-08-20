@@ -95,7 +95,7 @@ const AuthSection = ({ isScrolled }) => {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <p className="font-semibold truncate">{user.full_name || user.email}</p>
-                <p className="text-xs text-muted-foreground font-normal capitalize">{user.type || user.role}</p>
+                <p className="text-xs text-muted-foreground font-normal capitalize">{user.role}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild><Link to="/dashboard"><LayoutGrid className="mr-2 h-4 w-4" /> Tableau de Bord</Link></DropdownMenuItem>

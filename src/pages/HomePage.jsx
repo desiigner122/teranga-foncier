@@ -65,8 +65,8 @@ const HomePage = () => {
         const formattedTestimonials = users.length > 0 ? users.map((user, index) => ({
           id: user.id,
           name: user.full_name || 'Utilisateur anonyme',
-          role: user.type || 'Particulier',
-          quote: getTestimonialForRole(user.type || 'Particulier'),
+          role: user.role || 'user',
+          quote: getTestimonialForRole(user.role || 'user'),
           avatar: `https://placehold.co/80x80/E0F2F7/0288D1?text=${user.full_name?.substring(0, 2).toUpperCase() || 'UN'}`
         })) : [
           {

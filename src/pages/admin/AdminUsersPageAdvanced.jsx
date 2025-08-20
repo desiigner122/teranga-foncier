@@ -504,7 +504,6 @@ const AdminUsersPageAdvanced = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Utilisateur</TableHead>
-                <TableHead>Type</TableHead>
                 <TableHead>Rôle</TableHead>
                 <TableHead>Rôles multiples</TableHead>
                 <TableHead>Statut</TableHead>
@@ -520,9 +519,6 @@ const AdminUsersPageAdvanced = () => {
                       <div className="font-medium">{user.full_name || 'Nom non défini'}</div>
                       <div className="text-sm text-muted-foreground">{user.email}</div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{user.type || 'Non défini'}</Badge>
                   </TableCell>
                   <TableCell>
                     {getRoleBadge(user.role)}
