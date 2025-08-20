@@ -164,8 +164,7 @@ const TypeSpecificUserCreation = () => {
               whileTap={{ scale: 0.98 }}
             >
               <Card 
-                className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${type.borderColor} ${type.bgColor}`}
-                onClick={() => handleCreateType(type)}
+                className={`transition-all duration-200 hover:shadow-lg ${type.borderColor} ${type.bgColor}`}
               >
                 <CardHeader className="text-center pb-2">
                   <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-r ${type.color} flex items-center justify-center mb-2`}>
@@ -182,6 +181,7 @@ const TypeSpecificUserCreation = () => {
                   <Button 
                     size="sm"
                     className={`w-full bg-gradient-to-r ${type.color} hover:opacity-90 text-white`}
+                    onClick={() => handleCreateType(type)}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Créer

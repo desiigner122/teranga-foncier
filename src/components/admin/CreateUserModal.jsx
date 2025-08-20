@@ -243,8 +243,27 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
         verification_status: 'verified' // Auto-vérifié car créé par admin
       };
 
+      console.log("Création utilisateur:", formData.type, userData);
+
       // Créer l'utilisateur
-      const newUser = await SupabaseDataService.createUser(userData);
+      let newUser;
+      
+      if (formData.type === 'banque' || formData.type === 'mairie' || formData.type === 'notaire') {
+        // Pour ces types institutionnels, utiliser la méthode spécifique
+        newUser = await SupabaseDataService.createInstitutionUser({
+          email: userData.email,
+          password: userData.password,
+          full_name: userData.full_name,
+          phone: userData.phone,
+          type: userData.type,
+          role: 'institution',
+          location: formData.location,
+          metadata: userData.metadata
+        });
+      } else {
+        // Pour les autres types (particulier, agent, etc.)
+        newUser = await SupabaseDataService.createUser(userData);
+      }
       
       toast({
         title: "Utilisateur créé",
@@ -261,7 +280,7 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de créer l'utilisateur. Vérifiez que l'email n'existe pas déjà."
+        description: error.message || "Impossible de créer l'utilisateur. Vérifiez que l'email n'existe pas déjà."
       });
     } finally {
       setLoading(false);

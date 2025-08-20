@@ -46,6 +46,253 @@ export class SupabaseDataService {
     }
   }
   
+  // ============== ADMIN DASHBOARD METRICS ==============
+  static async getAdminDashboardMetrics() {
+    try {
+      // Récupération des données pour le dashboard admin
+      const [users, parcels, requests, transactions, userRegistrations] = await Promise.all([
+        this.getUsers(),
+        this.getAllParcels(),
+        this.getAllRequests?.() || Promise.resolve([]),
+        this.getAllTransactions?.() || Promise.resolve([]),
+        this.getUserRegistrationsByMonth()
+      ]);
+      
+      // Calcul des ventes mensuelles
+      const monthlySales = this.calculateMonthlySales(transactions);
+      
+      // Statut des parcelles
+      const parcelStatus = this.calculateParcelStatus(parcels);
+      
+      // Types de demandes
+      const requestTypes = this.calculateRequestTypes(requests);
+      
+      // Statistiques par type d'acteur
+      const actorStats = this.calculateActorStats(users, parcels, requests, transactions);
+      
+      // Événements à venir
+      const upcomingEvents = await this.getUpcomingEvents();
+      
+      return {
+        totals: {
+          totalUsers: users.length,
+          totalParcels: parcels.length,
+          totalRequests: requests.length,
+          totalSalesAmount: transactions.reduce((sum, tx) => sum + (tx.amount || 0), 0)
+        },
+        charts: {
+          userRegistrations,
+          parcelStatus,
+          requestTypes,
+          monthlySales
+        },
+        actorStats,
+        upcomingEvents
+      };
+    } catch (error) {
+      console.error('Erreur lors de la récupération des métriques du dashboard:', error);
+      return null;
+    }
+  }
+  
+  static async getUserRegistrationsByMonth() {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('created_at');
+        
+      if (error) throw error;
+      
+      // Structurer les données par mois pour les 6 derniers mois
+      const now = new Date();
+      const monthsData = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = date.toLocaleString('fr-FR', { month: 'short' });
+        const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        
+        const count = data.filter(user => {
+          const userDate = new Date(user.created_at);
+          return userDate.getFullYear() === date.getFullYear() && 
+                 userDate.getMonth() === date.getMonth();
+        }).length;
+        
+        monthsData.push({
+          name: monthName,
+          value: count
+        });
+      }
+      
+      return monthsData;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des inscriptions par mois:', error);
+      return [];
+    }
+  }
+  
+  static calculateMonthlySales(transactions) {
+    try {
+      // Structurer les données par mois pour les 6 derniers mois
+      const now = new Date();
+      const monthsData = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = date.toLocaleString('fr-FR', { month: 'short' });
+        
+        const monthTransactions = transactions.filter(tx => {
+          if (!tx.created_at) return false;
+          const txDate = new Date(tx.created_at);
+          return txDate.getFullYear() === date.getFullYear() && 
+                 txDate.getMonth() === date.getMonth();
+        });
+        
+        const amount = monthTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+        
+        monthsData.push({
+          name: monthName,
+          amount: amount
+        });
+      }
+      
+      return monthsData;
+    } catch (error) {
+      console.error('Erreur lors du calcul des ventes mensuelles:', error);
+      return [];
+    }
+  }
+  
+  static calculateParcelStatus(parcels) {
+    try {
+      // Compter les parcelles par statut
+      const statusCount = {};
+      
+      parcels.forEach(parcel => {
+        const status = parcel.status || 'Non défini';
+        statusCount[status] = (statusCount[status] || 0) + 1;
+      });
+      
+      // Convertir en format pour graphique
+      return Object.entries(statusCount).map(([name, value]) => ({
+        name,
+        value,
+        unit: 'parcelles'
+      }));
+    } catch (error) {
+      console.error('Erreur lors du calcul des statuts de parcelles:', error);
+      return [];
+    }
+  }
+  
+  static calculateRequestTypes(requests) {
+    try {
+      // Compter les demandes par type
+      const typeCount = {};
+      
+      requests.forEach(request => {
+        const type = request.type || 'Autre';
+        typeCount[type] = (typeCount[type] || 0) + 1;
+      });
+      
+      // Convertir en format pour graphique
+      return Object.entries(typeCount).map(([name, value]) => ({
+        name,
+        value,
+        unit: 'demandes'
+      }));
+    } catch (error) {
+      console.error('Erreur lors du calcul des types de demandes:', error);
+      return [];
+    }
+  }
+  
+  static calculateActorStats(users, parcels, requests, transactions) {
+    try {
+      // Calculer les statistiques par type d'acteur
+      const vendeurs = users.filter(user => user.type?.toLowerCase() === 'vendeur');
+      const particuliers = users.filter(user => user.type?.toLowerCase() === 'particulier');
+      const mairies = users.filter(user => user.type?.toLowerCase() === 'mairie');
+      const banques = users.filter(user => user.type?.toLowerCase() === 'banque');
+      const notaires = users.filter(user => user.type?.toLowerCase() === 'notaire');
+      const agents = users.filter(user => user.type?.toLowerCase() === 'agent');
+      
+      return {
+        vendeur: {
+          parcellesListees: parcels.filter(p => vendeurs.some(v => v.id === p.owner_id)).length,
+          transactionsReussies: transactions.filter(t => vendeurs.some(v => v.id === t.vendor_id)).length
+        },
+        particulier: {
+          demandesSoumises: requests.filter(r => particuliers.some(p => p.id === r.requester_id)).length,
+          acquisitions: transactions.filter(t => particuliers.some(p => p.id === t.buyer_id)).length
+        },
+        mairie: {
+          parcellesCommunales: parcels.filter(p => mairies.some(m => m.id === p.owner_id)).length,
+          demandesTraitees: requests.filter(r => mairies.some(m => m.id === r.recipient_id) && r.status === 'completed').length
+        },
+        banque: {
+          pretsAccordes: transactions.filter(t => t.funding_source === 'loan').length,
+          garantiesEvaluees: parcels.filter(p => p.has_loan_guarantee).length
+        },
+        notaire: {
+          dossiersTraites: transactions.filter(t => t.notary_id).length,
+          actesAuthentifies: transactions.filter(t => t.notary_id && t.status === 'completed').length
+        },
+        agent: {
+          clientsAssignes: particuliers.filter(p => p.agent_id).length,
+          visitesPlanifiees: requests.filter(r => r.type === 'visit' && agents.some(a => a.id === r.assigned_to)).length
+        }
+      };
+    } catch (error) {
+      console.error('Erreur lors du calcul des statistiques par acteur:', error);
+      return {
+        vendeur: {},
+        particulier: {},
+        mairie: {},
+        banque: {},
+        notaire: {},
+        agent: {}
+      };
+    }
+  }
+  
+  static async getUpcomingEvents() {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .gte('event_date', new Date().toISOString())
+        .order('event_date', { ascending: true })
+        .limit(3);
+        
+      if (error) throw error;
+      
+      return (data || []).map(event => ({
+        title: event.title,
+        date: event.event_date.split('T')[0],
+        time: event.event_time || '09:00'
+      }));
+    } catch (error) {
+      console.error('Erreur lors de la récupération des événements à venir:', error);
+      return [];
+    }
+  }
+  
+  static async getAllTransactions() {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*');
+        
+      if (error) throw error;
+      
+      return data || [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération des transactions:', error);
+      return [];
+    }
+  }
+  
   // ============== ROLES & PERMISSIONS (NEW) ==============
   static async listRoles() {
     try {

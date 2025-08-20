@@ -63,7 +63,7 @@ const DashboardPage = () => {
 
       // Determine dashboard path based on user role and type
       if (userRole === 'admin' || userType === 'Administrateur') {
-        dashboardPath = '/dashboard/admin';
+        dashboardPath = '/dashboard/admin/new';
       } else if (userRole === 'agent' || userType === 'Agent') {
         dashboardPath = '/dashboard/agent';
       } else {

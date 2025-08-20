@@ -17,7 +17,7 @@ const commonLinks = {
 };
 
 const adminConfig = [
-    { label: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard, end: true },
+    { label: 'Dashboard', href: '/dashboard/admin/new', icon: LayoutDashboard, end: true },
     { isSeparator: true },
     { isHeader: true, label: 'GESTION' },
     {
