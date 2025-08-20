@@ -92,6 +92,9 @@ const ParcelSubmissionModal = ({ isOpen, onClose, owner, onSubmitted }) => {
       const docsMeta = [];
       for (const doc of documents) {
         const file = doc.file;
+        // Compute hash (SHA-256) for integrity (optional if browser supports SubtleCrypto)
+        let hash = null;
+        try { hash = await SupabaseDataService.computeDocumentHash(file); } catch {/* ignore */}
         const ext = file.name.split('.').pop();
         const safeRef = (form.reference || 'ref').replace(/[^a-zA-Z0-9_-]/g,'_');
         const path = `${owner?.id || 'unknown'}/${safeRef}/${doc.key}-${Date.now()}.${ext}`;
@@ -99,7 +102,7 @@ const ParcelSubmissionModal = ({ isOpen, onClose, owner, onSubmitted }) => {
         if (upErr) throw new Error(`Upload échoué (${doc.key}): ${upErr.message}`);
         const { data: signed, error: signErr } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
         if (signErr) throw new Error(`Signature URL échouée (${doc.key}): ${signErr.message}`);
-        const meta = { key: doc.key, name: doc.name, url: signed.signedUrl, path, verified: false };
+        const meta = { key: doc.key, name: doc.name, url: signed.signedUrl, path, verified: false, hash };
         docsMeta.push(meta);
       }
       setDocsMetaState(docsMeta);

@@ -9,6 +9,8 @@
     "build:vercel": "npx vite build",
     "test:pay": "node tests/pay_transaction_smoke.mjs",
   "test:parcel-submission": "node tests/parcel_submission_smoke.mjs",
+  "test:rls-submissions": "node tests/rls_parcel_submissions_smoke.mjs",
+  "test:submission-approval-flow": "node tests/submission_approval_flow.mjs",
     "preview": "vite preview",
     "postinstall": "chmod +x node_modules/.bin/* || true"
   },

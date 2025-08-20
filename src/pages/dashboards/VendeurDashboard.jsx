@@ -57,6 +57,7 @@ const VendeurDashboard = () => {
   const [editingListing, setEditingListing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' });
+  const [selectedInquiry, setSelectedInquiry] = useState(null); // for inquiry detail modal
 
   useEffect(() => {
     loadUserData();
@@ -579,7 +580,7 @@ const VendeurDashboard = () => {
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <p className="text-gray-500">Aucune annonce active</p>
-                <Button className="mt-4">
+                <Button className="mt-4" onClick={openCreate}>
                   <Upload className="h-4 w-4 mr-2" />
                   Créer une annonce
                 </Button>
@@ -731,7 +732,7 @@ const VendeurDashboard = () => {
                             <Badge variant="secondary" className="capitalize">{inq.type}</Badge>
                             {new Date(inq.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'short'})}
                           </span>
-                          <Button size="xs" variant="ghost" className="h-6 text-xs">Voir</Button>
+                          <Button size="xs" variant="ghost" className="h-6 text-xs" onClick={()=> setSelectedInquiry({ listingReference:block.reference, ...inq })}>Voir</Button>
                         </li>
                       ))}
                       {block.inquiries.length>5 && (
@@ -769,6 +770,52 @@ const VendeurDashboard = () => {
             marketInsights: marketInsights
           }}
         />
+
+        {selectedInquiry && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-5 relative">
+              <button
+                aria-label="Fermer"
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                onClick={() => setSelectedInquiry(null)}
+              >
+                ✕
+              </button>
+              <h3 className="text-lg font-semibold mb-2">Détail Demande</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Annonce</span>
+                  <span className="font-medium">{selectedInquiry.listingReference}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Type</span>
+                  <Badge variant="outline" className="capitalize">{selectedInquiry.type}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Date</span>
+                  <span>{new Date(selectedInquiry.created_at).toLocaleString('fr-FR')}</span>
+                </div>
+              </div>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setSelectedInquiry(null)}>Fermer</Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    // future: open secure messaging
+                    setSelectedInquiry(null);
+                    toast({ title: 'Action', description: 'Messagerie à implémenter' });
+                  }}
+                >
+                  Répondre
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

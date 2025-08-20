@@ -1704,6 +1704,19 @@ export class SupabaseDataService {
 
   // ================== PARCEL SUBMISSIONS (real table workflow) ==================
   /**
+   * computeDocumentHash: retourne hash hex SHA-256 d'un fichier (File ou ArrayBuffer)
+   */
+  static async computeDocumentHash(file) {
+    try {
+      const buf = file instanceof ArrayBuffer ? file : await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    } catch (e) {
+      console.warn('computeDocumentHash failed', e.message||e);
+      return null;
+    }
+  }
+  /**
    * createParcelSubmission: Insert a pending submission; requires table parcel_submissions(owner_id, reference, location, type, price, surface, status, documents, created_at, updated_at)
    * If the table is absent -> fallback to logListingSubmission and return fallback:true
    */
@@ -1772,42 +1785,62 @@ export class SupabaseDataService {
    */
   static async approveParcelSubmission(submissionId, { reviewerId=null } = {}) {
     try {
-      const { data: sub, error: subErr } = await supabase.from('parcel_submissions').select('*').eq('id', submissionId).single();
-      if (subErr) throw subErr;
-      if (sub.status !== 'pending') return sub; // idempotent
-      // Create parcel
-      const parcelPayload = {
-        reference: sub.reference,
-        location_name: sub.location,
-        type: sub.type,
-        price: sub.price,
-        area_sqm: sub.surface,
-        status: 'available',
-        owner_id: sub.owner_id,
-        owner_type: 'Vendeur',
-        verification_status: 'verified'
-      };
-      const parcel = await this.createProperty(parcelPayload);
-      const { data: updated, error: upErr } = await supabase.from('parcel_submissions').update({ status:'approved', approved_at:new Date().toISOString(), reviewer_id: reviewerId, parcel_id: parcel.id, updated_at: new Date().toISOString() }).eq('id', submissionId).select().single();
-      if (upErr) throw upErr;
-      this.logEvent({ entityType:'parcel_submission', entityId:submissionId, eventType:'parcel_submission.approved', actorUserId: reviewerId, data:{ parcel_id: parcel.id } });
-      // Notify owner
-      try { this.createNotification({ userId: sub.owner_id, type:'parcel_submission', title:'Parcelle approuvée', body:`Votre parcelle ${sub.reference} est publiée.`, data:{ parcel_id:parcel.id } }); } catch {/* ignore */}
+      // Use secure definer function to approve + create parcel atomically
+      const { data, error } = await supabase.rpc('approve_parcel_submission', { p_submission: submissionId, p_reviewer: reviewerId });
+      if (error) throw error;
+      // Re-fetch submission to return fresh state
+      const { data: updated, error: refErr } = await supabase.from('parcel_submissions').select('*').eq('id', submissionId).single();
+      if (refErr) throw refErr;
+      this.logEvent({ entityType:'parcel_submission', entityId:submissionId, eventType:'parcel_submission.approved', actorUserId: reviewerId, data:{ parcel_id: data } });
+      try { this.createNotification({ userId: updated.owner_id, type:'parcel_submission', title:'Parcelle approuvée', body:`Votre parcelle ${updated.reference} est publiée.`, data:{ parcel_id:data } }); } catch {/* ignore */}
       return updated;
     } catch (e) { console.error('approveParcelSubmission failed', e.message||e); throw e; }
   }
 
   static async rejectParcelSubmission(submissionId, { reviewerId=null, reason=null } = {}) {
     try {
-      const { data: sub, error: subErr } = await supabase.from('parcel_submissions').select('*').eq('id', submissionId).single();
-      if (subErr) throw subErr;
-      if (sub.status !== 'pending') return sub;
-      const { data: updated, error } = await supabase.from('parcel_submissions').update({ status:'rejected', rejected_at:new Date().toISOString(), rejection_reason: reason, reviewer_id: reviewerId, updated_at:new Date().toISOString() }).eq('id', submissionId).select().single();
+      const { error } = await supabase.rpc('reject_parcel_submission', { p_submission: submissionId, p_reviewer: reviewerId, p_reason: reason });
       if (error) throw error;
+      const { data: updated, error: refErr } = await supabase.from('parcel_submissions').select('*').eq('id', submissionId).single();
+      if (refErr) throw refErr;
       this.logEvent({ entityType:'parcel_submission', entityId:submissionId, eventType:'parcel_submission.rejected', actorUserId: reviewerId, data:{ reason } });
-      try { this.createNotification({ userId: sub.owner_id, type:'parcel_submission', title:'Parcelle rejetée', body: reason || 'Votre soumission de parcelle a été rejetée.', data:{ submission_id:submissionId, reason } }); } catch {/* ignore */}
+      try { this.createNotification({ userId: updated.owner_id, type:'parcel_submission', title:'Parcelle rejetée', body: reason || 'Votre soumission de parcelle a été rejetée.', data:{ submission_id:submissionId, reason } }); } catch {/* ignore */}
       return updated;
     } catch (e) { console.error('rejectParcelSubmission failed', e.message||e); throw e; }
+  }
+
+  // ================== MESSAGING ==================
+  static async sendMessage({ senderId, recipientId, body, submissionId=null }) {
+    try {
+      const payload = { sender_id: senderId, recipient_id: recipientId, body, submission_id: submissionId };
+      const { data, error } = await supabase.from('messages').insert([payload]).select().single();
+      if (error) throw error;
+      this.logEvent({ entityType:'message', entityId:data.id, eventType:'message.sent', actorUserId: senderId, data:{ recipient: recipientId, submission_id: submissionId } });
+      try { this.createNotification({ userId: recipientId, type:'message', title:'Nouveau message', body: body.slice(0,120), data:{ message_id:data.id } }); } catch {/* silent */}
+      return data;
+    } catch (e) { console.error('sendMessage failed', e.message||e); throw e; }
+  }
+
+  static async listMessagesWith(userIdA, userIdB, { limit=100 } = {}) {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_id.eq.${userIdA},recipient_id.eq.${userIdB}),and(sender_id.eq.${userIdB},recipient_id.eq.${userIdA})`)
+        .order('created_at', { ascending:false })
+        .limit(limit);
+      if (error) throw error; return data || [];
+    } catch (e) { console.error('listMessagesWith failed', e.message||e); return []; }
+  }
+
+  static subscribeMessages(userId, callback) {
+    // Realtime subscription for incoming messages (recipient)
+    const channel = supabase.channel(`messages_recipient_${userId}`)
+      .on('postgres_changes', { event:'INSERT', schema:'public', table:'messages', filter:`recipient_id=eq.${userId}` }, (payload)=>{
+        callback?.(payload.new);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }
 
   /** Log simple clic sur CTA homepage */
@@ -2420,6 +2453,39 @@ export class SupabaseDataService {
       console.error('Erreur agrégation admin dashboard:', error);
       throw error;
     }
+  }
+
+  /**
+   * getAdminDashboardMetricsUnified: preferred method.
+   * 1. Attempts RPC admin_dashboard_metrics() returning a JSON object (lightweight single round-trip)
+   * 2. Falls back to legacy multi-query aggregation if RPC unavailable.
+   */
+  static async getAdminDashboardMetricsUnified() {
+    try {
+      const { data, error } = await supabase.rpc('admin_dashboard_metrics');
+      if (error) throw error;
+      if (data && typeof data === 'object') {
+        // Normalize into legacy shape for backward compatibility
+        return {
+          totals: {
+            totalUsers: data.totals?.users ?? 0,
+            totalParcels: data.totals?.parcels ?? 0,
+            totalRequests: data.totals?.requests ?? 0,
+            totalSalesAmount: data.totals?.sales_amount ?? 0,
+            pendingSubmissions: data.totals?.pending_submissions ?? 0
+          },
+          charts: {
+            userRegistrations: data.user_registrations || [],
+            parcelStatus: data.parcel_status || []
+          }
+        };
+      }
+    } catch (e) {
+      // Silent fallback to legacy method
+      try { return await this.getAdminDashboardMetrics(); } catch {/* ignore */}
+    }
+    // Final minimal fallback
+    return { totals:{ totalUsers:0, totalParcels:0, totalRequests:0, totalSalesAmount:0, pendingSubmissions:0 }, charts:{ userRegistrations:[], parcelStatus:[] } };
   }
 
   // ============== INSTITUTIONS LISTING (NEW) ==============

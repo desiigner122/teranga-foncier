@@ -230,7 +230,20 @@ const AdminDashboardPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const { totals, charts, actorStats: newActorStats, upcomingEvents } = await SupabaseDataService.getAdminDashboardMetrics();
+      // Essai RPC unifié d'abord
+      let unified = null;
+      try { unified = await SupabaseDataService.getAdminDashboardMetricsUnified(); } catch {/* silent */}
+      const useLegacy = !unified || !unified.charts?.requestTypes || !unified.charts?.monthlySales; // unifié minimal -> legacy requis
+      let totals, charts, newActorStats, upcomingEvents;
+      if (useLegacy) {
+        const legacy = await SupabaseDataService.getAdminDashboardMetrics();
+        totals = legacy.totals; charts = legacy.charts; newActorStats = legacy.actorStats; upcomingEvents = legacy.upcomingEvents;
+        if (unified?.totals?.pendingSubmissions) {
+          totals.pendingSubmissions = unified.totals.pendingSubmissions;
+        }
+      } else {
+        totals = unified.totals; charts = unified.charts; newActorStats = unified.actorStats || { vendeur:{}, particulier:{}, mairie:{}, banque:{}, notaire:{}, agent:{} }; upcomingEvents = unified.upcomingEvents || [];
+      }
       setReportData({
         userRegistrations: charts.userRegistrations,
         parcelStatus: charts.parcelStatus,

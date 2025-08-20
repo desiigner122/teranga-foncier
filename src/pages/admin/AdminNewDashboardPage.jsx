@@ -129,15 +129,23 @@ const AdminNewDashboardPage = () => {
     try {
       setLoading(true);
       
-      // Appeler la fonction centralisée pour obtenir les données du dashboard
-      const metrics = await SupabaseDataService.getAdminDashboardMetrics();
-      
-      // Si nous n'avons pas reçu de données, utiliser des données fictives
-      if (!metrics) {
-        throw new Error("Données non disponibles");
+      // 1. Essayer la version unifiée (RPC unique)
+      let metrics = await SupabaseDataService.getAdminDashboardMetricsUnified();
+
+      // 2. Si la structure est minimale (pas de requestTypes / monthlySales / actorStats), fallback legacy
+      const needsLegacy = !metrics?.charts?.requestTypes || !metrics?.charts?.monthlySales || !metrics?.actorStats;
+      if (needsLegacy) {
+        try {
+          const legacy = await SupabaseDataService.getAdminDashboardMetrics();
+          // Normaliser pour compatibilité (ajoute pendingSubmissions si RPC l'a calculé)
+          if (metrics?.totals?.pendingSubmissions && legacy?.totals) {
+            legacy.totals.pendingSubmissions = metrics.totals.pendingSubmissions;
+          }
+          metrics = legacy;
+        } catch {/* ignore: on utilisera données minimales */}
       }
-      
-      // Mettre à jour l'état avec les données réelles
+
+      if (!metrics) throw new Error('Données non disponibles');
       setDashboardData(metrics);
       
     } catch (error) {
