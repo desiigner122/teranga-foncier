@@ -515,6 +515,19 @@ const ParticulierDashboard = () => {
           }}
         />
       </div>
+
+      {/* Modal Transition Vendeur */}
+      <VendeurTransitionModal
+        isOpen={isVendeurTransitionModalOpen}
+        onClose={() => setIsVendeurTransitionModalOpen(false)}
+        onSuccess={() => {
+          toast({
+            title: "Demande soumise",
+            description: "Votre demande de transition vers vendeur a été soumise avec succès",
+          });
+          setIsVendeurTransitionModalOpen(false);
+        }}
+      />
     </div>
   );
 };

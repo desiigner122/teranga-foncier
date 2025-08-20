@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { LogIn, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import LoadingSpinner from '@/components/ui/spinner';
+import { getDashboardRoute } from '@/services/authRoutingService';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -28,8 +29,9 @@ const LoginPage = () => {
   // Redirection basée sur l'état du contexte
   useEffect(() => {
     if (isAuthenticated && profile) {
-      // Always redirect to /dashboard, which will then dispatch to appropriate dashboard
-      navigate('/dashboard', { replace: true });
+      // Utiliser le service de routage intelligent
+      const correctRoute = getDashboardRoute(profile);
+      navigate(correctRoute, { replace: true });
     }
   }, [isAuthenticated, profile, navigate]);
 
