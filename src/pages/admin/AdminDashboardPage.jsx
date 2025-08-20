@@ -107,7 +107,8 @@ const AdminDashboardPage = () => {
     totalSalesAmount: 0,
     userRegistrations: [],
     parcelStatus: [],
-    upcomingEvents: []
+    upcomingEvents: [],
+    pendingSubmissions: 0
   });
   
   const [actorStats, setActorStats] = useState({
@@ -127,10 +128,11 @@ const AdminDashboardPage = () => {
       setLoading(true);
       
       // Charger toutes les données en parallèle
-      const [usersData, parcelsData, requestsData] = await Promise.all([
+      const [usersData, parcelsData, requestsData, pendingSubs] = await Promise.all([
         SupabaseDataService.getAllUsers(),
         SupabaseDataService.getAllParcels(),
-        SupabaseDataService.getAllRequests?.() || Promise.resolve([])
+        SupabaseDataService.getAllRequests?.() || Promise.resolve([]),
+        SupabaseDataService.listPendingParcelSubmissions?.({ limit: 1000 }) || []
       ]);
 
       // Calculer les statistiques
@@ -171,7 +173,8 @@ const AdminDashboardPage = () => {
         totalSalesAmount,
         userRegistrations,
         parcelStatus,
-        upcomingEvents
+        upcomingEvents,
+        pendingSubmissions: pendingSubs?.length || 0
       });
 
       // Statistiques détaillées
@@ -240,7 +243,16 @@ const AdminDashboardPage = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Administration</h1>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            Administration
+            {reportData.pendingSubmissions > 0 && (
+              <span className="inline-flex items-center">
+                <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full">
+                  {reportData.pendingSubmissions} en validation
+                </span>
+              </span>
+            )}
+          </h1>
           <p className="text-gray-600 mt-1">Tableau de bord principal de gestion</p>
         </div>
         <Button>

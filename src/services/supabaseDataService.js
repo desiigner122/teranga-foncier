@@ -526,6 +526,9 @@ export class SupabaseDataService {
     return data || [];
   }
 
+  // Compatibility alias used by some legacy admin code
+  static async getAllParcels() { return this.getParcels(); }
+
   static async getParcelById(id) {
     const { data, error } = await supabase
       .from('parcels')
@@ -1433,6 +1436,13 @@ export class SupabaseDataService {
     }
   }
 
+  /**
+   * updateParcel: legacy alias (certaines pages utilisaient updateParcel au lieu de updateProperty)
+   */
+  static async updateParcel(id, updates) {
+    return this.updateProperty(id, updates);
+  }
+
   // ============== AGENT OPERATIONS (NEW) ==============
   static async getAgentClients(agentId) {
     try {
@@ -1690,6 +1700,114 @@ export class SupabaseDataService {
       console.warn('logListingSubmission failed:', e.message||e);
       return { reference: null, loggedEvent: null };
     }
+  }
+
+  // ================== PARCEL SUBMISSIONS (real table workflow) ==================
+  /**
+   * createParcelSubmission: Insert a pending submission; requires table parcel_submissions(owner_id, reference, location, type, price, surface, status, documents, created_at, updated_at)
+   * If the table is absent -> fallback to logListingSubmission and return fallback:true
+   */
+  static async createParcelSubmission({ ownerId, reference, location, type='terrain', price=null, surface=null, documents=[], description=null }) {
+    try {
+      const now = new Date().toISOString();
+      const payload = {
+        owner_id: ownerId,
+        reference: reference || this._genListingRef(),
+        location,
+        type,
+        price,
+        surface,
+        description,
+        documents, // expected jsonb
+        status: 'pending',
+        created_at: now,
+        updated_at: now
+      };
+      const { data, error } = await supabase.from('parcel_submissions').insert([payload]).select().single();
+      if (error) throw error;
+      this.logEvent({ entityType:'parcel_submission', entityId:data.id, eventType:'parcel_submission.created', actorUserId: ownerId, data:{ reference: data.reference, type, price, surface } });
+      return { ...data, fallback:false };
+    } catch (e) {
+      console.warn('createParcelSubmission fallback -> events only:', e.message||e);
+      const { reference } = await this.logListingSubmission({ userId: ownerId, propertyType:type, surfaceArea:surface, price, description, titleDeedNumber:null, documentsMeta:documents, allRequiredProvided:false });
+      return { id: reference, reference, status:'pending', fallback:true };
+    }
+  }
+
+  static async listParcelSubmissionsByOwner(ownerId, { status=null } = {}) {
+    try {
+      let query = supabase.from('parcel_submissions').select('*').eq('owner_id', ownerId).order('created_at', { ascending:false }).limit(100);
+      if (status) query = query.eq('status', status);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      // table inexistante -> pas d'erreur bloquante
+      return [];
+    }
+  }
+
+  static async listPendingParcelSubmissions({ limit=200 }={}) {
+    try {
+      const { data, error } = await supabase.from('parcel_submissions').select('*').eq('status','pending').order('created_at',{ ascending:false }).limit(limit);
+      if (error) throw error; return data||[];
+    } catch (e) { return []; }
+  }
+
+  /**
+   * listParcelSubmissions: admin/mairie/notaire overview (optionally filter by status)
+   */
+  static async listParcelSubmissions({ status=null, limit=500 }={}) {
+    try {
+      let query = supabase.from('parcel_submissions').select('*').order('created_at',{ ascending:false }).limit(limit);
+      if (status) query = query.eq('status', status);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    } catch (e) { return []; }
+  }
+
+  /**
+   * approveParcelSubmission: creates real parcel then marks submission approved (links parcel_id)
+   */
+  static async approveParcelSubmission(submissionId, { reviewerId=null } = {}) {
+    try {
+      const { data: sub, error: subErr } = await supabase.from('parcel_submissions').select('*').eq('id', submissionId).single();
+      if (subErr) throw subErr;
+      if (sub.status !== 'pending') return sub; // idempotent
+      // Create parcel
+      const parcelPayload = {
+        reference: sub.reference,
+        location_name: sub.location,
+        type: sub.type,
+        price: sub.price,
+        area_sqm: sub.surface,
+        status: 'available',
+        owner_id: sub.owner_id,
+        owner_type: 'Vendeur',
+        verification_status: 'verified'
+      };
+      const parcel = await this.createProperty(parcelPayload);
+      const { data: updated, error: upErr } = await supabase.from('parcel_submissions').update({ status:'approved', approved_at:new Date().toISOString(), reviewer_id: reviewerId, parcel_id: parcel.id, updated_at: new Date().toISOString() }).eq('id', submissionId).select().single();
+      if (upErr) throw upErr;
+      this.logEvent({ entityType:'parcel_submission', entityId:submissionId, eventType:'parcel_submission.approved', actorUserId: reviewerId, data:{ parcel_id: parcel.id } });
+      // Notify owner
+      try { this.createNotification({ userId: sub.owner_id, type:'parcel_submission', title:'Parcelle approuvée', body:`Votre parcelle ${sub.reference} est publiée.`, data:{ parcel_id:parcel.id } }); } catch {/* ignore */}
+      return updated;
+    } catch (e) { console.error('approveParcelSubmission failed', e.message||e); throw e; }
+  }
+
+  static async rejectParcelSubmission(submissionId, { reviewerId=null, reason=null } = {}) {
+    try {
+      const { data: sub, error: subErr } = await supabase.from('parcel_submissions').select('*').eq('id', submissionId).single();
+      if (subErr) throw subErr;
+      if (sub.status !== 'pending') return sub;
+      const { data: updated, error } = await supabase.from('parcel_submissions').update({ status:'rejected', rejected_at:new Date().toISOString(), rejection_reason: reason, reviewer_id: reviewerId, updated_at:new Date().toISOString() }).eq('id', submissionId).select().single();
+      if (error) throw error;
+      this.logEvent({ entityType:'parcel_submission', entityId:submissionId, eventType:'parcel_submission.rejected', actorUserId: reviewerId, data:{ reason } });
+      try { this.createNotification({ userId: sub.owner_id, type:'parcel_submission', title:'Parcelle rejetée', body: reason || 'Votre soumission de parcelle a été rejetée.', data:{ submission_id:submissionId, reason } }); } catch {/* ignore */}
+      return updated;
+    } catch (e) { console.error('rejectParcelSubmission failed', e.message||e); throw e; }
   }
 
   /** Log simple clic sur CTA homepage */

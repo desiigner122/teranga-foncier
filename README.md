@@ -399,6 +399,29 @@ Ce projet est sous licence **MIT**. Voir le fichier `LICENSE` pour plus de déta
 - **🗄️ Database** : Supabase PostgreSQL
 
 ---
+### 🔒 Anti-fraude: Soumission Parcelles (2025-08-20)
+
+Nouveau workflow sécurisé pour empêcher la publication directe de parcelles non vérifiées:
+
+- Composant vendeur: `ParcelSubmissionModal` (documents requis: titre foncier, plan cadastral, certificat de situation).
+- Service: méthodes `createParcelSubmission`, `approveParcelSubmission`, `rejectParcelSubmission`, `listPendingParcelSubmissions` dans `supabaseDataService`.
+- Table SQL: script `database/20250820_parcel_submissions_table.sql` (RLS activé, statuts pending/approved/rejected).
+- Dashboard Vendeur: bouton "Nouvelle Annonce" ouvre désormais la modal de soumission (statut local `pending_validation`).
+- Dashboard Particulier: ajout d'un modal de "Demande Terrain Mairie" utilisant `createMunicipalRequest`.
+- Prochain: interface d'examen (admin/mairie/notaire) pour approuver/rejeter en production + notifications consolidées.
+
+Avantages:
+1. Empêche annonces frauduleuses sans documents.
+2. Historique d'approbation et traçabilité des décisions.
+3. Alignement RLS: vendeur ne voit que ses soumissions, admin voit tout.
+4. Extensible (ajout futur d'upload vers Storage + validation automatique OCR).
+
+Pour déployer la table:
+```
+psql -h <host> -U <user> -d <db> -f database/20250820_parcel_submissions_table.sql
+```
+
+Configurer ensuite des rôles additionnels ou policies selon besoins métiers.
 
 ## 🎉 Statut du Projet
 

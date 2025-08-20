@@ -29,6 +29,7 @@ import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
+import ParcelSubmissionModal from '@/components/vendeur/ParcelSubmissionModal';
 import { antiFraudAI } from '@/lib/antiFraudAI';
 
 const VendeurDashboard = () => {
@@ -51,7 +52,8 @@ const VendeurDashboard = () => {
   const [marketInsights, setMarketInsights] = useState([]); // sera alimenté par analyse IA marché réelle
   const [loading, setLoading] = useState(true);
   const [inquiriesByListing, setInquiriesByListing] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false); // legacy edit/create modal
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false); // new anti-fraud submission modal
   const [editingListing, setEditingListing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' });
@@ -60,6 +62,19 @@ const VendeurDashboard = () => {
     loadUserData();
     loadSellerDashboardData();
   }, []);
+
+  // Realtime: refresh listings when submission approved -> parcel appears
+  useEffect(()=>{
+    const channel = supabase.channel('parcel_submissions_vendor')
+      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'parcel_submissions' }, (payload)=>{
+        if (payload?.new?.owner_id === user?.id && payload.new.status === 'approved') {
+          // Reload parcels so approved one replaces placeholder
+          loadSellerDashboardData();
+        }
+      })
+      .subscribe();
+    return ()=> { supabase.removeChannel(channel); };
+  }, [user]);
 
   const loadUserData = async () => {
     try {
@@ -106,15 +121,12 @@ const VendeurDashboard = () => {
         `)
         .eq('owner_id', user.id);
 
-      // Calculs statistiques
-      const totalListings = userListings?.length || 0;
-      const totalViews = userListings?.reduce((sum, listing) => sum + (listing.parcel_views?.length || 0), 0) || 0;
-      const totalRevenue = userListings?.reduce((sum, listing) => {
-        return listing.status === 'sold' ? sum + listing.price : sum;
-      }, 0) || 0;
-      
-      const averagePrice = totalListings > 0 ? 
-        userListings.reduce((sum, listing) => sum + listing.price, 0) / totalListings : 0;
+  // Exclure annonces en validation des stats
+  const approvedListings = (userListings||[]).filter(l => l.status !== 'pending_validation');
+  const totalListings = approvedListings.length;
+  const totalViews = approvedListings.reduce((sum, listing) => sum + (listing.parcel_views?.length || 0), 0) || 0;
+  const totalRevenue = approvedListings.reduce((sum, listing) => listing.status === 'sold' ? sum + (listing.price||0) : sum, 0) || 0;
+  const averagePrice = totalListings > 0 ? approvedListings.reduce((sum, l)=> sum + (l.price||0),0)/ totalListings : 0;
 
       // Analytics mensuelles
       const currentMonth = new Date().getMonth();
@@ -333,7 +345,7 @@ const VendeurDashboard = () => {
     }
   };
 
-  const openCreate = () => { setEditingListing(null); setForm({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' }); setShowModal(true); };
+  const openCreate = () => { setEditingListing(null); setForm({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' }); setShowSubmissionModal(true); };
   const openEdit = (listing) => { setEditingListing(listing); setForm({ reference:listing.reference||'', location:listing.location||'', type:listing.type||'terrain', price:listing.price||'', surface: listing.surface || listing.area_sqm ||'', status: listing.status||'available' }); setShowModal(true); };
   const saveListing = async (e) => {
     e.preventDefault();
@@ -585,9 +597,13 @@ const VendeurDashboard = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h4 className="font-semibold">{listing.reference}</h4>
-                          <Badge variant={listing.status === 'available' ? 'default' : 'secondary'}>
-                            {listing.status === 'available' ? 'Disponible' : listing.status}
-                          </Badge>
+                          {listing.status === 'pending_validation' ? (
+                            <Badge className="bg-yellow-100 text-yellow-800">En validation</Badge>
+                          ) : (
+                            <Badge variant={listing.status === 'available' ? 'default' : 'secondary'}>
+                              {listing.status === 'available' ? 'Disponible' : listing.status}
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-gray-600 mb-2">{listing.location}</p>
                         <div className="flex items-center gap-4 text-sm">
@@ -625,7 +641,7 @@ const VendeurDashboard = () => {
           </CardContent>
         </Card>
 
-        {showModal && (
+  {showModal && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
               <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={()=>!saving && setShowModal(false)}>✕</button>
@@ -674,6 +690,16 @@ const VendeurDashboard = () => {
             </div>
           </div>
         )}
+
+        <ParcelSubmissionModal
+          isOpen={showSubmissionModal}
+          onClose={()=> setShowSubmissionModal(false)}
+          owner={user}
+          onSubmitted={(submission)=>{
+            // Optimistic placeholder listing marker while pending validation
+            setListings(ls => [{ id: submission.reference, reference: submission.reference, location: submission.location, type: submission.type, price: submission.price, surface: submission.surface, status: 'pending_validation', parcel_submission_id: submission.id }, ...ls]);
+          }}
+        />
 
         {/* Demandes reçues */}
         <Card>

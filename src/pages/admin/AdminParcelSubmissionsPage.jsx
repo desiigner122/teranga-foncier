@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SupabaseDataService from '@/services/supabaseDataService';
+import { supabase } from '@/lib/supabaseClient';
 
 const AdminParcelSubmissionsPage = () => {
   const { toast } = useToast();
@@ -55,93 +56,32 @@ const AdminParcelSubmissionsPage = () => {
   const loadParcelSubmissions = useCallback(async () => {
     try {
       setLoading(true);
-      // Dans une implémentation réelle, remplacer par un appel API
-      const mockSubmissions = [
-        {
-          id: 'sub-1',
-          parcel_id: 'parcel-1',
-          parcel_name: 'Terrain Diamniadio Zone 2',
-          owner_id: 'user-1',
-          owner_name: 'Amadou Diallo',
-          location: 'Diamniadio, Dakar',
-          area: '500 m²',
-          price: '15 000 000 FCFA',
-          status: 'pending',
-          submitted_at: '2025-08-15T10:30:00Z',
-          images: [
-            { id: 'img-1', url: 'https://placehold.co/600x400?text=Terrain+Photo+1', verified: false },
-            { id: 'img-2', url: 'https://placehold.co/600x400?text=Terrain+Photo+2', verified: false }
-          ],
-          documents: [
-            { id: 'doc-1', name: 'Titre foncier', url: '#', verified: false },
-            { id: 'doc-2', name: 'Certificat de propriété', url: '#', verified: false }
-          ]
-        },
-        {
-          id: 'sub-2',
-          parcel_id: 'parcel-2',
-          parcel_name: 'Parcelle Résidentielle Almadies',
-          owner_id: 'user-2',
-          owner_name: 'Fatou Sow',
-          location: 'Almadies, Dakar',
-          area: '800 m²',
-          price: '45 000 000 FCFA',
-          status: 'pending',
-          submitted_at: '2025-08-17T14:15:00Z',
-          images: [
-            { id: 'img-3', url: 'https://placehold.co/600x400?text=Terrain+Photo+3', verified: false },
-            { id: 'img-4', url: 'https://placehold.co/600x400?text=Terrain+Photo+4', verified: false }
-          ],
-          documents: [
-            { id: 'doc-3', name: 'Titre foncier', url: '#', verified: false },
-            { id: 'doc-4', name: 'Plan cadastral', url: '#', verified: false }
-          ]
-        },
-        {
-          id: 'sub-3',
-          parcel_id: 'parcel-3',
-          parcel_name: 'Terrain Agricole Thiès',
-          owner_id: 'user-3',
-          owner_name: 'Ibrahim Ndiaye',
-          location: 'Thiès Rural',
-          area: '5000 m²',
-          price: '8 000 000 FCFA',
-          status: 'approved',
-          submitted_at: '2025-08-12T09:45:00Z',
-          approved_at: '2025-08-14T11:30:00Z',
-          images: [
-            { id: 'img-5', url: 'https://placehold.co/600x400?text=Terrain+Photo+5', verified: true },
-            { id: 'img-6', url: 'https://placehold.co/600x400?text=Terrain+Photo+6', verified: true }
-          ],
-          documents: [
-            { id: 'doc-5', name: 'Titre foncier', url: '#', verified: true },
-            { id: 'doc-6', name: 'Certificat d\'usage agricole', url: '#', verified: true }
-          ]
-        },
-        {
-          id: 'sub-4',
-          parcel_id: 'parcel-4',
-          parcel_name: 'Lot Construction Yoff',
-          owner_id: 'user-4',
-          owner_name: 'Mariama Diop',
-          location: 'Yoff, Dakar',
-          area: '300 m²',
-          price: '20 000 000 FCFA',
-          status: 'rejected',
-          submitted_at: '2025-08-10T16:20:00Z',
-          rejected_at: '2025-08-11T15:10:00Z',
-          rejection_reason: 'Documents incomplets. Les limites du terrain ne sont pas clairement définies.',
-          images: [
-            { id: 'img-7', url: 'https://placehold.co/600x400?text=Terrain+Photo+7', verified: false },
-            { id: 'img-8', url: 'https://placehold.co/600x400?text=Terrain+Photo+8', verified: false }
-          ],
-          documents: [
-            { id: 'doc-7', name: 'Titre foncier', url: '#', verified: true },
-            { id: 'doc-8', name: 'Plan de délimitation', url: '#', verified: false }
-          ]
+      const submissions = await SupabaseDataService.listParcelSubmissions({ status: statusFilter === 'all'? null : statusFilter });
+      // Enrichir avec owner et convertir champs formatés
+      const enriched = await Promise.all((submissions||[]).map(async sub => {
+        let ownerName = '—';
+        if (sub.owner_id) {
+          const { data: owner } = await supabase.from('users').select('full_name,email').eq('id', sub.owner_id).single();
+          ownerName = owner?.full_name || owner?.email || ownerName;
         }
-      ];
-      setParcelSubmissions(mockSubmissions);
+        return {
+          id: sub.id,
+          parcel_id: sub.parcel_id,
+            parcel_name: sub.reference,
+          owner_id: sub.owner_id,
+          owner_name: ownerName,
+          location: sub.location,
+          area: sub.surface? `${sub.surface} m²` : '—',
+          price: sub.price? `${Number(sub.price).toLocaleString()} FCFA` : '—',
+          status: sub.status,
+          submitted_at: sub.created_at,
+          approved_at: sub.approved_at,
+          rejected_at: sub.rejected_at,
+          rejection_reason: sub.rejection_reason,
+          documents: Array.isArray(sub.documents)? sub.documents.map(d => ({ id: d.key, name: d.name || d.key, url: d.url || '#', verified: !!d.verified })) : []
+        };
+      }));
+      setParcelSubmissions(enriched);
     } catch (error) {
       console.error('Erreur chargement soumissions parcelles:', error);
       toast({
@@ -149,53 +89,30 @@ const AdminParcelSubmissionsPage = () => {
         title: "Erreur",
         description: "Impossible de charger les soumissions de parcelles"
       });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+    } finally { setLoading(false); }
+  }, [toast, statusFilter]);
 
-  useEffect(() => {
-    loadParcelSubmissions();
+  useEffect(() => { loadParcelSubmissions(); }, [loadParcelSubmissions]);
+
+  // Realtime subscription for new / updated submissions
+  useEffect(()=>{
+    const channel = supabase.channel('parcel_submissions_admin')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'parcel_submissions' }, (payload)=>{
+        // Reload on relevant change (could optimize by patching local state)
+        loadParcelSubmissions();
+      }).subscribe();
+    return ()=> { supabase.removeChannel(channel); };
   }, [loadParcelSubmissions]);
 
   // Approuver une soumission de parcelle
   const handleApproveSubmission = async (submission) => {
     try {
-      // Mise à jour du statut de la parcelle
-      await SupabaseDataService.updateParcel(submission.parcel_id, { 
-        status: 'approved',
-        is_verified: true,
-      });
-      
-      // Mettre à jour le statut de la soumission
-      const updatedSubmissions = parcelSubmissions.map(sub => 
-        sub.id === submission.id ? { ...sub, status: 'approved', approved_at: new Date().toISOString() } : sub
-      );
-      setParcelSubmissions(updatedSubmissions);
-      
-      // Créer une notification pour l'utilisateur
-      await SupabaseDataService.createNotification({
-        userId: submission.owner_id,
-        type: 'parcel_approved',
-        title: `Parcelle approuvée`,
-        body: `Votre parcelle "${submission.parcel_name}" a été approuvée et est maintenant visible sur la plateforme`,
-        data: { 
-          parcel_id: submission.parcel_id,
-          parcel_name: submission.parcel_name
-        }
-      });
-      
-      toast({
-        title: "Parcelle approuvée",
-        description: `La parcelle de ${submission.owner_name} est maintenant visible sur la plateforme`
-      });
+      const approved = await SupabaseDataService.approveParcelSubmission(submission.id, {});
+      setParcelSubmissions(list => list.map(s => s.id === submission.id ? { ...s, status:'approved', approved_at: approved.approved_at } : s));
+      toast({ title:'Parcelle approuvée', description: submission.parcel_name });
     } catch (error) {
-      console.error('Erreur lors de l\'approbation:', error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible d'approuver la soumission de parcelle"
-      });
+      console.error('Erreur approbation:', error);
+      toast({ variant:'destructive', title:'Erreur', description:"Impossible d'approuver" });
     }
   };
 
@@ -210,50 +127,13 @@ const AdminParcelSubmissionsPage = () => {
   const handleRejectSubmission = async () => {
     try {
       if (!selectedSubmission) return;
-      
-      // Mise à jour du statut de la parcelle
-      await SupabaseDataService.updateParcel(selectedSubmission.parcel_id, { 
-        status: 'rejected'
-      });
-      
-      // Mettre à jour le statut de la soumission
-      const updatedSubmissions = parcelSubmissions.map(sub => 
-        sub.id === selectedSubmission.id ? { 
-          ...sub, 
-          status: 'rejected', 
-          rejected_at: new Date().toISOString(),
-          rejection_reason: rejectionReason
-        } : sub
-      );
-      setParcelSubmissions(updatedSubmissions);
-      
-      // Créer une notification pour l'utilisateur
-      await SupabaseDataService.createNotification({
-        userId: selectedSubmission.owner_id,
-        type: 'parcel_rejected',
-        title: `Parcelle rejetée`,
-        body: rejectionReason || `Votre parcelle "${selectedSubmission.parcel_name}" a été rejetée`,
-        data: { 
-          parcel_id: selectedSubmission.parcel_id,
-          parcel_name: selectedSubmission.parcel_name,
-          rejection_reason: rejectionReason
-        }
-      });
-      
-      toast({
-        title: "Parcelle rejetée",
-        description: `La soumission de ${selectedSubmission.owner_name} a été rejetée`
-      });
-      
-      setIsRejectReasonModalOpen(false);
-      setSelectedSubmission(null);
+      const rejected = await SupabaseDataService.rejectParcelSubmission(selectedSubmission.id, { reason: rejectionReason });
+      setParcelSubmissions(list => list.map(s => s.id === selectedSubmission.id ? { ...s, status:'rejected', rejected_at: rejected.rejected_at, rejection_reason: rejectionReason } : s));
+      toast({ title:'Soumission rejetée', description: selectedSubmission.parcel_name });
+      setIsRejectReasonModalOpen(false); setSelectedSubmission(null);
     } catch (error) {
-      console.error('Erreur lors du rejet:', error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de rejeter la soumission"
-      });
+      console.error('Erreur rejet:', error);
+      toast({ variant:'destructive', title:'Erreur', description:'Rejet impossible' });
     }
   };
 
@@ -409,7 +289,7 @@ const AdminParcelSubmissionsPage = () => {
                               size="sm" 
                               onClick={() => handleApproveSubmission(submission)}
                               className="text-green-600 hover:text-green-700"
-                              title="Approuver la parcelle"
+                              title="Approuver la soumission"
                             >
                               <CheckCircle2 className="h-4 w-4" />
                             </Button>

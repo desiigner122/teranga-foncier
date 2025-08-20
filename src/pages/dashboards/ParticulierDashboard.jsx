@@ -46,6 +46,9 @@ const ParticulierDashboard = () => {
   const [securityAlerts, setSecurityAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [favoriteBusy, setFavoriteBusy] = useState(null); // parcel id if toggling
+  const [creatingMunicipalReq, setCreatingMunicipalReq] = useState(false);
+  const [municipalReqForm, setMunicipalReqForm] = useState({ commune:'', department:'', region:'', area_sqm:'', message:'' });
+  const [showMunicipalModal, setShowMunicipalModal] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -330,6 +333,10 @@ const ParticulierDashboard = () => {
               <Shield className="h-4 w-4 mr-2" />
               Vérifier la Sécurité
             </Button>
+            <Button variant="outline" onClick={()=> setShowMunicipalModal(true)}>
+              <MapPin className="h-4 w-4 mr-2" />
+              Demande Terrain Mairie
+            </Button>
           </div>
         </div>
 
@@ -555,6 +562,43 @@ const ParticulierDashboard = () => {
           setIsVendeurTransitionModalOpen(false);
         }}
       />
+
+      {showMunicipalModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={()=> !creatingMunicipalReq && setShowMunicipalModal(false)}>✕</button>
+            <h2 className="text-xl font-semibold mb-4">Nouvelle Demande Municipale</h2>
+            <form onSubmit={async e=> { e.preventDefault(); if(!user) return; try { setCreatingMunicipalReq(true); const req = await SupabaseDataService.createMunicipalRequest({ requesterId:user.id, region: municipalReqForm.region, department: municipalReqForm.department, commune: municipalReqForm.commune, requestType: 'allocation_terrain', areaSqm: municipalReqForm.area_sqm? Number(municipalReqForm.area_sqm): null, message: municipalReqForm.message }); toast({ title:'Demande soumise', description:req?.reference || 'Référence générée'}); setShowMunicipalModal(false); setMunicipalReqForm({ commune:'', department:'', region:'', area_sqm:'', message:''}); } catch(err){ console.error(err); toast({ variant:'destructive', title:'Erreur', description:'Soumission impossible'});} finally { setCreatingMunicipalReq(false);} }} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Commune *</label>
+                  <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.commune} onChange={e=> setMunicipalReqForm(f=>({...f, commune:e.target.value}))} required />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Département</label>
+                  <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.department} onChange={e=> setMunicipalReqForm(f=>({...f, department:e.target.value}))} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Région</label>
+                  <input className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.region} onChange={e=> setMunicipalReqForm(f=>({...f, region:e.target.value}))} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Surface (m²)</label>
+                  <input type="number" min="0" className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.area_sqm} onChange={e=> setMunicipalReqForm(f=>({...f, area_sqm:e.target.value}))} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Message (motif)</label>
+                <textarea rows={4} className="w-full border rounded px-2 py-2 text-sm" value={municipalReqForm.message} onChange={e=> setMunicipalReqForm(f=>({...f, message:e.target.value}))} />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="ghost" disabled={creatingMunicipalReq} onClick={()=> setShowMunicipalModal(false)}>Annuler</Button>
+                <Button type="submit" disabled={creatingMunicipalReq}>{creatingMunicipalReq? 'Soumission...' : 'Soumettre'}</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

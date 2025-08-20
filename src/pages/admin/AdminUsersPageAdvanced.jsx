@@ -701,9 +701,13 @@ const AdminUsersPageAdvanced = () => {
 
       {/* Create User Modal - Version complète avec sélection géographique */}
       <CreateUserModal
-        open={isExceptionalDialogOpen}
-        onOpenChange={(o)=> setIsExceptionalDialogOpen(o)}
-        onCreated={(created)=> { setUsers(prev=>[created, ...prev]); }}
+        isOpen={isExceptionalDialogOpen}
+        onClose={() => setIsExceptionalDialogOpen(false)}
+        onUserCreated={(created)=> { 
+          setUsers(prev=>[created, ...prev]); 
+          // Recharger pour s'assurer que les rôles et normalisations sont à jour
+          loadUsers();
+        }}
       />
 
       {/* Complete Institution Modal - Création complète banques/mairies */}
