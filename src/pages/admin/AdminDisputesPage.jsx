@@ -1,5 +1,6 @@
 // src/pages/admin/AdminDisputesPage.jsx
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,32 +14,15 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 
 const AdminDisputesPage = () => {
-  const [disputes, setDisputes] = useState([]);
-  const [filteredDisputes, setFilteredDisputes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [selectedDispute, setSelectedDispute] = useState(null);
-  const [resolution, setResolution] = useState('');
-  const { toast } = useToast();
-
-  // Status et priorité options
-  const statusOptions = {
-    'pending': { label: 'En attente', color: 'bg-yellow-500' },
-    'investigating': { label: 'Enquête en cours', color: 'bg-blue-500' },
-    'resolved': { label: 'Résolu', color: 'bg-green-500' },
-    'closed': { label: 'Fermé', color: 'bg-gray-500' }
-  };
-
-  const priorityOptions = {
-    'low': { label: 'Faible', color: 'bg-green-100 text-green-800' },
-    'medium': { label: 'Moyen', color: 'bg-yellow-100 text-yellow-800' },
-    'high': { label: 'Élevé', color: 'bg-orange-100 text-orange-800' },
-    'urgent': { label: 'Urgent', color: 'bg-red-100 text-red-800' }
-  };
-
-  // Charger les litiges
+  const { data: disputes, loading: disputesLoading, error: disputesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (disputes) {
+      setFilteredData(disputes);
+    }
+  }, [disputes]);
+  
   useEffect(() => {
     fetchDisputes();
   }, []);
@@ -252,7 +236,7 @@ const AdminDisputesPage = () => {
     });
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">

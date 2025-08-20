@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle
@@ -12,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ShieldCheck, PlusCircle, Edit, Trash2, Search, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabaseClient';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
@@ -23,44 +24,17 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const AdminCompliancePage = () => {
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [error, setError] = useState(null);
-  const [complianceChecks, setComplianceChecks] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentCheck, setCurrentCheck] = useState(null); // Vérification en cours de modification
-  const [formData, setFormData] = useState({
-    entity_id: '',
-    entity_type: '',
-    check_type: '',
-    status: 'en_cours',
-    details: '', // Stockera un JSON stringifié
-    check_date: new Date().toISOString().split('T')[0], // Date du jour par défaut
-  });
-  const { toast } = useToast();
-
-  const fetchComplianceChecks = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from('compliance_checks')
-        .select('*')
-        .order('check_date', { ascending: false });
-
-      if (error) throw error;
-      setComplianceChecks(data || []);
-    } catch (err) {
-      setError(err.message);
-      toast({
-        variant: "destructive",
-        title: "Erreur de chargement des vérifications de conformité",
-        description: err.message,
-      });
-    } finally {
-      setLoading(false);
+  const { data: complianceChecks, loading: complianceChecksLoading, error: complianceChecksError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (complianceChecks) {
+      setFilteredData(complianceChecks);
     }
-  }, [toast]);
-
+  }, [complianceChecks]);
+  
   useEffect(() => {
     fetchComplianceChecks();
   }, [fetchComplianceChecks]);
@@ -334,7 +308,7 @@ const AdminCompliancePage = () => {
             </div>
             <DialogFooter className="flex justify-end gap-2 mt-4">
               <Button type="button" variant="outline" onClick={closeModal}>Annuler</Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || dataLoading}>
                 {loading && <LoadingSpinner size="small" className="mr-2" />}
                 {currentCheck ? 'Mettre à Jour' : 'Ajouter'}
               </Button>

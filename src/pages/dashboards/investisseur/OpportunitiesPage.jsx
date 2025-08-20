@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -6,37 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, RefreshCw, Filter } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // NOTE: Requires table market_predictions (ai_real_data_schema.sql) and investments table (investments)
 
 const OpportunitiesPage = () => {
 	const { toast } = useToast();
-	const [predictions, setPredictions] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [refreshing, setRefreshing] = useState(false);
-	const [locationFilter, setLocationFilter] = useState('all');
-	const [typeFilter, setTypeFilter] = useState('all');
-	const [minROI, setMinROI] = useState('');
-
-	const loadData = async () => {
-		setRefreshing(true);
-		try {
-			// Direct query via supabase client (simple fetch until wrapped methods added)
-			const { data, error } = await SupabaseDataService.supabaseRaw('market_predictions');
-			if (error) throw error;
-			setPredictions(data || []);
-		} catch (e) {
-			console.error('Erreur chargement prédictions marché:', e);
-			toast({ title: 'Erreur', description: 'Impossible de charger les opportunités.' });
-		} finally {
-			setLoading(false);
-			setRefreshing(false);
-		}
-	};
-
-	useEffect(() => { loadData(); }, []);
+	const { data: predictions, loading: predictionsLoading, error: predictionsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  // Chargement géré par les hooks temps réel
 
 	const filtered = predictions.filter(p => {
 		if (locationFilter !== 'all' && p.location !== locationFilter) return false;

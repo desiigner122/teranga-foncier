@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { PlusCircle, Search, Edit, Trash2, FileSignature, CheckCircle, XCircle }
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -17,53 +18,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from '@/lib/supabaseClient';
 
 const AdminRequestsPage = () => {
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'approved', 'rejected', 'completed'
-  const { toast } = useToast();
-
-  const fetchRequests = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      let query = supabase
-        .from('requests')
-        .select(`
-          *,
-          users (full_name, email),
-          parcels!parcel_id (name, reference) // <-- CORRECTION ICI : Spécifier la FK
-        `);
-
-      if (filterStatus !== 'all') {
-        query = query.eq('status', filterStatus);
-      }
-
-      if (searchTerm) {
-        query = query.or(
-            `request_type.ilike.%${searchTerm}%,status.ilike.%${searchTerm}%`
-        );
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
-      }
-      setRequests(data || []);
-    } catch (err) {
-      setError(err.message);
-      toast({
-        variant: "destructive",
-        title: "Erreur de chargement des demandes",
-        description: err.message,
-      });
-    } finally {
-      setLoading(false);
+  const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeRequests();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (requests) {
+      setFilteredData(requests);
     }
-  }, [filterStatus, searchTerm, toast]);
-
+  }, [requests]);
+  
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);

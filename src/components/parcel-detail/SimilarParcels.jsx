@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import SupabaseDataService from '@/services/supabaseDataService'; 
+import { SupabaseDataService } from '@/services/supabaseDataService'; 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -68,9 +68,15 @@ const SimilarParcelsSkeleton = () => (
 
 
 const SimilarParcels = ({ currentParcelId, currentParcelZone }) => {
-  const [similarParcels, setSimilarParcels] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const { data: similarParcels, loading: similarParcelsLoading, error: similarParcelsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (similarParcels) {
+      setFilteredData(similarParcels);
+    }
+  }, [similarParcels]);
+  
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -88,7 +94,7 @@ const SimilarParcels = ({ currentParcelId, currentParcelZone }) => {
     if (currentParcelZone) load();
   }, [currentParcelId, currentParcelZone]);
 
-  if (loading) {
+  if (loading || dataLoading) {
      return (
         <div>
            <h2 className="text-2xl font-semibold mb-4">Parcelles Similaires</h2>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,14 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Data source: bank_guarantees table (expected). Falls back to empty list if missing.
 
 const GuaranteesPage = () => {
   const { toast } = useToast();
   const [guarantees, setGuarantees] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
 
   const loadGuarantees = async () => {
     try {

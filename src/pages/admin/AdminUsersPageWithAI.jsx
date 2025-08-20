@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,28 +22,23 @@ import {
   Bell
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const AdminUsersPageWithAI = () => {
   const { toast } = useToast();
   const { profile } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    inactiveUsers: 0,
-    byRole: {},
-    recentRegistrations: 0
-  });
-
+  // Loading géré par le hook temps réel
+  const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (users) {
+      setFilteredData(users);
+    }
+  }, [users]);
+  
   useEffect(() => {
     loadUsers();
   }, []);
@@ -295,7 +291,7 @@ const AdminUsersPageWithAI = () => {
     }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />

@@ -1,5 +1,6 @@
 // src/pages/admin/AdminContractsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,58 +9,21 @@ import { Input } from '@/components/ui/input';
 import { jsPDF } from "jspdf";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/lib/supabaseClient';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 
 const AdminContractsPage = () => {
   const { toast } = useToast();
-  const [contracts, setContracts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const fetchContracts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // --- REQUÊTE FINALE AVEC LE NOM EXACT DE LA CONTRAINTE ---
-      // J'utilise fk_contracts_user_id (de votre screenshot) et je suppose fk_contracts_parcel_id pour la parcelle.
-      const { data, error } = await supabase
-        .from('contracts')
-        .select(`
-          *,
-          user:users!fk_contracts_user_id(*),
-          parcel:parcels!contracts_parcel_id_fkey(*)
-        `)
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedContracts = data.map(contract => ({
-        id: contract.id,
-        type: contract.type,
-        parcelId: contract.parcel?.reference || 'N/A',
-        parcelName: contract.parcel?.name || 'N/A',
-        userName: contract.user?.full_name || 'N/A',
-        userEmail: contract.user?.email || 'N/A',
-        date: new Date(contract.date).toLocaleDateString('fr-FR'),
-        status: contract.status,
-        rawContract: contract,
-      }));
-      setContracts(formattedContracts || []);
-    } catch (err) {
-      setError(err.message);
-      toast({
-        variant: "destructive",
-        title: "Erreur de chargement des contrats",
-        description: err.message,
-      });
-    } finally {
-      setLoading(false);
+  const { data: contracts, loading: contractsLoading, error: contractsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (contracts) {
+      setFilteredData(contracts);
     }
-  }, [toast]);
-
+  }, [contracts]);
+  
   useEffect(() => {
     fetchContracts();
   }, [fetchContracts]);
@@ -87,7 +51,7 @@ const AdminContractsPage = () => {
     toast({ title: "Détails Contrat", description: `Affichage des détails pour ${contractId}. (À implémenter)` });
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return <div className="flex items-center justify-center h-full min-h-[500px]"><LoadingSpinner size="large" /></div>;
   }
   if (error) {

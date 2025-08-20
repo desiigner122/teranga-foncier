@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +32,7 @@ import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeParcels } from '@/hooks/useRealtimeTable';
 
 const ParticulierDashboard = () => {
@@ -43,18 +44,15 @@ const ParticulierDashboard = () => {
     transactionsInProgress: 0,
     securityScore: 0
   });
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [recommendedParcels, setRecommendedParcels] = useState([]);
-  const [securityAlerts, setSecurityAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [favoriteBusy, setFavoriteBusy] = useState(null); // parcel id if toggling
-  const [creatingMunicipalReq, setCreatingMunicipalReq] = useState(false);
-  const [municipalReqForm, setMunicipalReqForm] = useState({ commune:'', department:'', region:'', area_sqm:'', message:'' });
-
-  // Utiliser le hook real-time pour les parcelles (pour les recommandations)
-  const { data: allParcels } = useRealtimeParcels();
-  const [showMunicipalModal, setShowMunicipalModal] = useState(false);
-
+  const { data: recentActivity, loading: recentActivityLoading, error: recentActivityError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (recentActivity) {
+      setFilteredData(recentActivity);
+    }
+  }, [recentActivity]);
+  
   useEffect(() => {
     if (user) {
       loadDashboardData();

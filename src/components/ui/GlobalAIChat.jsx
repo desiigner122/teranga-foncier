@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MessageSquareText, X, Send, User, Bot, Brain, Sparkles, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/ScrollArea';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,15 +15,15 @@ const GlobalAIChat = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  const { data: messages, loading: messagesLoading, error: messagesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (messages) {
+      setFilteredData(messages);
+    }
+  }, [messages]);
+  
   useEffect(() => {
     scrollToBottom();
   }, [messages]);

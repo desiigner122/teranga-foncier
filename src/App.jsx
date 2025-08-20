@@ -1,5 +1,6 @@
 // src/App.jsx
 import React from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
 import { BrowserRouter as Router, Route, Routes, Outlet, Link, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/Header';
@@ -50,7 +51,7 @@ import TransactionsPage from '@/pages/TransactionsPage';
 import PaymentPage from '@/pages/PaymentPage';
 import CreateRequestPage from '@/pages/CreateRequestPage';
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ChatbotProvider } from '@/context/ChatbotContext';
 import { MessagingNotificationProvider } from '@/context/MessagingNotificationContext';
 import { FeatureFlagsProvider } from '@/context/FeatureFlagsContext';

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   Heart, 
   Search, 
@@ -26,11 +27,15 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 const MyFavoritesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [favorites, setFavorites] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-
+  const { data: favorites, loading: favoritesLoading, error: favoritesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (favorites) {
+      setFilteredData(favorites);
+    }
+  }, [favorites]);
+  
   useEffect(() => {
     loadFavorites();
   }, [user]);
@@ -128,7 +133,7 @@ const MyFavoritesPage = () => {
     return matchesSearch && matchesType;
   });
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />

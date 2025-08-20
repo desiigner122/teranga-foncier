@@ -1,5 +1,4 @@
-// src/services/UserManagementService.js
-import { supabase } from '@/lib/supabaseClient';
+// src/services/UserManagementService.import { supabase } from '@/lib/supabaseClient';
 
 class UserManagementService {
   /**

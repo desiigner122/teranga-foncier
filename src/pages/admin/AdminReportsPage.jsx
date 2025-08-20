@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from "@/components/ui/use-toast";
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { BarChart, PieChart, Users, MapPin, FileSignature, DollarSign, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; // <-- CORRECTION ICI : Import nommé
 import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, Pie, Cell, Bar } from 'recharts';
@@ -59,7 +60,7 @@ const SimplePieChart = ({ data, title }) => {
 };
 
 const AdminReportsPage = () => {
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState({
     userRegistrations: [],

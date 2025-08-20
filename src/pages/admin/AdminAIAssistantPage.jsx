@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Send, Copy } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const suggestedPrompts = [
     "Rédige un article de blog sur les 5 avantages d'investir dans le foncier à Dakar en 2025.",

@@ -4,8 +4,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar } from 'lucide-react';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const BlogPreview = () => {
   const sectionVariants = {
@@ -18,9 +18,15 @@ const BlogPreview = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const { data: posts, loading: postsLoading, error: postsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (posts) {
+      setFilteredData(posts);
+    }
+  }, [posts]);
+  
   useEffect(() => {
     const load = async () => {
       setLoading(true);

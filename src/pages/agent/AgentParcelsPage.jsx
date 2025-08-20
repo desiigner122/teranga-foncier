@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,14 +9,19 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabaseClient';
 import { Link } from 'react-router-dom';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const AgentParcelsPage = () => {
   const { toast } = useToast();
-  const [parcels, setParcels] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-
+  const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (parcels) {
+      setFilteredData(parcels);
+    }
+  }, [parcels]);
+  
   useEffect(() => {
     const loadParcels = async () => {
       try {
@@ -45,7 +51,7 @@ const AgentParcelsPage = () => {
     parcel.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

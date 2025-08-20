@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, LogIn, UserPlus, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext'; // Pour vérifier l'authentification
+import { useAuth } from '@/contexts/AuthContext'; // Pour vérifier l'authentification
 
 const MunicipalLandRequestInfoPage = () => {
   const { isAuthenticated } = useAuth();

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/components/ui/use-toast';
 import { Landmark, Send, UploadCloud, CheckCircle2, ArrowLeft, ArrowRight, FileText, Info } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const MunicipalLandRequestPage = () => {
   const { toast } = useToast();

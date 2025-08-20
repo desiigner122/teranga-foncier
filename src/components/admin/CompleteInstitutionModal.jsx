@@ -29,8 +29,8 @@ import {
   Landmark
 } from 'lucide-react';
 import GeographicSelector from '@/components/ui/GeographicSelector';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Utilitaires pour génération de mots de passe sécurisés
 const generateSecurePassword = (length = 12) => {

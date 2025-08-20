@@ -1,6 +1,6 @@
 // src/hooks/useAuthValidation.js
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';

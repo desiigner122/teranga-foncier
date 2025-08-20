@@ -1,5 +1,7 @@
 // src/pages/admin/AdminDashboardPageNew.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import {
@@ -10,8 +12,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from "@/components/ui/use-toast";
 import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Bar } from 'recharts';
 import { Badge } from '@/components/ui/badge';
@@ -219,7 +221,7 @@ const AdminDashboardPage = () => {
     transactions: { completed: 0, pending: 0 }
   });
   
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { toast } = useToast();
 

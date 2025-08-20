@@ -1,5 +1,4 @@
-// src/lib/hybridAI.js
-import { openAIService } from './openai';
+// src/lib/hybridAI.import { openAIService } from './openai';
 
 /**
  * Service d'IA hybride optimisé - Gemini + ChatGPT seulement

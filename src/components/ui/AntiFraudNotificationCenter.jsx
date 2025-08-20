@@ -27,19 +27,15 @@ import { antiFraudAI } from '@/lib/antiFraudAI';
 
 const AntiFraudNotificationCenter = ({ userRole, userId }) => {
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState(null);
-  const [showDetails, setShowDetails] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [notificationSettings, setNotificationSettings] = useState({
-    criticalAlerts: true,
-    fraudDetection: true,
-    systemUpdates: true,
-    transactionAlerts: true
-  });
-
+  const { data: notifications, loading: notificationsLoading, error: notificationsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (notifications) {
+      setFilteredData(notifications);
+    }
+  }, [notifications]);
+  
   useEffect(() => {
     loadNotifications();
     setupRealtimeSubscription();

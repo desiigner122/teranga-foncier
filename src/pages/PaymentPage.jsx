@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -8,10 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft, Smartphone, Landmark, FileCheck2, CheckCircle, Loader2, RefreshCcw } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-// Removed static payment data imports; now dynamically loaded from Supabase
-import LoadingSpinner from '@/components/ui/spinner';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
+// Removed static payment data imports; now dynamically loaded from import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const formatPrice = (price) => new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(price);
 
@@ -28,10 +28,15 @@ const PaymentPage = () => {
   const [isPaid, setIsPaid] = useState(false);
   const [currentStatus, setCurrentStatus] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [banks, setBanks] = useState([]);
-  const [loadingMeta, setLoadingMeta] = useState(true);
-
+  const { data: paymentMethods, loading: paymentMethodsLoading, error: paymentMethodsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (paymentMethods) {
+      setFilteredData(paymentMethods);
+    }
+  }, [paymentMethods]);
+  
   useEffect(() => {
     let mounted = true;
     (async()=>{

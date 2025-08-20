@@ -4,16 +4,19 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar } from 'lucide-react';
-// Importation de Supabase Client
-import { supabase } from '@/lib/supabaseClient'; // Assurez-vous que ce chemin est correct
-import LoadingSpinner from '@/components/ui/spinner';
+// Importation de import { supabase } from '@/lib/supabaseClient'; // Assurez-vous que ce chemin est import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/components/ui/use-toast';
 
 const BlogPreviewSection = () => {
-  const [blogPosts, setBlogPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
+  const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (blogPosts) {
+      setFilteredData(blogPosts);
+    }
+  }, [blogPosts]);
+  
   useEffect(() => {
     const fetchBlogPosts = async () => {
       setLoading(true);
@@ -73,7 +76,7 @@ const BlogPreviewSection = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <section className="container mx-auto px-4 py-12 md:py-16 flex justify-center items-center min-h-[300px]">
         <LoadingSpinner size="large" />

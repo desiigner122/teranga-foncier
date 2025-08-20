@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,28 +25,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
-import LoadingSpinner from '@/components/ui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const ProjectsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [newProject, setNewProject] = useState({
-    name: '',
-    description: '',
-    location: '',
-    budget: '',
-    status: 'planning'
-  });
-
+  const { data: projects, loading: projectsLoading, error: projectsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (projects) {
+      setFilteredData(projects);
+    }
+  }, [projects]);
+  
   useEffect(() => {
     if (user) {
       loadProjects();
@@ -192,7 +186,7 @@ const ProjectsPage = () => {
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

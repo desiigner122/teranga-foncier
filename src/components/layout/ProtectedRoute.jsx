@@ -1,8 +1,8 @@
 // src/components/layout/ProtectedRoute.jsx
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import LoadingSpinner from '@/components/ui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const ProtectedRoute = ({ children, requireVerification = true }) => {
   const { isAuthenticated, isVerified, needsVerification, loading, profile } = useAuth();

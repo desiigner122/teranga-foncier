@@ -4,12 +4,18 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import ParcelCard from '@/components/parcels/ParcelCard';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const FeaturedParcelsSection = () => {
-  const [featuredParcels, setFeaturedParcels] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const { data: featuredParcels, loading: featuredParcelsLoading, error: featuredParcelsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (featuredParcels) {
+      setFilteredData(featuredParcels);
+    }
+  }, [featuredParcels]);
+  
   useEffect(() => {
     const load = async () => {
       setLoading(true);

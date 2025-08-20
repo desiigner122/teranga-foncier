@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -17,8 +18,8 @@ import {
   Home,
   Building2
 } from 'lucide-react';
-import SupabaseDataService from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
 import GeographicSelector from '@/components/ui/GeographicSelector';
 
 const CreateRequestPage = () => {
@@ -27,69 +28,15 @@ const CreateRequestPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  const [mairies, setMairies] = useState([]);
-  const [banques, setBanques] = useState([]);
-  const [userParcels, setUserParcels] = useState([]);
-  const [loadingOptions, setLoadingOptions] = useState(false);
+  const { data: mairies, loading: mairiesLoading, error, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
   
-  const [formData, setFormData] = useState({
-    type: '', // 'terrain_communal' ou 'financement'
-    title: '',
-    description: '',
-    location: '',
-    surface: '',
-    budget: '',
-    urgency: 'normale',
-    // Terrain communal specific - ROUTE VERS MAIRIE
-    mairie_id: '', // Mairie destinataire
-    geographic_location: { region: '', department: '', commune: '' }, // Localisation géographique
-    usage_prevu: '',
-    duree_souhaitee: '',
-    justification: '',
-    // Financement specific - ROUTE VERS BANQUE
-    banque_id: '', // Banque destinataire
-    terrain_reference: '', // Référence du terrain pour financement
-    parcel_id: '', // ID de la parcelle soumise
-    montant_demande: '',
-    objet_financement: '',
-    revenus_mensuels: '',
-    apport_personnel: '',
-    situation_professionnelle: ''
-  });
-
-  const requestTypes = [
-    {
-      id: 'terrain_communal',
-      title: 'Demande de Terrain Communal',
-      description: 'Demander l\'attribution d\'un terrain communal pour usage personnel ou professionnel',
-      icon: TreePine,
-      color: 'bg-green-500'
-    },
-    {
-      id: 'financement',
-      title: 'Demande de Financement',
-      description: 'Demander un financement pour votre projet immobilier ou foncier',
-      icon: DollarSign,
-      color: 'bg-blue-500'
+  useEffect(() => {
+    if (mairies) {
+      setFilteredData(mairies);
     }
-  ];
-
-  const usageOptions = [
-    { value: 'habitation', label: 'Construction d\'habitation' },
-    { value: 'agriculture', label: 'Usage agricole' },
-    { value: 'commerce', label: 'Activité commerciale' },
-    { value: 'industrie', label: 'Activité industrielle' },
-    { value: 'autre', label: 'Autre usage' }
-  ];
-
-  const urgencyOptions = [
-    { value: 'basse', label: 'Basse', color: 'text-green-600' },
-    { value: 'normale', label: 'Normale', color: 'text-blue-600' },
-    { value: 'haute', label: 'Haute', color: 'text-orange-600' },
-    { value: 'urgente', label: 'Urgente', color: 'text-red-600' }
-  ];
-
-  // Charger les options (mairies, banques, parcelles utilisateur)
+  }, [mairies]);
+  
   useEffect(() => {
     const loadOptions = async () => {
       if (!user) return;

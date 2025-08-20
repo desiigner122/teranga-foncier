@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -137,12 +138,15 @@ const RequestsSkeleton = () => (
 
 const MyRequestsPage = () => {
   const { user } = useAuth();
-  const [requests, setRequests] = useState([]);
-  const [parcelsData, setParcelsData] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { toast } = useToast();
-
+  const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeRequests();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (requests) {
+      setFilteredData(requests);
+    }
+  }, [requests]);
+  
   useEffect(() => {
     setLoading(true);
     setError(null);

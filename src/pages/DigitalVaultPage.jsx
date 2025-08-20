@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Vault, FileText, Download, PlusCircle, ShieldCheck } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const DigitalVaultPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-
+  const { data: documents, loading: documentsLoading, error: documentsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (documents) {
+      setFilteredData(documents);
+    }
+  }, [documents]);
+  
   useEffect(() => {
     if (user) {
       loadUserDocuments();
@@ -113,7 +119,7 @@ const DigitalVaultPage = () => {
     document.getElementById('file-upload').click();
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>

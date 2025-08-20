@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -27,7 +29,7 @@ const AgentDashboard = () => {
     commissions: 0,
     appointments: []
   });
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [showNewAppt, setShowNewAppt] = useState(false);
   const [apptForm, setApptForm] = useState({ client_name:'', property_title:'', date:'', notes:'' });
   const { toast } = useToast();

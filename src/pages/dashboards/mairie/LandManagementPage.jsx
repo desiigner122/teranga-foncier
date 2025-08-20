@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,26 +9,19 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { SupabaseDataService } from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const LandManagementPage = () => {
   const { toast } = useToast();
-  const [parcels, setParcels] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [zoneFilter, setZoneFilter] = useState('');
-  const [showCreate, setShowCreate] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({
-    reference: '',
-    location_name: '',
-    zone: '',
-    area_sqm: '',
-    price: '',
-    status: 'Disponible'
-  });
-
+  const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (parcels) {
+      setFilteredData(parcels);
+    }
+  }, [parcels]);
+  
   useEffect(() => {
     const loadMunicipalParcels = async () => {
       try {
@@ -112,7 +106,7 @@ const LandManagementPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

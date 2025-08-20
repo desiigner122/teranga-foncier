@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Map, Search, Layers, Download, Maximize } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 // Fix for Leaflet's default icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -33,31 +34,11 @@ const getZoningData = () => {
 
 const CadastrePage = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [parcels, setParcels] = useState([]);
-  const [mapCenter, setMapCenter] = useState([14.445, -17.035]); // Center on Saly
-  const [showZoning, setShowZoning] = useState(false);
-
-  useEffect(() => {
-    const loadCadastralData = async () => {
-      try {
-        setLoading(true);
-        const allParcels = await SupabaseDataService.getParcels();
-        setParcels(allParcels || []);
-      } catch (error) {
-        console.error('Erreur chargement données cadastrales:', error);
-        toast({ 
-          variant: "destructive",
-          title: "Erreur", 
-          description: "Impossible de charger les données cadastrales" 
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCadastralData();
-  }, []);
+  // Loading géré par le hook temps réel
+  const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  // Chargement géré par les hooks temps réel
 
   const handleRealAction = async (actionType, message) => {
     try {
@@ -81,7 +62,7 @@ const CadastrePage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

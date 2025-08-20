@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,11 +31,11 @@ import {
   MapPin
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const MairieDashboard = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [dashboardData, setDashboardData] = useState({
     totalRequests: 0,
     approvedRequests: 0,
@@ -44,9 +46,7 @@ const MairieDashboard = () => {
     recentActivity: []
   });
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  // Chargement géré par les hooks temps réel
 
   const loadDashboardData = async () => {
     try {

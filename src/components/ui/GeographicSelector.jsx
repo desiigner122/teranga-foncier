@@ -11,11 +11,15 @@ const GeographicSelector = ({
   showIcons = true,
   disabled = false
 }) => {
-  const [regions, setRegions] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [communes, setCommunes] = useState([]);
-
-  // Charger les régions au montage
+  const { data: regions, loading: regionsLoading, error: regionsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (regions) {
+      setFilteredData(regions);
+    }
+  }, [regions]);
+  
   useEffect(() => {
     setRegions(geoUtils.getAllRegions());
   }, []);

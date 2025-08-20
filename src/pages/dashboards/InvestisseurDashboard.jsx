@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/SupabaseAuthContext';
-import { supabase } from '../../lib/supabaseClient';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -35,14 +37,14 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AIAssistantWidget from '../../components/ui/AIAssistantWidget';
 import AntiFraudDashboard from '../../components/ui/AntiFraudDashboard';
-import LoadingSpinner from '../../components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { hybridAI } from '../../lib/hybridAI';
 import { antiFraudAI } from '../../lib/antiFraudAI';
 
 const InvestisseurDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [marketData, setMarketData] = useState({
     totalProperties: 0,
     averagePrice: 0,
@@ -61,52 +63,15 @@ const InvestisseurDashboard = () => {
     performanceHistory: [],
     diversificationScore: 0
   });
-  const [opportunities, setOpportunities] = useState([]);
-  const [aiInsights, setAiInsights] = useState(null);
-  const [fraudAnalysis, setFraudAnalysis] = useState(null);
-  const [riskAssessment, setRiskAssessment] = useState(null);
-  const [marketPredictions, setMarketPredictions] = useState([]);
-  const [alertsData, setAlertsData] = useState([]);
-  const [watchlist, setWatchlist] = useState([]);
-  const [performanceMetrics, setPerformanceMetrics] = useState({
-    sharpeRatio: 0,
-    volatility: 0,
-    maxDrawdown: 0,
-    beta: 0
-  });
-
-  // Données de démonstration enrichies pour les graphiques
-  const priceEvolutionData = [
-    { month: 'Jan', price: 2500000, growth: 2.1, volume: 156, sentiment: 0.7 },
-    { month: 'Fév', price: 2580000, growth: 3.2, volume: 189, sentiment: 0.8 },
-    { month: 'Mar', price: 2650000, growth: 2.7, volume: 234, sentiment: 0.6 },
-    { month: 'Avr', price: 2720000, growth: 2.6, volume: 198, sentiment: 0.7 },
-    { month: 'Mai', price: 2800000, growth: 2.9, volume: 267, sentiment: 0.9 },
-    { month: 'Jun', price: 2890000, growth: 3.2, volume: 312, sentiment: 0.8 }
-  ];
-
-  const portfolioDistribution = [
-    { name: 'Résidentiel', value: 45, color: '#3B82F6', performance: 12.5 },
-    { name: 'Commercial', value: 30, color: '#10B981', performance: 18.3 },
-    { name: 'Terrain', value: 20, color: '#F59E0B', performance: 15.7 },
-    { name: 'Agricole', value: 5, color: '#EF4444', performance: 8.9 }
-  ];
-
-  const roiComparison = [
-    { zone: 'Dakar Plateau', roi: 12.5, risk: 'Faible', volume: 45, appreciation: 8.2 },
-    { zone: 'Almadies', roi: 15.2, risk: 'Modéré', volume: 67, appreciation: 12.1 },
-    { zone: 'Rufisque', roi: 18.7, risk: 'Élevé', volume: 89, appreciation: 15.6 },
-    { zone: 'Thiès', roi: 14.3, risk: 'Modéré', volume: 34, appreciation: 11.4 },
-    { zone: 'Mbour', roi: 16.8, risk: 'Modéré', volume: 56, appreciation: 13.9 }
-  ];
-
-  const riskMetrics = [
-    { metric: 'Volatilité', value: 15.2, benchmark: 12.8, status: 'attention' },
-    { metric: 'Sharpe Ratio', value: 1.85, benchmark: 1.50, status: 'excellent' },
-    { metric: 'Max Drawdown', value: -8.5, benchmark: -10.0, status: 'bon' },
-    { metric: 'Corrélation Marché', value: 0.72, benchmark: 0.80, status: 'bon' }
-  ];
-
+  const { data: opportunities, loading: opportunitiesLoading, error: opportunitiesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (opportunities) {
+      setFilteredData(opportunities);
+    }
+  }, [opportunities]);
+  
   useEffect(() => {
     if (user && profile) {
       fetchDashboardData();
@@ -633,7 +598,7 @@ const InvestisseurDashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-6">

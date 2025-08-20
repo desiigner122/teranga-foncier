@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { UserCheck, MapPin, FileText, BarChart2, CalendarDays, MessageSquare, Search, Filter, Check, X } from 'lucide-react';
@@ -9,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabaseClient';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const kpiData = [
   { title: "Demandes à Traiter", value: "5", icon: FileText, trend: "+2", trendColor: "text-yellow-500", unit: "nouvelles" },
@@ -21,43 +23,10 @@ const kpiData = [
 const AgentDashboardPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('requests');
-  const [agentParcels, setAgentParcels] = useState([]);
-  const [agentRequests, setAgentRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadAgentData = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        // Charger les parcelles assignées à l'agent
-        const { data: parcels } = await supabase
-          .from('parcels')
-          .select('*')
-          .eq('agent_assigned', user.id)
-          .limit(12);
-
-        // Charger les demandes assignées à l'agent
-        const { data: requests } = await supabase
-          .from('requests')
-          .select('*')
-          .or(`agent_assigned.eq.${user.id},agent_assigned.is.null`)
-          .limit(5);
-
-        setAgentParcels(parcels || []);
-        setAgentRequests(requests || []);
-      } catch (error) {
-        console.error('Erreur chargement données agent:', error);
-        // En cas d'erreur, utiliser des données de démonstration
-        setAgentParcels([]);
-        setAgentRequests([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAgentData();
-  }, []);
+  const { data: agentParcels, loading: agentParcelsLoading, error: agentParcelsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  // Chargement géré par les hooks temps réel
 
   const handleUpdateRequest = async (req, newStatus) => {
     try {

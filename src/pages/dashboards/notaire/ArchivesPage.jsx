@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,15 +7,21 @@ import { Archive, Search, Filter, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import { Input } from '@/components/ui/input';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Source: documents table categories actes
 
 const ArchivesPage = () => {
   const { toast } = useToast();
-  const [archives, setArchives] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const { data: archives, loading: archivesLoading, error: archivesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (archives) {
+      setFilteredData(archives);
+    }
+  }, [archives]);
+  
   useEffect(() => {
     const load = async () => {
       try {
@@ -35,7 +42,7 @@ const ArchivesPage = () => {
     load();
   }, []);
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

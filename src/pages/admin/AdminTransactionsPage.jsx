@@ -1,5 +1,6 @@
 // src/pages/admin/AdminTransactionsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,61 +8,21 @@ import { Input } from '@/components/ui/input';
 import { Search, Eye, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from '@/lib/supabaseClient';
 
 const AdminTransactionsPage = () => {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const { toast } = useToast();
-
-  const fetchTransactions = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // --- REQUÊTE FINALE AVEC LE NOM DE LA CONTRAINTE ---
-      // On utilise le nom exact de la relation (fkey) pour être ultra-précis
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(`
-          *,
-          buyer:users!fk_transactions_buyer_id(*),
-          seller:users!fk_transactions_seller_id(*),
-          parcel:parcels!fk_transactions_parcels(*)
-        `)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-
-      const formattedTransactions = data.map(t => ({
-        id: t.id,
-        amount: t.amount,
-        type: t.type,
-        status: t.status,
-        date: new Date(t.created_at).toLocaleDateString('fr-FR'),
-        buyerName: t.buyer?.full_name || 'N/A',
-        sellerName: t.seller?.full_name || 'N/A',
-        parcelRef: t.parcel?.reference || 'N/A',
-      }));
-
-      setTransactions(formattedTransactions || []);
-    } catch (err) {
-      setError(err.message);
-      toast({
-        variant: "destructive",
-        title: "Erreur de chargement des transactions",
-        description: err.message,
-      });
-    } finally {
-      setLoading(false);
+  const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (transactions) {
+      setFilteredData(transactions);
     }
-  }, [toast]);
-
+  }, [transactions]);
+  
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
@@ -83,7 +44,7 @@ const AdminTransactionsPage = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-8"><LoadingSpinner size="large" /></div>;
+  if (loading || dataLoading) return <div className="flex justify-center p-8"><LoadingSpinner size="large" /></div>;
   if (error) return <div className="p-8 text-red-600">Erreur: {error}</div>;
 
   return (

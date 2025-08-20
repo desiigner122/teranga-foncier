@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { ComparisonContext } from '@/context/ComparisonContext';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Maximize, MapPin, Trash2, CheckCircle, AlertCircle, FileText, Droplets, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -25,9 +26,15 @@ const getStatusVariant = (status) => {
 
 const ComparisonPage = () => {
   const { comparisonList, removeFromCompare, clearCompare } = useContext(ComparisonContext);
-  const [parcelsToCompare, setParcelsToCompare] = useState([]);
-  const { toast } = useToast();
-
+  const { data: parcelsToCompare, loading: parcelsToCompareLoading, error: parcelsToCompareError, refetch } = useRealtimeParcels();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (parcelsToCompare) {
+      setFilteredData(parcelsToCompare);
+    }
+  }, [parcelsToCompare]);
+  
   useEffect(() => {
     const fetchAll = async () => {
       const results = [];

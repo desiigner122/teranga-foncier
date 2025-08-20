@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

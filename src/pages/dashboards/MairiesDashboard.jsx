@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,7 +65,7 @@ const CadastreMapReal = ({ onAction }) => (
 );
 
 const MairiesDashboard = () => {
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   // Etat initial vide (plus de données simulées)
   const [dashboardData, setDashboardData] = useState({
     totalRequests: 0,
@@ -94,10 +96,7 @@ const MairiesDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadUserData();
-    loadMairieData();
-  }, []);
+  // Chargement géré par les hooks temps réel
 
   const loadUserData = async () => {
     try {

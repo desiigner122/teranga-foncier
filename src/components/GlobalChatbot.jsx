@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MessageSquareText, X, Send, User, Bot, Loader2, Trash2, Sparkles, MessageCircle, HelpCircle, MapPin, Search, Phone, Brain, Zap, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/ScrollArea';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,61 +17,15 @@ const GlobalChatbot = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const { isChatbotOpen, toggleChatbot, closeChatbot } = useChatbot();
-  const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  // Suggestions prédéfinies pour le début de conversation avec icônes
-  const initialSuggestions = [
-    { text: "Je suis un acheteur, aidez-moi.", icon: Search, category: "achat" },
-    { text: "Je suis un vendeur, que proposez-vous ?", icon: MapPin, category: "vente" },
-    { text: "Je suis une mairie, comment ça marche ?", icon: MessageCircle, category: "institution" },
-    { text: "J'ai une question légale sur le foncier.", icon: Shield, category: "legal" },
-    { text: "Comment contacter le support ?", icon: Phone, category: "support" }
-  ];
-  const [currentSuggestions, setCurrentSuggestions] = useState([]);
-  const [currentModel, setCurrentModel] = useState('hybrid');
-  const [responseTime, setResponseTime] = useState(null);
-
-  // Fonction pour un message de bienvenue dynamique avec emoji personnalisé
-  const getWelcomeMessage = () => {
-    const hour = new Date().getHours();
-    let greeting, emoji;
-    if (hour < 12) {
-      greeting = "Bonjour";
-      emoji = "🌅";
-    } else if (hour < 18) {
-      greeting = "Bon après-midi";
-      emoji = "☀️";
-    } else {
-      greeting = "Bonsoir";
-      emoji = "🌙";
+  const { data: messages, loading: messagesLoading, error: messagesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (messages) {
+      setFilteredData(messages);
     }
-
-    const username = isAuthenticated ? ` ${user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}` : '';
-    
-    return `${greeting}${username} ! ${emoji}
-
-Je suis **Teranga AI**, votre assistant intelligent hybride qui combine Claude, ChatGPT et Gemini pour vous offrir les meilleures réponses. 🧠✨
-
-Je peux vous aider avec :
-• 🔍 Recherche de terrains et propriétés
-• 📋 Procédures administratives et légales
-• 💼 Conseils d'investissement intelligents
-• 🏛️ Démarches notariales et juridiques
-• 📞 Mise en relation avec nos experts
-• 🛡️ Prévention et détection de fraude
-
-Mon IA hybride sélectionne automatiquement le meilleur modèle selon votre question !
-
-Comment puis-je vous assister aujourd'hui ?`;
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  }, [messages]);
+  
   useEffect(() => {
     scrollToBottom();
   }, [messages]);

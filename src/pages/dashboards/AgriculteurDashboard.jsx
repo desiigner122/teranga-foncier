@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/SupabaseAuthContext';
-import { supabase } from '../../lib/supabaseClient';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -38,129 +40,23 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AIAssistantWidget from '../../components/ui/AIAssistantWidget';
 import AntiFraudDashboard from '../../components/ui/AntiFraudDashboard';
-import LoadingSpinner from '../../components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { hybridAI } from '../../lib/hybridAI';
 import { antiFraudAI } from '../../lib/antiFraudAI';
 
 const AgriculteurDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [lands, setLands] = useState([]);
-  const [weatherData, setWeatherData] = useState({
-    temperature: 28,
-    humidity: 65,
-    rainfall: 12,
-    forecast: 'Ensoleillé',
-    windSpeed: 15,
-    uvIndex: 8,
-    soilMoisture: 45
-  });
-  const [stats, setStats] = useState({
-    totalLands: 0,
-    totalArea: 0,
-    activeCrops: 0,
-    harvestReady: 0,
-    soilQuality: 'Bon',
-    irrigation: 85,
-    productivity: 92,
-    revenue: 0,
-    expenses: 0,
-    profit: 0,
-    waterUsage: 0
-  });
-  const [aiInsights, setAiInsights] = useState(null);
-  const [cropRecommendations, setCropRecommendations] = useState([]);
-  const [weatherAlerts, setWeatherAlerts] = useState([]);
-  const [marketPrices, setMarketPrices] = useState([]);
-  const [sustainabilityMetrics, setSustainabilityMetrics] = useState({
-    carbonFootprint: 0,
-    waterEfficiency: 0,
-    biodiversityScore: 0,
-    sustainabilityRating: 'A'
-  });
-
-  // Données de démonstration enrichies
-  const cropDistribution = [
-    { name: 'Mil', area: 25, color: '#F59E0B', yield: 1200, price: 450, revenue: 540000 },
-    { name: 'Maïs', area: 20, color: '#10B981', yield: 950, price: 380, revenue: 361000 },
-    { name: 'Arachide', area: 15, color: '#3B82F6', yield: 800, price: 650, revenue: 520000 },
-    { name: 'Riz', area: 10, color: '#EF4444', yield: 1500, price: 420, revenue: 630000 },
-    { name: 'Légumes', area: 30, color: '#8B5CF6', yield: 2200, price: 280, revenue: 616000 }
-  ];
-
-  const productivityData = [
-    { month: 'Jan', mil: 120, mais: 95, arachide: 80, rainfall: 5, temperature: 26 },
-    { month: 'Fév', mil: 125, mais: 100, arachide: 85, rainfall: 8, temperature: 28 },
-    { month: 'Mar', mil: 130, mais: 110, arachide: 90, rainfall: 15, temperature: 30 },
-    { month: 'Avr', mil: 140, mais: 115, arachide: 95, rainfall: 25, temperature: 32 },
-    { month: 'Mai', mil: 135, mais: 120, arachide: 100, rainfall: 45, temperature: 31 },
-    { month: 'Jun', mil: 145, mais: 125, arachide: 105, rainfall: 65, temperature: 29 }
-  ];
-
-  const soilAnalysisData = [
-    { nutrient: 'Azote (N)', level: 78, optimal: 80, status: 'bon', trend: 2 },
-    { nutrient: 'Phosphore (P)', level: 65, optimal: 70, status: 'moyen', trend: -5 },
-    { nutrient: 'Potassium (K)', level: 85, optimal: 75, status: 'excellent', trend: 8 },
-    { nutrient: 'pH', level: 6.8, optimal: 6.5, status: 'bon', trend: 0.2 },
-    { nutrient: 'Matière org.', level: 3.2, optimal: 3.0, status: 'excellent', trend: 0.5 }
-  ];
-
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'Plantation',
-      crop: 'Maïs',
-      area: '5 ha',
-      date: '2024-01-15',
-      status: 'Terminé',
-      cost: 125000,
-      duration: 3
-    },
-    {
-      id: 2,
-      type: 'Irrigation',
-      crop: 'Légumes',
-      area: '3 ha',
-      date: '2024-01-14',
-      status: 'En cours',
-      cost: 45000,
-      duration: 1
-    },
-    {
-      id: 3,
-      type: 'Fertilisation',
-      crop: 'Arachide',
-      area: '4 ha',
-      date: '2024-01-12',
-      status: 'Planifié',
-      cost: 89000,
-      duration: 2
+  // Loading géré par le hook temps réel
+  const { data: lands, loading: landsLoading, error: landsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (lands) {
+      setFilteredData(lands);
     }
-  ];
-
-  const equipmentStatus = [
-    { name: 'Tracteur John Deere', status: 'Opérationnel', maintenance: '2024-02-15', efficiency: 92, hours: 245 },
-    { name: 'Système d\'irrigation', status: 'Maintenance', maintenance: '2024-01-18', efficiency: 78, hours: 1250 },
-    { name: 'Moissonneuse', status: 'Opérationnel', maintenance: '2024-03-01', efficiency: 88, hours: 189 },
-    { name: 'Pulvérisateur', status: 'Opérationnel', maintenance: '2024-02-10', efficiency: 95, hours: 156 }
-  ];
-
-  const marketAnalysis = [
-    { crop: 'Mil', currentPrice: 450, weekChange: 5.2, monthChange: 12.8, demand: 'Élevée' },
-    { crop: 'Maïs', currentPrice: 380, weekChange: -2.1, monthChange: 8.4, demand: 'Moyenne' },
-    { crop: 'Arachide', currentPrice: 650, weekChange: 8.7, monthChange: 18.9, demand: 'Très Élevée' },
-    { crop: 'Riz', currentPrice: 420, weekChange: 1.8, monthChange: 6.2, demand: 'Élevée' }
-  ];
-
-  const sustainabilityData = {
-    waterEfficiency: 85,
-    carbonReduction: 15,
-    biodiversityIndex: 78,
-    organicCertification: true,
-    sustainablePractices: 12
-  };
-
+  }, [lands]);
+  
   useEffect(() => {
     if (user && profile) {
       fetchDashboardData();
@@ -612,7 +508,7 @@ const AgriculteurDashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-6">

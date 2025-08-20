@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
-import SupabaseDataService from '@/services/supabaseDataService';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, Clock, FileText, Home, User, AlertCircle, Banknote, ArrowRight } from 'lucide-react';
@@ -42,7 +43,7 @@ const CaseTrackingSkeleton = () => (
 const CaseTrackingPage = () => {
   const { id } = useParams();
   const [request, setRequest] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const { user } = useAuth();
 
   useEffect(() => {

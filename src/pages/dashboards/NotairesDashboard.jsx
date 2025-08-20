@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,10 +35,10 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { hybridAI } from '@/lib/hybridAI';
 
 const NotairesDashboard = () => {
@@ -47,39 +49,16 @@ const NotairesDashboard = () => {
   const [currentDossier, setCurrentDossier] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [loading, setLoading] = useState(true);
-  const [dossiers, setDossiers] = useState([]);
-  const [stats, setStats] = useState([]); // construit dynamiquement après fetch
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [aiInsights, setAiInsights] = useState(null);
-  const [documentAnalysis, setDocumentAnalysis] = useState(null);
-  const [authenticating, setAuthenticating] = useState(null); // dossier id
-  const realStatusOptions = [
-    'pending','pending_notary','awaiting_verification','in_progress','under_review','authenticated','notarized','completed','verified','rejected'
-  ];
-
-  const exportDossierPDF = (dossier) => {
-    try {
-      const doc = new jsPDF();
-      doc.setFontSize(14);
-      doc.text(`Acte / Dossier ${dossier.reference || dossier.id}`, 14, 18);
-      doc.setFontSize(10);
-      const lines = [
-        `Statut: ${dossier.status}`,
-        `Valeur: ${dossier.valuation? dossier.valuation.toLocaleString()+' XOF':'N/A'}`,
-        `Client: ${dossier.users?.full_name || dossier.client_name || 'N/A'}`,
-        `Parcelle: ${dossier.parcels?.reference || dossier.parcel_reference || 'N/A'}`,
-        `Créé le: ${new Date(dossier.created_at).toLocaleDateString('fr-FR')}`,
-        `Maj le: ${new Date(dossier.updated_at).toLocaleDateString('fr-FR')}`
-      ];
-      let y=28;
-      lines.forEach(l=> { doc.text(l,14,y); y+=6; });
-      doc.save(`dossier_${dossier.reference||dossier.id}.pdf`);
-      toast({ title:'PDF généré', description:`dossier_${dossier.reference||dossier.id}.pdf` });
-    } catch(e){ toast({ variant:'destructive', title:'Erreur PDF'}); }
-  };
-
-  // Charger les données réelles depuis Supabase
+  // Loading géré par le hook temps réel
+  const { data: dossiers, loading: dossiersLoading, error: dossiersError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (dossiers) {
+      setFilteredData(dossiers);
+    }
+  }, [dossiers]);
+  
   useEffect(() => {
     loadNotaireData();
     generateAIInsights();

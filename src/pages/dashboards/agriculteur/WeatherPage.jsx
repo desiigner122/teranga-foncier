@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { CloudSun, Wind, Droplets, Thermometer } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const weatherData = {
   'Champ Kagnout 1': { temp: '31°C', humidity: '65%', wind: '12 km/h NE', forecast: 'Ensoleillé avec passages nuageux.' },
@@ -13,7 +14,7 @@ const weatherData = {
 
 const WeatherPage = () => {
   const [selectedParcel, setSelectedParcel] = useState('Champ Kagnout 1');
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
 
   useEffect(() => {
     const timer = setTimeout(() => {

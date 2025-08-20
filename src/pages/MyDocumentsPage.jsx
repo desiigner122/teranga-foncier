@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/context/AuthContext';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { UploadCloud, FileText, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -11,7 +12,7 @@ const MyDocumentsPage = () => {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [docs, setDocs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [uploading, setUploading] = useState(false);
   const [files, setFiles] = useState([]);
 

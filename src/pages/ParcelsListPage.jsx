@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import ParcelCard from '@/components/parcels/ParcelCard';
 import ParcelFilters from '@/components/parcels/ParcelFilters';
 import ParcelListSkeleton from '@/components/parcels/ParcelListSkeleton';
@@ -17,33 +18,15 @@ const ParcelsListPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [parcels, setParcels] = useState([]);
-  const [filteredParcels, setFilteredParcels] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showFiltersAside, setShowFiltersAside] = useState(false);
-
-  const initialFiltersFromUrl = useMemo(() => {
-    const searchParams = new URLSearchParams(location.search);
-    return {
-      search: searchParams.get('search') || '',
-      zone: searchParams.get('zone') || 'all',
-      status: searchParams.get('status') || 'all',
-      minPrice: searchParams.get('minPrice') || '',
-      maxPrice: searchParams.get('maxPrice') || '',
-      minArea: searchParams.get('minArea') || '',
-      maxArea: searchParams.get('maxArea') || '',
-      sortBy: searchParams.get('sortBy') || 'date_desc',
-      legalStatus: searchParams.get('legalStatus') || 'all',
-      serviced: searchParams.get('serviced') === 'true',
-      verified: searchParams.get('verified') === 'true',
-      zoneType: searchParams.get('zoneType') || 'all',
-      ownerType: searchParams.get('ownerType') || 'all',
-    };
-  }, [location.search]);
-
-  const [activeFilters, setActiveFilters] = useState(initialFiltersFromUrl);
-
+  const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (parcels) {
+      setFilteredData(parcels);
+    }
+  }, [parcels]);
+  
   useEffect(() => {
     const loadParcels = async () => {
       setLoading(true);

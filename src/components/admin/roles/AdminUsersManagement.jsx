@@ -8,11 +8,14 @@ import ExceptionalAddUserDialogWithPassword from './ExceptionalAddUserDialogWith
 
 export default function AdminUsersManagement() {
   const { toast } = useToast();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('tous');
-  const [roles, setRoles] = useState([]);
+  const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (users) {
+      setFilteredData(users);
+    }
+  }, [users]);
   
   useEffect(() => {
     fetchUsers();

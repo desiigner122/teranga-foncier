@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   FolderOpen, 
   Search, 
@@ -29,22 +30,15 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 const DigitalVaultPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [uploadLoading, setUploadLoading] = useState(false);
-
-  const categories = [
-    { id: 'all', label: 'Tous les documents', icon: FolderOpen },
-    { id: 'identity', label: 'Pièces d\'identité', icon: User },
-    { id: 'property', label: 'Titres de propriété', icon: FileText },
-    { id: 'contracts', label: 'Contrats', icon: FileText },
-    { id: 'receipts', label: 'Reçus et factures', icon: File },
-    { id: 'photos', label: 'Photos', icon: Image },
-    { id: 'other', label: 'Autres', icon: File }
-  ];
-
+  const { data: documents, loading: documentsLoading, error: documentsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (documents) {
+      setFilteredData(documents);
+    }
+  }, [documents]);
+  
   useEffect(() => {
     loadDocuments();
   }, [user]);
@@ -177,7 +171,7 @@ const DigitalVaultPage = () => {
     return documents.filter(doc => doc.category === category);
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />

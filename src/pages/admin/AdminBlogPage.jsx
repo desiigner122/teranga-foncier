@@ -1,6 +1,7 @@
 // src/pages/admin/AdminBlogPage.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/components/ui/use-toast';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PlusCircle, Edit, Trash2, Search, FileText, Calendar, Image as ImageIcon } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -21,50 +22,15 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabaseClient'; // Import nommé
 
 const AdminBlogPage = () => {
-  const [blogPosts, setBlogPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState('add'); // 'add' or 'edit'
-  const [currentPost, setCurrentPost] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    slug: '',
-    author: '',
-    category: '',
-    published_at: '',
-    image_url: '',
-    content: '',
-    status: 'draft',
-  });
-  const [imageFile, setImageFile] = useState(null);
-
-  const fetchBlogPosts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('published_at', { ascending: false });
-
-      if (error) throw error;
-      setBlogPosts(data || []);
-    } catch (err) {
-      setError(err.message);
-      toast({
-        variant: "destructive",
-        title: "Erreur de chargement des articles de blog",
-        description: err.message,
-      });
-    } finally {
-      setLoading(false);
+  const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (blogPosts) {
+      setFilteredData(blogPosts);
     }
-  }, [toast]);
-
+  }, [blogPosts]);
+  
   useEffect(() => {
     fetchBlogPosts();
   }, [fetchBlogPosts]);
@@ -365,7 +331,7 @@ const AdminBlogPage = () => {
           {renderForm()}
           <DialogFooter className="flex justify-end gap-2 mt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Annuler</Button>
-            <Button type="submit" onClick={handleSavePost} disabled={loading}>
+            <Button type="submit" onClick={handleSavePost} disabled={loading || dataLoading}>
               {loading && <LoadingSpinner size="small" className="mr-2" />}
               {modalType === 'add' ? "Ajouter l'article" : "Enregistrer les modifications"}
             </Button>

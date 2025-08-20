@@ -1,8 +1,8 @@
 // src/pages/HomePage.jsx
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Link } from 'react-router-dom';
-// Importation de Button est toujours nécessaire pour les autres usages
-import { Button } from '@/components/ui/button'; 
+// Importation de Button est toujours nécessaire pour les import { Button } from '@/components/ui/button'; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,100 +12,14 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useChatbot } from '@/context/ChatbotContext';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const HomePage = () => {
   const { openChatbot } = useChatbot();
-  const [featuredParcels, setFeaturedParcels] = useState([]);
-  const [blogArticles, setBlogArticles] = useState([]);
-  const [testimonials, setTestimonials] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Charger les données réelles au montage du composant
-  useEffect(() => {
-    const loadRealData = async () => {
-      try {
-        setLoading(true);
-
-        // Charger les parcelles en vedette (les plus récentes)
-        const parcels = await SupabaseDataService.getParcels(3);
-        const formattedParcels = parcels.map(parcel => ({
-          id: parcel.id,
-          name: parcel.title || `Parcelle ${parcel.reference}`,
-          reference: parcel.reference,
-          location: parcel.location || 'Localisation non spécifiée',
-          area: parcel.area_sqm ? `${parcel.area_sqm} m²` : 'Surface non spécifiée',
-          price: parcel.price ? `${new Intl.NumberFormat('fr-SN').format(parcel.price)} XOF` : 'Prix à négocier',
-          image: parcel.image_url || 'https://placehold.co/400x250/0052A3/FFFFFF?text=Parcelle',
-          status: parcel.status === 'available' ? 'Disponible' : 
-                  parcel.status === 'reserved' ? 'Réservée' : 
-                  parcel.status === 'sold' ? 'Vendue' : 'En attente'
-        }));
-        setFeaturedParcels(formattedParcels);
-
-        // Charger les articles de blog les plus récents
-        const blogs = await SupabaseDataService.getBlogPosts(3);
-        const formattedBlogs = blogs.map(blog => ({
-          id: blog.id,
-          title: blog.title,
-          date: new Date(blog.created_at).toLocaleDateString('fr-FR', { 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric' 
-          }),
-          description: blog.excerpt || blog.content?.substring(0, 150) + '...',
-          image: blog.featured_image_url || 'https://placehold.co/400x280/FFD700/000000?text=Article',
-          link: `/blog/${blog.id}`
-        }));
-        setBlogArticles(formattedBlogs);
-
-        // Pour les témoignages, on peut utiliser des utilisateurs récents ou créer une table testimonials
-        // Pour l'instant, on va utiliser des données de fallback si pas de témoignages réels
-        const users = await SupabaseDataService.getUsers(3);
-        const formattedTestimonials = users.length > 0 ? users.map((user, index) => ({
-          id: user.id,
-          name: user.full_name || 'Utilisateur anonyme',
-          role: user.role || 'user',
-          quote: getTestimonialForRole(user.role || 'user'),
-          avatar: `https://placehold.co/80x80/E0F2F7/0288D1?text=${user.full_name?.substring(0, 2).toUpperCase() || 'UN'}`
-        })) : [
-          {
-            id: 't1',
-            name: 'Fatou Ndiaye',
-            role: 'Particulier',
-            quote: '"Teranga Foncier a rendu l\'achat de mon terrain incroyablement simple et sécurisé. Une équipe très professionnelle et une plateforme intuitive !"',
-            avatar: 'https://placehold.co/80x80/E0F2F7/0288D1?text=FN'
-          },
-          {
-            id: 't2',
-            name: 'M. Diallo',
-            role: 'Banque',
-            quote: '"La plateforme a révolutionné la gestion de nos actifs fonciers. Fiabilité, transparence et efficacité au rendez-vous pour nos opérations bancaires."',
-            avatar: 'https://placehold.co/80x80/D4EDDA/155724?text=MD'
-          },
-          {
-            id: 't3',
-            name: 'Awa Sow',
-            role: 'Notaire',
-            quote: '"Un service client exceptionnel et des démarches simplifiées. Teranga Foncier est un partenaire indispensable pour notre étude."',
-            avatar: 'https://placehold.co/80x80/FCE5CD/E67E22?text=AS'
-          }
-        ];
-        setTestimonials(formattedTestimonials);
-
-      } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
-        // En cas d'erreur, utiliser des données de fallback
-        setFeaturedParcels(getDefaultParcels());
-        setBlogArticles(getDefaultBlogs());
-        setTestimonials(getDefaultTestimonials());
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadRealData();
-  }, []);
+  const { data: featuredParcels, loading: featuredParcelsLoading, error: featuredParcelsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  // Chargement géré par les hooks temps réel
 
   // Fonction utilitaire pour générer des témoignages selon le rôle
   const getTestimonialForRole = (role) => {

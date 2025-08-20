@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,19 +8,22 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/context/AuthContext';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const SoilAnalysisPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [analyses, setAnalyses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [parcelFilter, setParcelFilter] = useState('all');
-
+  const { data: analyses, loading: analysesLoading, error: analysesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (analyses) {
+      setFilteredData(analyses);
+    }
+  }, [analyses]);
+  
   useEffect(() => {
     if (user) {
       loadSoilAnalyses();
@@ -127,7 +131,7 @@ const SoilAnalysisPage = () => {
 
   const uniqueParcels = Array.from(new Set(analyses.map(a => a.parcel_id).filter(Boolean)));
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner />

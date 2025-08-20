@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,21 +24,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
-import LoadingSpinner from '@/components/ui/spinner';
-import { useAuth } from '@/context/AuthContext';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useAuth } from '@/contexts/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const FundingRequestsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-
+  const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeRequests();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (requests) {
+      setFilteredData(requests);
+    }
+  }, [requests]);
+  
   useEffect(() => {
     loadFundingRequests();
   }, [user]);
@@ -162,7 +164,7 @@ const FundingRequestsPage = () => {
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

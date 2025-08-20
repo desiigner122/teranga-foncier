@@ -5,7 +5,7 @@ const FeatureFlagsContext = createContext({ flags:{}, loading:true });
 
 export function FeatureFlagsProvider({ children }) {
   const [flags, setFlags] = useState({});
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
 
   const loadFlags = async () => {
     try {

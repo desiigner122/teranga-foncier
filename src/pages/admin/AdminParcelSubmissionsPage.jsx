@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
@@ -17,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { supabase } from '@/lib/supabaseClient';
 import { useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 
@@ -41,7 +41,14 @@ const AdminParcelSubmissionsPage = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   
   // Enrichir les données avec les informations utilisateur
-  const [enrichedSubmissions, setEnrichedSubmissions] = useState([]);
+  const { data: enrichedSubmissions, loading: enrichedSubmissionsLoading, error: enrichedSubmissionsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (enrichedSubmissions) {
+      setFilteredData(enrichedSubmissions);
+    }
+  }, [enrichedSubmissions]);
   
   useEffect(() => {
     const enrichSubmissions = async () => {

@@ -23,8 +23,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import GeographicSelector from '@/components/ui/GeographicSelector';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const CreateUserModal = ({ isOpen, onClose, onUserCreated, userType }) => {
   const { toast } = useToast();

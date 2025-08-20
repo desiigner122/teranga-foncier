@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { exceptionalRoleSchemas, defaultExceptionalTypeOrder } from './ExceptionalUserSchemasImproved';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 // Utility
 const slugify = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
@@ -26,23 +26,15 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
   const handleChange = (key, val) => setValues(v => ({ ...v, [key]: val }));
 
   // État local pour les données administratives du Sénégal (pour fallback)
-  const [regions, setRegions] = useState([]);
-  const [departments, setDepartments] = useState([]); // pour la région sélectionnée
-  const [communes, setCommunes] = useState([]); // pour le département sélectionné
-  const [banks, setBanks] = useState([]);
-  const [notaireSpecs, setNotaireSpecs] = useState([]);
-
-  // Fallback message quand les données sont manquantes
-  const handleMissingData = () => {
-    setShowLocalData(true);
-    toast({
-      variant: 'destructive',
-      title: "Données manquantes",
-      description: "Les données de référence sont indisponibles. Veuillez vérifier la connexion à Supabase."
-    });
-  };
-
-  // Charger les données de référence quand le dialogue s'ouvre
+  const { data: regions, loading: regionsLoading, error: regionsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (regions) {
+      setFilteredData(regions);
+    }
+  }, [regions]);
+  
   useEffect(() => {
     if (!open) return;
     (async () => {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Building, Landmark, Leaf, Banknote, TrendingUp, ChevronDown, ChevronRight, Scale, Users, HeartHandshake as Handshake, FileSignature, AlertTriangle, Sprout } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const solutions = [
   { title: 'Banques & Finances', href: '/solutions/banques', description: 'Évaluez les garanties et analysez les risques fonciers.', icon: Banknote },

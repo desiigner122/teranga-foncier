@@ -1,5 +1,4 @@
-// src/lib/firebaseClient.js
-import { initializeApp } from 'firebase/app';
+// src/lib/firebaseClient.import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 

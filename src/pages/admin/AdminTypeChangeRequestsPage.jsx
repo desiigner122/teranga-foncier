@@ -1,5 +1,6 @@
 // src/pages/admin/AdminTypeChangeRequestsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
@@ -17,117 +18,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const AdminTypeChangeRequestsPage = () => {
   const { toast } = useToast();
-  const [typeChangeRequests, setTypeChangeRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const { data: typeChangeRequests, loading: typeChangeRequestsLoading, error: typeChangeRequestsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
   
-  // Modal states
-  const [isViewDocumentsModalOpen, setIsViewDocumentsModalOpen] = useState(false);
-  const [isRejectReasonModalOpen, setIsRejectReasonModalOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  useEffect(() => {
+    if (typeChangeRequests) {
+      setFilteredData(typeChangeRequests);
+    }
+  }, [typeChangeRequests]);
   
-  // Filtrage des demandes
-  const filteredRequests = typeChangeRequests.filter(request => {
-    // Filtre par statut
-    if (statusFilter !== 'all' && request.status !== statusFilter) {
-      return false;
-    }
-    
-    // Filtre par recherche
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      return (
-        (request.user_name && request.user_name.toLowerCase().includes(searchLower)) ||
-        (request.current_type && request.current_type.toLowerCase().includes(searchLower)) ||
-        (request.requested_type && request.requested_type.toLowerCase().includes(searchLower))
-      );
-    }
-    
-    return true;
-  });
-
-  const loadTypeChangeRequests = useCallback(async () => {
-    try {
-      setLoading(true);
-      // Dans une implémentation réelle, remplacer par un appel API
-      const mockRequests = [
-        {
-          id: 'req-1',
-          user_id: 'user-1',
-          user_name: 'Amadou Diallo',
-          current_type: 'Particulier',
-          requested_type: 'Vendeur',
-          status: 'pending',
-          submitted_at: '2025-08-15T10:30:00Z',
-          documents: [
-            { id: 'doc-1', name: 'Carte d\'identité', url: '#', verified: false },
-            { id: 'doc-2', name: 'Justificatif de domicile', url: '#', verified: false }
-          ]
-        },
-        {
-          id: 'req-2',
-          user_id: 'user-2',
-          user_name: 'Fatou Sow',
-          current_type: 'Particulier',
-          requested_type: 'Investisseur',
-          status: 'pending',
-          submitted_at: '2025-08-17T14:15:00Z',
-          documents: [
-            { id: 'doc-3', name: 'Carte d\'identité', url: '#', verified: false },
-            { id: 'doc-4', name: 'Justificatif de domicile', url: '#', verified: false },
-            { id: 'doc-5', name: 'Attestation bancaire', url: '#', verified: false }
-          ]
-        },
-        {
-          id: 'req-3',
-          user_id: 'user-3',
-          user_name: 'Ibrahim Ndiaye',
-          current_type: 'Particulier',
-          requested_type: 'Promoteur',
-          status: 'approved',
-          submitted_at: '2025-08-12T09:45:00Z',
-          approved_at: '2025-08-14T11:30:00Z',
-          documents: [
-            { id: 'doc-6', name: 'Carte d\'identité', url: '#', verified: true },
-            { id: 'doc-7', name: 'Justificatif de domicile', url: '#', verified: true },
-            { id: 'doc-8', name: 'Licence commerciale', url: '#', verified: true }
-          ]
-        },
-        {
-          id: 'req-4',
-          user_id: 'user-4',
-          user_name: 'Mariama Diop',
-          current_type: 'Particulier',
-          requested_type: 'Vendeur',
-          status: 'rejected',
-          submitted_at: '2025-08-10T16:20:00Z',
-          rejected_at: '2025-08-11T15:10:00Z',
-          rejection_reason: 'Documents incomplets. Veuillez fournir une copie de votre titre foncier.',
-          documents: [
-            { id: 'doc-9', name: 'Carte d\'identité', url: '#', verified: true },
-            { id: 'doc-10', name: 'Justificatif de domicile', url: '#', verified: false }
-          ]
-        }
-      ];
-      setTypeChangeRequests(mockRequests);
-    } catch (error) {
-      console.error('Erreur chargement demandes changement type:', error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger les demandes de changement de type"
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
   useEffect(() => {
     loadTypeChangeRequests();
   }, [loadTypeChangeRequests]);

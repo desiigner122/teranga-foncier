@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,13 +8,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabaseClient';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const ComplianceCheckPage = () => {
   const { toast } = useToast();
   const [parcelId, setParcelId] = useState('');
   const [checkResult, setCheckResult] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
 
   useEffect(() => {
     const timer = setTimeout(() => {

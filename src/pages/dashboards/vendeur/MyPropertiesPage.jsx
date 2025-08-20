@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   Plus, 
   MapPin, 
@@ -31,47 +32,15 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 const MyPropertiesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const { data: properties, loading: propertiesLoading, error: propertiesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
   
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    type: '',
-    price: '',
-    surface: '',
-    location: '',
-    bedrooms: '',
-    bathrooms: '',
-    features: [],
-    images: [],
-    status: 'available'
-  });
-
-  const propertyTypes = [
-    { value: 'terrain', label: 'Terrain', icon: TreePine },
-    { value: 'maison', label: 'Maison', icon: Home },
-    { value: 'appartement', label: 'Appartement', icon: Building2 },
-    { value: 'villa', label: 'Villa', icon: Home },
-    { value: 'duplex', label: 'Duplex', icon: Building2 }
-  ];
-
-  const statusOptions = [
-    { value: 'available', label: 'Disponible', color: 'bg-green-500' },
-    { value: 'under_negotiation', label: 'En négociation', color: 'bg-yellow-500' },
-    { value: 'sold', label: 'Vendu', color: 'bg-gray-500' },
-    { value: 'withdrawn', label: 'Retiré', color: 'bg-red-500' }
-  ];
-
-  const featuresOptions = [
-    'Piscine', 'Jardin', 'Garage', 'Terrasse', 'Balcon', 'Cheminée',
-    'Climatisation', 'Chauffage', 'Cave', 'Grenier', 'Buanderie', 'Bureau'
-  ];
-
+  useEffect(() => {
+    if (properties) {
+      setFilteredData(properties);
+    }
+  }, [properties]);
+  
   useEffect(() => {
     loadProperties();
   }, [user]);
@@ -210,7 +179,7 @@ const MyPropertiesPage = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />

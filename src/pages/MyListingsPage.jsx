@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building, LandPlot, Clock, CheckCircle, AlertTriangle, ArrowRight, Edit, Trash2, UploadCloud, Banknote } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,8 +19,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import SupabaseDataService from '@/services/supabaseDataService';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
 
 const getStatusInfo = (status) => {
     switch (status) {
@@ -42,11 +43,16 @@ const formatPrice = (price) => {
 
 const MyListingsPage = () => {
    const [isLoading, setIsLoading] = useState(true);
-   const [listings, setListings] = useState([]);
-   const { toast } = useToast();
-   const { user } = useAuth();
-
-   useEffect(() => {
+   const { data: listings, loading: listingsLoading, error: listingsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (listings) {
+      setFilteredData(listings);
+    }
+  }, [listings]);
+  
+  useEffect(() => {
       const loadUserListings = async () => {
         if (!user) {
           setIsLoading(false);

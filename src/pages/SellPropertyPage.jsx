@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useToast } from '@/components/ui/use-toast';
 import { UploadCloud, MapPin, DollarSign, FileText, Send, User, Phone, Mail, Award, Check, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const SellPropertyPage = () => {
   const { toast } = useToast();

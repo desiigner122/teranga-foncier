@@ -9,17 +9,15 @@ import { useLocation } from 'react-router-dom';
 const AIHelpModal = ({ isOpen, onClose }) => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [contextualQuestions, setContextualQuestions] = useState([]);
-  const { toast } = useToast();
-  const location = useLocation();
-
-  const baseQuestions = [
-    "Quelles sont les étapes pour acheter un terrain ?",
-    "Comment Teranga Foncier sécurise les transactions ?",
-    "Quels sont les frais de notaire estimés ?",
-    "Comment puis-je contacter un agent ?"
-  ];
-
+  const { data: contextualQuestions, loading: contextualQuestionsLoading, error: contextualQuestionsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (contextualQuestions) {
+      setFilteredData(contextualQuestions);
+    }
+  }, [contextualQuestions]);
+  
   useEffect(() => {
     let specificQuestions = [];
     const pathname = location.pathname;

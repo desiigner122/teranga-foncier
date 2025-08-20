@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Bell, Clock, CheckCircle, AlertTriangle, Eye, Download } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
-import SupabaseDataService from '@/services/supabaseDataService';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
-import LoadingSpinner from '@/components/ui/spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const TransactionTrackingPage = () => {
   const { toast } = useToast();
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
+  const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (transactions) {
+      setFilteredData(transactions);
+    }
+  }, [transactions]);
+  
   useEffect(() => {
     const loadTransactions = async () => {
       try {
@@ -166,7 +172,7 @@ const TransactionTrackingPage = () => {
     });
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">

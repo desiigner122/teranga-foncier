@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import { supabase } from '@/lib/supabaseClient';
 
 /** ParcelTimeline
  * Displays unified parcel timeline (events + price changes) with basic pagination.
  */
 export default function ParcelTimeline({ parcelId }) {
-  const [items, setItems] = useState([]);
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(25);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [livePulse, setLivePulse] = useState(false);
-
+  const { data: items, loading: itemsLoading, error: itemsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (items) {
+      setFilteredData(items);
+    }
+  }, [items]);
+  
   useEffect(() => { fetchData(page); }, [parcelId, page]);
 
   // Realtime subscription

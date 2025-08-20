@@ -1,7 +1,5 @@
 // Extension du service SupabaseDataService avec la méthode createUserWithPassword
-// Ce fichier sera importé et fusionné avec le service principal
-
-import { supabase } from '../lib/supabaseClient.js';
+// Ce fichier sera importé et fusionné avec le import { supabase } from '../lib/supabaseClient.js';
 
 // Extension pour le service SupabaseDataService
 export async function createUserWithPassword(userData) {

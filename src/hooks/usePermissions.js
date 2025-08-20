@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 /**
  * usePermissions - fetches effective permissions + feature flags from roles

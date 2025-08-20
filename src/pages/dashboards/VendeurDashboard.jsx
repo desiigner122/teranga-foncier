@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { useRealtimeParcelSubmissions, useRealtimeParcels } from '../../hooks/useRealtimeTable';
 import { Button } from '@/components/ui/button';
@@ -49,38 +50,10 @@ const VendeurDashboard = () => {
     conversionRate: 0,
     topPerformingListing: null
   });
-  const [marketInsights, setMarketInsights] = useState([]);
-  const [inquiriesByListing, setInquiriesByListing] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
-  const [editingListing, setEditingListing] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' });
-  const [selectedInquiry, setSelectedInquiry] = useState(null);
-
-  // Utiliser les hooks realtime centralisés
-  const { data: submissions, loading: submissionsLoading } = useRealtimeParcelSubmissions({ 
-    ownerId: user?.id 
-  });
+  const { data: marketInsights, loading: marketInsightsLoading, error: marketInsightsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
   
-  const { data: listings, loading: listingsLoading } = useRealtimeParcels({ 
-    ownerId: user?.id 
-  });
-
-  // Calculs des métriques en temps réel
-  const pendingSubmissions = submissions.filter(s => s.status === 'pending');
-  const approvedSubmissions = submissions.filter(s => s.status === 'approved');
-  const rejectedSubmissions = submissions.filter(s => s.status === 'rejected');
-  
-  const activeListings = listings.filter(p => p.status === 'active');
-  const totalRevenue = activeListings.reduce((sum, p) => sum + (p.price || 0), 0);
-
-  const loading = submissionsLoading || listingsLoading;
-
-  useEffect(() => {
-    loadUserData();
-    loadMarketData(); // Charger seulement les données non couvertes par realtime
-  }, []);
+  // Chargement géré par les hooks temps réel
 
   // Plus besoin de realtime manuel pour submissions/parcels
   // useEffect(()=>{

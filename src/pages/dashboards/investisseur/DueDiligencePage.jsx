@@ -1,42 +1,24 @@
 import React, { useEffect, useState } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck, Search, RefreshCw, AlertTriangle, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/components/ui/use-toast';
 
 // NOTE: Uses tables 'transactions' and 'notaire_dossiers'. Basic heuristic scoring.
 
 const DueDiligencePage = () => {
 	const { toast } = useToast();
-	const [loading, setLoading] = useState(true);
+	// Loading géré par le hook temps réel
 	const [refreshing, setRefreshing] = useState(false);
-	const [transactions, setTransactions] = useState([]);
-	const [dossiers, setDossiers] = useState([]);
-	const [query, setQuery] = useState('');
-
-	const loadData = async () => {
-		setRefreshing(true);
-		try {
-			const { data: txData, error: txErr } = await SupabaseDataService.supabaseRaw('transactions');
-			if (txErr) throw txErr;
-			const { data: dossierData, error: dErr } = await SupabaseDataService.supabaseRaw('notaire_dossiers');
-			if (dErr) throw dErr;
-			setTransactions(txData || []);
-			setDossiers(dossierData || []);
-		} catch (e) {
-			console.error('Erreur chargement diligence:', e);
-			toast({ title: 'Erreur', description: 'Données diligence indisponibles.' });
-		} finally {
-			setLoading(false);
-			setRefreshing(false);
-		}
-	};
-
-	useEffect(() => { loadData(); }, []);
+	const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  // Chargement géré par les hooks temps réel
 
 	const scoreTransaction = (t) => {
 		let score = 80; // base

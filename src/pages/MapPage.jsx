@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -7,8 +8,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Layers, Search, ZoomIn, ZoomOut, Home, DollarSign, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner'; 
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner'; 
 import { Card, CardContent } from '@/components/ui/card'; // Import Card and CardContent
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -66,13 +67,15 @@ const MapLegend = () => (
 );
 
 const MapPage = () => {
-  const [parcels, setParcels] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const defaultPosition = [14.7167, -17.4677]; // Dakar center
-  const defaultZoom = 11;
-  const mapRef = useRef();
-
+  const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (parcels) {
+      setFilteredData(parcels);
+    }
+  }, [parcels]);
+  
   useEffect(() => {
     const loadParcels = async () => {
       try {
@@ -135,7 +138,7 @@ const MapPage = () => {
       alert(`Recherche pour "${query}" - L'intégration de l'API de Géocodage est nécessaire pour cette fonctionnalité.`);
   }
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
         <LoadingSpinner size="large" />

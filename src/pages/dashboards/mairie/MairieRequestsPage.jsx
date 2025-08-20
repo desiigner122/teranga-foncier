@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,17 +8,21 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { SupabaseDataService } from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
-import { useAuth } from '@/context/AuthContext';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MairieRequestsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-
+  const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeRequests();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (requests) {
+      setFilteredData(requests);
+    }
+  }, [requests]);
+  
   useEffect(() => {
     const loadMairieRequests = async () => {
       try {
@@ -68,7 +73,7 @@ const MairieRequestsPage = () => {
     return matchSearch && matchStatus;
   });
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

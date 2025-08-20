@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,10 +8,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
-import SupabaseDataService from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Helper to compute progress placeholder until a dedicated progress tracking table exists
 const deriveProgress = (project) => {
@@ -31,32 +32,15 @@ const deriveProgress = (project) => {
 const ConstructionTrackingPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadProjects = async () => {
-    try {
-      setRefreshing(true);
-      const data = await SupabaseDataService.getPromoteurProjects();
-      // Normalize into UI shape
-      const normalized = data.map(p => ({
-        id: p.id,
-        name: p.name,
-        status: p.status,
-        progress: deriveProgress(p),
-        nextMilestone: p.workflow_next_milestone || '—',
-        dueDate: p.estimated_completion || '—'
-      }));
-      setProjects(normalized);
-    } catch (e) {
-      toast({ title: 'Erreur', description: 'Impossible de charger les projets promoteur.' });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  const { data: projects, loading: projectsLoading, error: projectsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (projects) {
+      setFilteredData(projects);
     }
-  };
-
+  }, [projects]);
+  
   useEffect(() => { loadProjects(); }, []);
 
   const handleStatusAdvance = async (project) => {
@@ -88,7 +72,7 @@ const ConstructionTrackingPage = () => {
     }
   }
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full p-8">
         <LoadingSpinner size="large" />

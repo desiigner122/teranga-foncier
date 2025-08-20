@@ -1,8 +1,9 @@
 // src/pages/DashboardPage.jsx - Dashboard Dispatcher
 import React, { useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import VerificationRequired from '@/components/VerificationRequired';
 
 /**

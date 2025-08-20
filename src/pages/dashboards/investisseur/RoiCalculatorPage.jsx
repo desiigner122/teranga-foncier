@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,29 +8,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/context/AuthContext';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const RoiCalculatorPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [calculating, setCalculating] = useState(false);
-  const [savedCalculations, setSavedCalculations] = useState([]);
+  const { data: savedCalculations, loading: savedCalculationsLoading, error: savedCalculationsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
   
-  // Formulaire de calcul
-  const [calculationType, setCalculationType] = useState('simple');
-  const [coutTotal, setCoutTotal] = useState('');
-  const [revenuEstime, setRevenuEstime] = useState('');
-  const [dureeInvestissement, setDureeInvestissement] = useState('');
-  const [tauxActualisation, setTauxActualisation] = useState('5');
-  const [fraisAnnuels, setFraisAnnuels] = useState('');
-  const [calculationName, setCalculationName] = useState('');
+  useEffect(() => {
+    if (savedCalculations) {
+      setFilteredData(savedCalculations);
+    }
+  }, [savedCalculations]);
   
-  // Résultats
-  const [results, setResults] = useState(null);
-
   useEffect(() => {
     if (user) {
       loadSavedCalculations();
@@ -212,7 +208,7 @@ const RoiCalculatorPage = () => {
     });
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { TrendingUp, MapPin, DollarSign, Building, BarChart3 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const MarketAnalysisPage = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [marketData, setMarketData] = useState({
     priceTrends: [],
     zoneAnalysis: [],

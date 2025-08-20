@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button'; // <-- CORRECTION ICI : '=>' remplacé par 'from'
@@ -7,7 +8,7 @@ import { PlusCircle, Search, Edit, Trash2, UserCheck, Eye } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -28,49 +29,15 @@ const agentSpecificFields = [
 ];
 
 const AdminAgentsPage = () => {
-  const [agents, setAgents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentEditAgent, setCurrentEditAgent] = useState(null);
-  const [formData, setFormData] = useState({
-    full_name: '',
-    email: '',
-    phone: '',
-    metadata: {}, // Pour les champs spécifiques à l'agent
-  });
-
-  // Fonction pour récupérer les agents depuis Supabase
-  const fetchAgents = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Récupère les utilisateurs de la table 'public.users' qui ont le rôle 'agent'
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('role', 'agent'); // Filtrer par rôle 'agent'
-
-      if (error) {
-        throw error;
-      }
-      setAgents(data || []);
-    } catch (err) {
-      setError(err.message);
-      toast({
-        variant: "destructive",
-        title: "Erreur de chargement des agents",
-        description: err.message,
-      });
-    } finally {
-      setLoading(false);
+  const { data: agents, loading: agentsLoading, error: agentsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (agents) {
+      setFilteredData(agents);
     }
-  }, [toast]);
-
+  }, [agents]);
+  
   useEffect(() => {
     fetchAgents();
   }, [fetchAgents]);
@@ -386,7 +353,7 @@ const AdminAgentsPage = () => {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || dataLoading}>
                 {loading && <LoadingSpinner size="small" className="mr-2" />}
                 {currentEditAgent ? 'Enregistrer les modifications' : 'Ajouter l\'agent'}
               </Button>

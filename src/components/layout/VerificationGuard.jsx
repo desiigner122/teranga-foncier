@@ -1,8 +1,8 @@
 // src/components/layout/VerificationGuard.jsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import LoadingSpinner from '@/components/ui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import VerificationRequired from '@/components/VerificationRequired';
 
 /**

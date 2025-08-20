@@ -1,10 +1,11 @@
 import React from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { Banknote, ShieldCheck, BarChart3, FileSearch, Users, ArrowRight, CheckSquare, Settings2, Share2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Helmet } from 'react-helmet-async';
 import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage'; // <<< CORRECTION DU CHEMIN ICI
 

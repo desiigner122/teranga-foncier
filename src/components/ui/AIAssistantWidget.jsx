@@ -25,7 +25,7 @@ import {
   Bell
 } from 'lucide-react';
 import { aiAssistant } from '@/lib/aiAssistant';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
   const { toast } = useToast();
@@ -35,85 +35,15 @@ const AIAssistantWidget = ({ dashboardContext = {}, onAction }) => {
   const [command, setCommand] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [conversation, setConversation] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
-  const inputRef = useRef(null);
-  const messagesEndRef = useRef(null);
-
-  // Suggestions par rôle
-  const roleSuggestions = {
-    admin: [
-      "Supprimer l'utilisateur amadou.diallo@email.com",
-      "Générer un rapport des transactions du mois",
-      "Rechercher les parcelles en attente de validation",
-      "Analyser les tendances d'inscription des utilisateurs",
-      "Créer une notification pour tous les agents"
-    ],
-    particulier: [
-      "Rechercher des parcelles à Almadies sous 50M FCFA",
-      "Prédire le prix d'une parcelle de 500m² à Ngor",
-      "Programmer un rendez-vous avec un agent",
-      "Analyser l'évolution des prix dans ma zone",
-      "Trouver des opportunités d'investissement"
-    ],
-    agent: [
-      "Lister mes clients les plus actifs",
-      "Générer un rapport de mes ventes du trimestre",
-      "Programmer des relances pour les prospects",
-      "Analyser les performances de mes annonces",
-      "Rechercher des parcelles pour mon client"
-    ],
-    vendeur: [
-      "Évaluer le prix de ma parcelle à Dakar",
-      "Générer une description attractive pour mon annonce",
-      "Analyser les vues de mes annonces",
-      "Programmer des visites avec les acheteurs",
-      "Optimiser le prix de vente"
-    ],
-    notaire: [
-      "Vérifier la conformité du dossier DOS-001",
-      "Générer un acte de vente type",
-      "Rechercher l'historique d'une parcelle",
-      "Valider les documents de succession",
-      "Programmer une authentification"
-    ],
-    banque: [
-      "Évaluer le risque de financement",
-      "Analyser la solvabilité du demandeur",
-      "Générer un rapport d'évaluation foncière",
-      "Calculer les garanties nécessaires",
-      "Prédire les défauts de paiement"
-    ],
-    mairie: [
-      "Vérifier la conformité urbanistique",
-      "Générer un certificat d'urbanisme",
-      "Analyser les demandes de permis en attente",
-      "Mettre à jour le plan cadastral",
-      "Traiter les litiges fonciers"
-    ],
-    promoteur: [
-      "Analyser la viabilité d'un projet",
-      "Calculer les coûts de construction",
-      "Prédire les ventes futures",
-      "Optimiser le planning de construction",
-      "Générer un rapport de rentabilité"
-    ],
-    investisseur: [
-      "Analyser le ROI d'un investissement",
-      "Rechercher les meilleures opportunités",
-      "Prédire l'évolution des prix",
-      "Évaluer les risques du marché",
-      "Optimiser mon portefeuille foncier"
-    ],
-    agriculteur: [
-      "Analyser la qualité du sol",
-      "Optimiser l'utilisation de mes terres",
-      "Prédire les rendements agricoles",
-      "Rechercher des financements",
-      "Planifier la rotation des cultures"
-    ]
-  };
-
+  const { data: conversation, loading: conversationLoading, error: conversationError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (conversation) {
+      setFilteredData(conversation);
+    }
+  }, [conversation]);
+  
   useEffect(() => {
     if (profile?.role) {
       setSuggestions(roleSuggestions[profile.role] || roleSuggestions.particulier);

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
-import SupabaseDataService from '@/services/supabaseDataService';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 import usePermissions from '@/hooks/usePermissions';
 
 const basePermissionsReference = [
@@ -16,7 +16,7 @@ export default function RolesPermissionsPanel() {
   const { hasPermission } = usePermissions();
   const { toast } = useToast();
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
   const [createOpen, setCreateOpen] = useState(false);
   const [newRole, setNewRole] = useState({ key:'', label:'', description:'', permissions:[], feature_flags:[] });
   const [saving, setSaving] = useState(false);

@@ -2,6 +2,7 @@
 // NOTE: Supports deep-link filtering via query param ?type=Vendeur (etc.).
 // The select stays in sync with the URL and allows dashboard cards to link directly.
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ExceptionalAddUserDialog from '@/components/admin/roles/ExceptionalAddUserDialog';
@@ -30,8 +31,8 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import SupabaseDataService from '@/services/supabaseDataService';
-import LoadingSpinner from '@/components/ui/spinner';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const userTypes = [
   'Particulier', 'Vendeur', 'Investisseur', 'Promoteur', 'Agriculteur', 
@@ -53,50 +54,15 @@ const verificationStatuses = [
 
 const AdminUsersPageAdvanced = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [userRolesMap, setUserRolesMap] = useState({});
-  const [availableRoles, setAvailableRoles] = useState([]);
-  const [assigningForUser, setAssigningForUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [filterType, setFilterType] = useState('all');
-  const [activeTab, setActiveTab] = useState('all');
+  const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
+  const [filteredData, setFilteredData] = useState([]);
   
-  // Modals
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isViewDocumentsModalOpen, setIsViewDocumentsModalOpen] = useState(false);
-  const [isRequestDetailsModalOpen, setIsRequestDetailsModalOpen] = useState(false);
-  const [isChangeTypeModalOpen, setIsChangeTypeModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isExceptionalDialogOpen, setIsExceptionalDialogOpen] = useState(false);
-  const [changeStatusComment, setChangeStatusComment] = useState('');
+  useEffect(() => {
+    if (users) {
+      setFilteredData(users);
+    }
+  }, [users]);
   
-  // Listes
-  const [typeChangeRequests, setTypeChangeRequests] = useState([]);
-  const [parcelSubmissions, setParcelSubmissions] = useState([]);
-  
-  // Edit form
-  const [editForm, setEditForm] = useState({
-    full_name: '',
-    email: '',
-    type: '',
-    role: '',
-    phone: '',
-    location: ''
-  });
-  
-  // Change type form
-  const [changeTypeForm, setChangeTypeForm] = useState({
-    current_type: '',
-    new_type: '',
-    comment: '',
-    documents: []
-  });
-
   useEffect(() => {
     loadUsers();
     loadTypeChangeRequests();
@@ -611,7 +577,7 @@ const AdminUsersPageAdvanced = () => {
     }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />

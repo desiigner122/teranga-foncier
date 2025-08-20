@@ -1,8 +1,8 @@
 // src/context/MessagingNotificationContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import SupabaseDataService from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
 const MessagingNotificationContext = createContext();
@@ -20,49 +20,15 @@ export const MessagingNotificationProvider = ({ children }) => {
   const { toast } = useToast();
   
   // State
-  const [conversations, setConversations] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [messages, setMessages] = useState({});
-  const [unreadCounts, setUnreadCounts] = useState({ messages: 0, notifications: 0 });
-  const [loading, setLoading] = useState(true);
-  // Legacy naming kept so existing pages continue to work; now represents Supabase messaging availability
-  const [isFirebaseAvailable, setIsFirebaseAvailable] = useState(true);
-  const [isLoadingConversations, setIsLoadingConversations] = useState(false);
-  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
-
-  // Load conversations from Supabase (polling + realtime optional)
-  const loadConversations = useCallback(async () => {
-    if (!user) return;
-    setIsLoadingConversations(true);
-    try {
-      const list = await SupabaseDataService.listUserConversationsWithUnread(user.id, 100);
-      const convIds = list.map(c=>c.id);
-      // Fetch participants for each conversation
-      if (convIds.length) {
-        const { data: parts } = await supabase.from('conversation_participants').select('conversation_id,user_id').in('conversation_id', convIds);
-        const byConv = parts?.reduce((acc,p)=>{ (acc[p.conversation_id]||(acc[p.conversation_id]=[])).push(p.user_id); return acc; },{}) || {};
-        const enhanced = list.map(c=>({
-          id: c.id,
-          participants: byConv[c.id] || [c.created_by].filter(Boolean),
-          title: c.subject || c.title || 'Conversation',
-          parcelId: c.parcel_id || null,
-          lastMessage: c.last_message || '',
-          lastMessageAt: c.last_message_at || c.updated_at,
-          updatedAt: c.updated_at || c.created_at,
-          unreadCount: c.unread_count || 0
-        }));
-        setConversations(enhanced);
-      } else {
-        setConversations([]);
-      }
-    } catch (e) {
-      console.error('loadConversations failed', e);
-    } finally {
-      setIsLoadingConversations(false);
-      setLoading(false);
+  const { data: conversations, loading: conversationsLoading, error: conversationsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (conversations) {
+      setFilteredData(conversations);
     }
-  }, [user]);
-
+  }, [conversations]);
+  
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
   // Optional realtime channel for new conversations/messages

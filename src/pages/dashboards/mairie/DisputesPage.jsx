@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,15 +8,21 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Data source: land_disputes table (expected). Fallback: empty.
 
 const DisputesPage = () => {
   const { toast } = useToast();
-  const [disputes, setDisputes] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const { data: disputes, loading: disputesLoading, error: disputesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (disputes) {
+      setFilteredData(disputes);
+    }
+  }, [disputes]);
+  
   useEffect(() => {
     const load = async () => {
       try {
@@ -34,7 +41,7 @@ const DisputesPage = () => {
     load();
   }, []);
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,77 +8,23 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ResponsiveContainer, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
-import SupabaseDataService from '@/services/supabaseDataService';
-import { useAuth } from '@/context/AuthContext';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SalesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [salesData, setSalesData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [chartData, setChartData] = useState([]);
-
-  const computeChart = (rows) => {
-    const counts = { sold: 0, reserved: 0, available: 0 };
-    rows.forEach(r => {
-      switch ((r.status || '').toLowerCase()) {
-        case 'sold':
-        case 'vendu':
-          counts.sold++; break;
-        case 'reserved':
-        case 'réservé':
-        case 'reserve':
-          counts.reserved++; break;
-        default:
-          counts.available++; break;
-      }
-    });
-    setChartData([
-      { name: 'Vendus', value: counts.sold, fill: 'hsl(var(--chart-success))' },
-      { name: 'Réservés', value: counts.reserved, fill: 'hsl(var(--chart-warning))' },
-      { name: 'Disponibles', value: counts.available, fill: 'hsl(var(--chart-info))' }
-    ]);
-  };
-
-  const loadUnits = async () => {
-    try {
-      setRefreshing(true);
-      if (!user?.id) {
-        setSalesData([]);
-        setChartData([]);
-        return;
-      }
-      const allUnits = await SupabaseDataService.getUnitsForPromoteur(user.id);
-      // Normalize shape
-      const normalized = (allUnits || []).map(u => ({
-        project: (u.promoteur_projects && u.promoteur_projects.name) || 'Projet',
-        lot: u.reference || `Lot-${u.id}`,
-        client: u.client_name || '—',
-        status: mapStatusLabel(u.status),
-        price: u.price ? formatPrice(u.price) : '—'
-      }));
-      setSalesData(normalized);
-      computeChart(normalized);
-    } catch (e) {
-      toast({ title: 'Erreur', description: 'Impossible de charger les ventes.' });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  const { data: salesData, loading: salesDataLoading, error: salesDataError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (salesData) {
+      setFilteredData(salesData);
     }
-  };
-
-  const formatPrice = (p) => new Intl.NumberFormat('fr-FR').format(p) + ' XOF';
-  const mapStatusLabel = (status) => {
-    if (!status) return 'Disponible';
-    const s = status.toLowerCase();
-    if (['sold','vendu'].includes(s)) return 'Vendu';
-    if (['reserved','réservé','reserve'].includes(s)) return 'Réservé';
-    return 'Disponible';
-  };
-
+  }, [salesData]);
+  
   useEffect(() => { loadUnits(); }, []);
 
   // Placeholder: future implementation to update unit status / assign client
@@ -94,7 +41,7 @@ const SalesPage = () => {
     }
   }
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-full p-8">
         <LoadingSpinner size="large" />

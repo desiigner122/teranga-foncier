@@ -1,5 +1,4 @@
-// src/lib/tableUtils.js
-import { supabase } from './supabaseClient';
+// src/lib/tableUtils.import { supabase } from './supabaseClient';
 
 /**
  * Vérifie si une table existe dans Supabase

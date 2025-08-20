@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +31,7 @@ import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const BanqueDashboard = () => {
   const { toast } = useToast();
@@ -42,14 +44,15 @@ const BanqueDashboard = () => {
     totalExposure: 0,
     securityScore: 0
   });
-  const [guarantees, setGuarantees] = useState([]);
-  const [evaluations, setEvaluations] = useState([]);
-  const [fundingRequests, setFundingRequests] = useState([]);
-  const [riskAnalysis, setRiskAnalysis] = useState([]);
-  const [marketTrends, setMarketTrends] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [actionBusy, setActionBusy] = useState(null); // composite key like type-id
-
+  const { data: guarantees, loading: guaranteesLoading, error: guaranteesError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (guarantees) {
+      setFilteredData(guarantees);
+    }
+  }, [guarantees]);
+  
   useEffect(() => {
     if (user) {
       loadBankDashboardData();

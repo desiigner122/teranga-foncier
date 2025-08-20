@@ -5,8 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { exceptionalRoleSchemas, defaultExceptionalTypeOrder } from './ExceptionalUserSchemas';
-// Static lists removed: now fetched dynamically from Supabase reference tables
-import SupabaseDataService from '@/services/supabaseDataService';
+// Static lists removed: now fetched dynamically from Supabase reference import { SupabaseDataService } from '@/services/supabaseDataService';
 
 // Utility
 const slugify = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');

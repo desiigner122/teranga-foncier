@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   FileText, 
   Search, 
@@ -27,12 +28,15 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 const MyRequestsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-
+  const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeRequests();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (requests) {
+      setFilteredData(requests);
+    }
+  }, [requests]);
+  
   useEffect(() => {
     loadRequests();
   }, [user]);
@@ -122,7 +126,7 @@ const MyRequestsPage = () => {
     });
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />

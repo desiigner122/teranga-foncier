@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,9 +9,15 @@ import { supabase } from '@/lib/supabaseClient';
 import { Helmet } from 'react-helmet-async';
 
 const BlogPage = () => {
-  const [blogPosts, setBlogPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (blogPosts) {
+      setFilteredData(blogPosts);
+    }
+  }, [blogPosts]);
+  
   useEffect(() => {
     const loadBlogPosts = async () => {
       try {
@@ -62,7 +69,7 @@ const BlogPage = () => {
     })
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

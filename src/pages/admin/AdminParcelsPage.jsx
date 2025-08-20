@@ -1,5 +1,6 @@
 // src/pages/admin/AdminParcelsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Search, Edit, Trash2, Eye, LandPlot } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
-import LoadingSpinner from '@/components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -23,64 +24,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from '@/lib/supabaseClient';
 
 const AdminParcelsPage = () => {
-  const [parcels, setParcels] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
-
-  // --- NOUVEAU : États pour le modal d'ajout/édition ---
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentEditParcel, setCurrentEditParcel] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [isFormLoading, setIsFormLoading] = useState(false);
-  const [owners, setOwners] = useState([]); // Vendeurs and Mairies
-  const [loadingOwners, setLoadingOwners] = useState(false);
-
-  const fetchParcels = useCallback(async () => {
-    // ... (cette fonction ne change pas)
-    setLoading(true);
-    setError(null);
-    try {
-      let query = supabase.from('parcels').select('*');
-      if (searchTerm) {
-        query = query.or(`reference.ilike.%${searchTerm}%,location_name.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%,status.ilike.%${searchTerm}%`);
-      }
-      const { data, error } = await query.order('created_at', { ascending: false });
-      if (error) throw error;
-      setParcels(data || []);
-    } catch (err) {
-      setError("Impossible de charger les parcelles: " + err.message);
-      toast({ variant: "destructive", title: "Erreur de chargement", description: err.message });
-    } finally {
-      setLoading(false);
+  const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (parcels) {
+      setFilteredData(parcels);
     }
-  }, [searchTerm, toast]);
-
-  // Fetch potential owners (Vendeurs and Mairies)
-  const fetchOwners = useCallback(async () => {
-    setLoadingOwners(true);
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, full_name, email, type')
-        .in('type', ['Vendeur', 'Mairie'])
-        .order('full_name', { ascending: true });
-      
-      if (error) throw error;
-      setOwners(data || []);
-    } catch (err) {
-      console.error('Error fetching owners:', err);
-      toast({ 
-        variant: "destructive", 
-        title: "Erreur", 
-        description: "Impossible de charger la liste des propriétaires" 
-      });
-    } finally {
-      setLoadingOwners(false);
-    }
-  }, [toast]);
-
+  }, [parcels]);
+  
   useEffect(() => {
     fetchParcels();
     fetchOwners();

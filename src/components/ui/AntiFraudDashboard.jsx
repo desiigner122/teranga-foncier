@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,18 +29,15 @@ import { safeTableQuery } from '@/lib/tableUtils';
 
 const AntiFraudDashboard = ({ userRole, dashboardContext }) => {
   const { toast } = useToast();
-  const [fraudAlerts, setFraudAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedAlert, setSelectedAlert] = useState(null);
-  const [showDetails, setShowDetails] = useState(false);
-  const [tableExists, setTableExists] = useState(false);
-  const [stats, setStats] = useState({
-    totalAlerts: 0,
-    criticalAlerts: 0,
-    resolved: 0,
-    prevented: 0
-  });
-
+  const { data: fraudAlerts, loading: fraudAlertsLoading, error: fraudAlertsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (fraudAlerts) {
+      setFilteredData(fraudAlerts);
+    }
+  }, [fraudAlerts]);
+  
   useEffect(() => {
     loadFraudAlerts();
     const interval = setInterval(loadFraudAlerts, 30000); // Refresh toutes les 30 secondes

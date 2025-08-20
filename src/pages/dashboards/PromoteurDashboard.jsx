@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/SupabaseAuthContext';
-import { supabase } from '../../lib/supabaseClient';
+import { useRealtimeContext } from '@/context/RealtimeContext.jsx';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -38,135 +40,23 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AIAssistantWidget from '../../components/ui/AIAssistantWidget';
 import AntiFraudDashboard from '../../components/ui/AntiFraudDashboard';
-import LoadingSpinner from '../../components/ui/spinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { hybridAI } from '../../lib/hybridAI';
 import { antiFraudAI } from '../../lib/antiFraudAI';
 
 const PromoteurDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [projects, setProjects] = useState([]);
-  const [stats, setStats] = useState({
-    totalProjects: 0,
-    activeProjects: 0,
-    completedProjects: 0,
-    totalRevenue: 0,
-    averageMargin: 0,
-    totalUnits: 0,
-    soldUnits: 0,
-    pendingSales: 0,
-    constructionProgress: 0,
-    teamMembers: 0
-  });
-  const [aiInsights, setAiInsights] = useState(null);
-  const [constructionAlerts, setConstructionAlerts] = useState([]);
-  const [salesMetrics, setSalesMetrics] = useState({
-    conversionRate: 0,
-    averageSaleTime: 0,
-    customerSatisfaction: 0,
-    leadGeneration: 0
-  });
-  const [projectRisks, setProjectRisks] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [timeline, setTimeline] = useState([]);
-
-  // Données de démonstration enrichies
-  const projectStatusData = [
-    { status: 'Planification', count: 3, color: '#F59E0B', budget: 2400000000, completion: 15 },
-    { status: 'En cours', count: 5, color: '#3B82F6', budget: 8900000000, completion: 45 },
-    { status: 'Livraison', count: 2, color: '#10B981', budget: 1800000000, completion: 90 },
-    { status: 'Terminé', count: 8, color: '#6B7280', budget: 12000000000, completion: 100 }
-  ];
-
-  const salesProgressData = [
-    { month: 'Jan', vendu: 12, prevision: 15, revenue: 850000000, leads: 45 },
-    { month: 'Fév', vendu: 18, prevision: 20, revenue: 1200000000, leads: 67 },
-    { month: 'Mar', vendu: 22, prevision: 25, revenue: 1580000000, leads: 89 },
-    { month: 'Avr', vendu: 28, prevision: 30, revenue: 1890000000, leads: 112 },
-    { month: 'Mai', vendu: 35, prevision: 35, revenue: 2400000000, leads: 134 },
-    { month: 'Jun', vendu: 42, prevision: 40, revenue: 2950000000, leads: 156 }
-  ];
-
-  const revenueByProjectType = [
-    { type: 'Résidentiel', revenue: 2500000000, margin: 18.5, units: 45, avgPrice: 55000000 },
-    { type: 'Commercial', revenue: 1800000000, margin: 22.3, units: 12, avgPrice: 150000000 },
-    { type: 'Mixte', revenue: 3200000000, margin: 16.8, units: 28, avgPrice: 114000000 },
-    { type: 'Luxe', revenue: 1200000000, margin: 25.2, units: 8, avgPrice: 150000000 }
-  ];
-
-  const constructionMilestones = [
-    { phase: 'Fondations', completion: 100, onTime: true, budget: 95 },
-    { phase: 'Structure', completion: 85, onTime: true, budget: 92 },
-    { phase: 'Toiture', completion: 70, onTime: false, budget: 88 },
-    { phase: 'Finitions', completion: 45, onTime: true, budget: 91 },
-    { phase: 'Aménagements', completion: 20, onTime: true, budget: 96 }
-  ];
-
-  const riskAnalysis = [
-    { category: 'Budget', risk: 'Moyen', impact: 'Élevé', probability: 0.3, mitigation: 'Révision budgétaire' },
-    { category: 'Délais', risk: 'Faible', impact: 'Moyen', probability: 0.15, mitigation: 'Planning renforcé' },
-    { category: 'Qualité', risk: 'Faible', impact: 'Élevé', probability: 0.1, mitigation: 'Contrôles qualité' },
-    { category: 'Réglementaire', risk: 'Moyen', impact: 'Très Élevé', probability: 0.2, mitigation: 'Veille juridique' }
-  ];
-
-  const recentProjects = [
-    {
-      id: 1,
-      name: 'Résidence Les Almadies',
-      type: 'Résidentiel',
-      status: 'En cours',
-      progress: 65,
-      totalUnits: 48,
-      soldUnits: 32,
-      budget: 2400000000,
-      spent: 1560000000,
-      location: 'Almadies, Dakar',
-      completion_date: '2024-12-15',
-      riskLevel: 'Faible',
-      teamSize: 25,
-      nextMilestone: 'Toiture - 15 Nov',
-      contractor: 'BTP Solutions',
-      architecte: 'Design Plus'
-    },
-    {
-      id: 2,
-      name: 'Centre Commercial Plateau',
-      type: 'Commercial',
-      status: 'Planification',
-      progress: 15,
-      totalUnits: 24,
-      soldUnits: 8,
-      budget: 1800000000,
-      spent: 270000000,
-      location: 'Plateau, Dakar',
-      completion_date: '2025-06-30',
-      riskLevel: 'Moyen',
-      teamSize: 12,
-      nextMilestone: 'Permis construction - 30 Oct',
-      contractor: 'Construction Elite',
-      architecte: 'Arch Studio'
-    },
-    {
-      id: 3,
-      name: 'Villa Premium Saly',
-      type: 'Luxe',
-      status: 'Livraison',
-      progress: 90,
-      totalUnits: 12,
-      soldUnits: 11,
-      budget: 960000000,
-      spent: 864000000,
-      location: 'Saly, Mbour',
-      completion_date: '2024-08-30',
-      riskLevel: 'Faible',
-      teamSize: 18,
-      nextMilestone: 'Livraison finale - 20 Oct',
-      contractor: 'Premium Build',
-      architecte: 'Luxury Design'
+  // Loading géré par le hook temps réel
+  const { data: projects, loading: projectsLoading, error: projectsError, refetch } = useRealtimeTable();
+  const [filteredData, setFilteredData] = useState([]);
+  
+  useEffect(() => {
+    if (projects) {
+      setFilteredData(projects);
     }
-  ];
-
+  }, [projects]);
+  
   useEffect(() => {
     if (user && profile) {
       fetchDashboardData();
@@ -512,7 +402,7 @@ const PromoteurDashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-6">

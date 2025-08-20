@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRealtimeTable, useRealtimeUsers, useRealtimeParcels, useRealtimeParcelSubmissions } from '@/hooks/useRealtimeTable';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
@@ -13,7 +14,7 @@ const BlogPostPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Loading géré par le hook temps réel
 
   useEffect(() => {
     const loadPost = async () => {
