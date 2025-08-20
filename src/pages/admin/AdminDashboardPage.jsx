@@ -1,5 +1,20 @@
 // src/pages/admin/AdminDashboardPageNew.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from '@/components/ui/use-toast';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  User, Building, BarChart, UserCheck, Bell, Briefcase, 
+  Users, LandPlot, FileCheck, DollarSign, CalendarDays, PieChart as PieChartIcon 
+} from 'lucide-react';
+import { SupabaseDataService } from '@/services/supabaseDataService';
+import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
+
 // Quick Actions pour l'admin
 const QUICK_ACTIONS = [
   {
@@ -83,6 +98,7 @@ const SimplePieChart = ({ data, title }) => {
 };
 
 const AdminDashboardPage = () => {
+  const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState({
     totalUsers: 0,
     totalParcels: 0,
@@ -184,7 +200,8 @@ const AdminDashboardPage = () => {
         }
       });
 
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         title: "Erreur",
         description: "Impossible de charger les données du dashboard",
         variant: "destructive"
@@ -194,7 +211,8 @@ const AdminDashboardPage = () => {
     }
   }, [toast]);
 
-  const handleAIAction = (action, data) => {    toast({
+  const handleAIAction = (action, data) => {
+    toast({
       title: "Action IA",
       description: `Action ${action} exécutée avec succès`,
     });
