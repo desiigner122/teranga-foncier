@@ -475,10 +475,9 @@ const VerificationPage = () => {
             </Card>
           )}
         </div>
-// (imports moved to top of file)
-};
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+      </motion.div>
+    </>
+  );
 };
 
 export default VerificationPage;
