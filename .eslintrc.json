@@ -1,6 +1,15 @@
 {
-  "extends": ["react-app"],
+  "extends": [
+    "react-app" 
+  ],
+  "plugins": [
+    "import"
+  ],
   "rules": {
+    // Règle pour corriger les déclarations de fonctions/variables en double
+    "no-redeclare": "error",
+
+    // Vos règles existantes (on les garde)
     "no-unused-vars": "warn",
     "react/react-in-jsx-scope": "off",
     "no-undef": "error",

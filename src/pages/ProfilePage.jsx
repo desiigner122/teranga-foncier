@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
 
 const ProfilePage = () => {
   const { user, updateUserProfile, logout } = useAuth();
@@ -31,7 +30,7 @@ const ProfilePage = () => {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState(''); // Added phone state
+  const [phone, setPhone] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -43,26 +42,24 @@ const ProfilePage = () => {
     if (user) {
       setName(user.user_metadata?.name || user.name || '');
       setEmail(user.email || '');
-      setPhone(user.user_metadata?.phone || user.phone || ''); // Populate phone
+      setPhone(user.user_metadata?.phone || user.phone || '');
     }
   }, [user]);
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) {
-      toast({ variant: "destructive", title: "Erreur", description: "Le nom et l'email ne peuvent pas étre vides." });
+      toast({ variant: "destructive", title: "Erreur", description: "Le nom et l'email ne peuvent pas être vides." });
       return;
     }
     setIsUpdatingProfile(true);
     try {
-      // Simulate updating user metadata which often includes name and phone.
-      // Email update typically requires a separate flow with verification.
       const updatedUserData = { name, phone }; 
-      await updateUserProfile({ data: updatedUserData }); // Supabase data update method for metadata
+      await updateUserProfile({ data: updatedUserData });
 
-      toast({ title: "Profil mis é jour", description: "Vos informations ont été sauvegardées avec succés." });
+      toast({ title: "Profil mis à jour", description: "Vos informations ont été sauvegardées avec succès." });
     } catch (error) {
-      toast({ variant: "destructive", title: "Erreur de mise é jour", description: error.message });
+      toast({ variant: "destructive", title: "Erreur de mise à jour", description: error.message });
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -74,19 +71,19 @@ const ProfilePage = () => {
       toast({ variant: "destructive", title: "Erreur", description: "Les nouveaux mots de passe ne correspondent pas." });
       return;
     }
-    if (!newPassword) { // Current password check happens on backend
-       toast({ variant: "destructive", title: "Erreur", description: "Le nouveau mot de passe ne peut pas étre vide." });
+    if (!newPassword) {
+       toast({ variant: "destructive", title: "Erreur", description: "Le nouveau mot de passe ne peut pas être vide." });
        return;
     }
     setIsUpdatingPassword(true);
     try {
-      await updateUserProfile({ password: newPassword }); // Supabase password update method
-      toast({ title: "Mot de passe mis é jour", description: "Votre mot de passe a été changé avec succés." });
-      setCurrentPassword(''); // Clear current password for security if it was displayed/used
+      await updateUserProfile({ password: newPassword });
+      toast({ title: "Mot de passe mis à jour", description: "Votre mot de passe a été changé avec succès." });
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (error) {
-      toast({ variant: "destructive", title: "Erreur de mise é jour du mot de passe", description: error.message });
+      toast({ variant: "destructive", title: "Erreur de mise à jour du mot de passe", description: error.message });
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -99,11 +96,9 @@ const ProfilePage = () => {
   };
   
   const handleDeleteAccount = () => {
-     // This is a sensitive operation. Usually involves more steps on backend.
-     // For now, simulate and inform user.
      toast({
-  title: "Suppression de Compte",
-        description: "?? La suppression de compte n'est pas encore entiérement fonctionnelle. Cette action sera irréversible.",
+        title: "Suppression de Compte",
+        description: "La suppression de compte n'est pas encore entièrement fonctionnelle. Cette action sera irréversible.",
         variant: "warning",
         duration: 5000,
      });
@@ -131,7 +126,7 @@ const ProfilePage = () => {
         <Card className="shadow-lg hover:shadow-primary/10 transition-shadow">
           <CardHeader>
             <CardTitle className="text-xl flex items-center"><User className="mr-2 h-5 w-5 text-primary"/>Informations Personnelles</CardTitle>
-            <CardDescription>Mettez é jour vos informations de profil.</CardDescription>
+            <CardDescription>Mettez à jour vos informations de profil.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleProfileUpdate} className="space-y-4">
@@ -149,7 +144,7 @@ const ProfilePage = () => {
                 <Input id="profile-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isUpdatingProfile} placeholder="+221 XX XXX XX XX" className="h-10"/>
               </div>
               <Button type="submit" disabled={isUpdatingProfile} className="w-full sm:w-auto">
-                <Save className="mr-2 h-4 w-4" /> {isUpdatingProfile ? 'Mise é jour en cours...' : 'Sauvegarder les Modifications'}
+                <Save className="mr-2 h-4 w-4" /> {isUpdatingProfile ? 'Mise à jour en cours...' : 'Sauvegarder les Modifications'}
               </Button>
             </form>
           </CardContent>
@@ -164,17 +159,16 @@ const ProfilePage = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePasswordUpdate} className="space-y-4">
-               {/* For Supabase, current password is not needed on client if user is authenticated */}
               <div className="grid gap-2">
                 <Label htmlFor="new-password">Nouveau Mot de Passe</Label>
-                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={isUpdatingPassword} required className="h-10" placeholder="Minimum 8 caractéres"/>
+                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={isUpdatingPassword} required className="h-10" placeholder="Minimum 8 caractères"/>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="confirm-new-password">Confirmer le Nouveau Mot de Passe</Label>
                 <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} disabled={isUpdatingPassword} required className="h-10" placeholder="Retapez votre nouveau mot de passe"/>
               </div>
               <Button type="submit" disabled={isUpdatingPassword} className="w-full sm:w-auto">
-                <ShieldCheck className="mr-2 h-4 w-4" /> {isUpdatingPassword ? 'Mise é jour en cours...' : 'Changer le Mot de Passe'}
+                <ShieldCheck className="mr-2 h-4 w-4" /> {isUpdatingPassword ? 'Mise à jour en cours...' : 'Changer le Mot de Passe'}
               </Button>
             </form>
           </CardContent>
@@ -194,7 +188,7 @@ const ProfilePage = () => {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>étes-vous absolument sér ?</AlertDialogTitle>
+              <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
               <AlertDialogDescription>
                 Cette action est irréversible et supprimera définitivement votre compte et toutes vos données associées de Teranga Foncier.
               </AlertDialogDescription>

@@ -11,8 +11,7 @@
     "test:parcel-submission": "node tests/parcel_submission_smoke.mjs",
     "test:rls-submissions": "node tests/rls_parcel_submissions_smoke.mjs",
     "test:submission-approval-flow": "node tests/submission_approval_flow.mjs",
-    "preview": "vite preview",
-    "postinstall": "chmod +x node_modules/.bin/* || true"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.2.1",
@@ -70,6 +69,9 @@
     "autoprefixer": "^10.4.16",
     "eslint": "^8.57.1",
     "eslint-config-react-app": "^7.0.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "postcss": "^8.4.31",
     "shx": "^0.3.4",
     "tailwindcss": "^3.3.3",

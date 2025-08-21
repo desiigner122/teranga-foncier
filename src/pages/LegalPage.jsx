@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FileText, Landmark, Server, Copyright, AlertTriangle, Database, ShieldAlert } from 'lucide-react';
+import { useAuth } from "../../contexts/AuthContext";
 
 const LegalPage = () => {
   const sectionVariants = {
@@ -106,11 +107,8 @@ const LegalPage = () => {
 
           <motion.p variants={itemVariants} className="text-sm text-muted-foreground pt-4 text-center">Dernière mise à jour : 18 Juin 2025</motion.p>
         </div>
-      </div>
     </motion.div>
   );
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "../../contexts/AuthContext";
 };
 
 export default LegalPage;

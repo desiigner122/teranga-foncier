@@ -4,6 +4,8 @@ import { ShieldCheck, Scale, Globe, CreditCard, Plane, AlertOctagon, TrendingUp 
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import CountUp from 'react-countup';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const objectives = [
    { icon: ShieldCheck, title: "Lutte Acharnée Contre la Fraude", description: "Vérification systématique et multi-niveaux des titres fonciers, baux, délibérations, identités des vendeurs et mandats pour prévenir les doubles ventes, les faux documents et les litiges.", color: "text-red-600" },
@@ -11,8 +13,6 @@ const objectives = [
    { icon: CreditCard, title: "Paiements Flexibles et Sécurisés", description: "Payez vos échéances, frais de notaire ou timbres en toute sécurité via Mobile Money (Wave, Orange Money), virement bancaire ou chèque, avec un suivi en temps réel.", color: "text-green-600" },
    { icon: Plane, title: "Accessibilité Optimisée pour la Diaspora", description: "Procédures entièrement dématérialisées, assistance dédiée et accompagnement personnalisé à distance pour les Sénégalais résidant à l'étranger, facilitant l'investissement sécurisé depuis n'importe où.", color: "text-purple-600" },
 ];
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "../../contexts/AuthContext";
 
 const AnimatedStatCard = ({ icon: Icon, value, label, color, isPercentage = false, note, delay = 0 }) => {
   const [startCount, setStartCount] = React.useState(false);

@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShieldCheck, MapPinned, BellRing, FileLock2, Users2, CheckSquare } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const features = [
   {
@@ -47,8 +49,6 @@ const features = [
     bgColor: "bg-teal-100/50",
   }
 ];
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "../../contexts/AuthContext";
 
 const UniqueFeaturesSection = () => {
   const sectionVariants = {
