@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Maximize, HeartOff, Trash2 } from 'lucide-react';
 
+import { useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,

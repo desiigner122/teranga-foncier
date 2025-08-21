@@ -1,4 +1,12 @@
 import React, { useState } from 'react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const ParcelRequestForm = ({ parcelId, requestType, onSubmit, onCancel }) => {
   const { toast } = useToast();
   const [message, setMessage] = useState('');

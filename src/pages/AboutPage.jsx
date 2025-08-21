@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const AboutPage = () => {
   const containerVariants = {

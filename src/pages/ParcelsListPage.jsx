@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRealtimeTable, useRealtimeParcels } from '@/hooks/useRealtimeTable';
+import { useRealtimeParcels } from '@/hooks/useRealtimeTable';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { SupabaseDataService } from '@/services/supabaseDataService';
@@ -12,9 +12,13 @@ import { AlertTriangle, ListFilter, Map, Search, Save, Landmark } from 'lucide-r
 import { useToast } from "@/components/ui/use-toast";
 import ParcelsHeroSearch from '@/components/parcels/ParcelsHeroSearch';
 import { Helmet } from 'react-helmet-async';
+import { useAuth } from "@/context/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "@/components/ui/table";
 
 const ParcelsListPage = () => {
-  const location = useLocation();
+  
+  const [loading, setLoading] = useState(false);
+const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
 

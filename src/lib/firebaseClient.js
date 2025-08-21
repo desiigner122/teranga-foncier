@@ -1,4 +1,4 @@
-// src/lib/firebaseClient.import { initializeApp } from 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
@@ -12,7 +12,8 @@ const getFirebaseConfig = () => {
       return JSON.parse(firebaseConfigString);
     } catch (error) {
       // Log error for debugging in development only
-      if (import.meta.env.DEV) {      }
+      if (import.meta.env.DEV) {
+      }
     }
   }
 
@@ -36,7 +37,8 @@ const missingFields = requiredFields.filter(field => !firebaseConfig[field]);
 
 if (missingFields.length > 0) {
   // Log warning for debugging in development only
-  if (import.meta.env.DEV) {  }
+  if (import.meta.env.DEV) {
+  }
 }
 
 // Initialize Firebase
@@ -57,13 +59,15 @@ try {
         connectAuthEmulator(auth, 'http://localhost:9099');
       } catch (error) {
         // Emulator connection might fail if already connected
-        if (import.meta.env.DEV) {        }
+        if (import.meta.env.DEV) {
+        }
       }
     }
   }
 } catch (error) {
   // Log Firebase initialization errors for debugging
-  if (import.meta.env.DEV) {  }
+  if (import.meta.env.DEV) {
+  }
 }
 
 export { db, auth, app };

@@ -2,6 +2,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const MobileMenuButton = ({ isMenuOpen, isScrolled, onClick }) => {
   const useDarkIcon = isScrolled;

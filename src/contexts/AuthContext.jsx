@@ -6,6 +6,10 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from "@/components/ui/use-toast";
 
 import { useContext, useEffect, useCallback, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+
+
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {

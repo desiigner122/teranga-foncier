@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react';
 // src/lib/hybridAI.
 
 /**

@@ -1,4 +1,8 @@
 import React, { useState, useRef } from 'react';
+import { CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import supabase from "../../lib/supabaseClient";
+
 const IdentityVerificationPage = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
@@ -390,6 +394,9 @@ const IdentityVerificationPage = () => {
       </div>
     </div>
   );
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 };
 
 export default IdentityVerificationPage;

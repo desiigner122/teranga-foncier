@@ -1,3 +1,4 @@
+import { User, DollarSign, Landmark, TrendingUp, MapPin } from 'lucide-react';
 // src/services/authRoutingService.js
 /**
  * Service de Routage Intelligent selon le Type d'Utilisateur

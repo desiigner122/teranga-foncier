@@ -1,13 +1,11 @@
 import { supabase } from '@/lib/supabaseClient';
-
 import { realtimeStore } from '@/lib/realtimeStore';
 
-;
 /**
  * Service unifié pour toutes les opérations de données
  * Intègre le cache temps réel et les opérations CRUD
  */
-export class SupabaseDataService {
+class SupabaseDataService {
   
   /**
    * Opérations génériques
@@ -44,7 +42,8 @@ export class SupabaseDataService {
       realtimeStore.updateCache(tableName, data);
       
       return data || [];
-    } catch (error) {      return [];
+    } catch (error) {
+      return [];
     }
   }
 
@@ -58,7 +57,8 @@ export class SupabaseDataService {
       
       if (error) throw error;
       return data;
-    } catch (error) {      return null;
+    } catch (error) {
+      return null;
     }
   }
 
@@ -76,7 +76,8 @@ export class SupabaseDataService {
       realtimeStore.invalidateCache(tableName);
       
       return data;
-    } catch (error) {      throw error;
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -95,7 +96,8 @@ export class SupabaseDataService {
       realtimeStore.invalidateCache(tableName);
       
       return data;
-    } catch (error) {      throw error;
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -112,7 +114,8 @@ export class SupabaseDataService {
       realtimeStore.invalidateCache(tableName);
       
       return true;
-    } catch (error) {      throw error;
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -196,7 +199,8 @@ export class SupabaseDataService {
       }));
 
       return stats;
-    } catch (error) {      return {};
+    } catch (error) {
+      return {};
     }
   }
 
@@ -237,7 +241,8 @@ export class SupabaseDataService {
         .select('id')
         .limit(1);
       
-      if (checkError && checkError.code === '42P01') {        return [];
+      if (checkError && checkError.code === '42P01') {
+        return [];
       }
       
       let query = supabase
@@ -256,11 +261,13 @@ export class SupabaseDataService {
       
       const { data, error } = await query;
       
-      if (error) {        return [];
+      if (error) {
+        return [];
       }
       
       return data || [];
-    } catch (err) {      return [];
+    } catch (err) {
+      return [];
     }
   }
 
@@ -273,11 +280,13 @@ export class SupabaseDataService {
         .update({ read: true, read_at: new Date().toISOString() })
         .eq('id', notificationId);
       
-      if (error) {        return false;
+      if (error) {
+        return false;
       }
       
       return true;
-    } catch (err) {      return false;
+    } catch (err) {
+      return false;
     }
   }
 
@@ -294,7 +303,8 @@ export class SupabaseDataService {
         .select('id')
         .limit(1);
       
-      if (checkError && checkError.code === '42P01') {        return [];
+      if (checkError && checkError.code === '42P01') {
+        return [];
       }
       
       const { data, error } = await supabase
@@ -303,11 +313,13 @@ export class SupabaseDataService {
         .or(`participant1_id.eq.${userId},participant2_id.eq.${userId},participants::text.ilike.%${userId}%`)
         .order('updated_at', { ascending: false });
       
-      if (error) {        return [];
+      if (error) {
+        return [];
       }
       
       return data || [];
-    } catch (err) {      return [];
+    } catch (err) {
+      return [];
     }
   }
 
@@ -321,7 +333,8 @@ export class SupabaseDataService {
         .select('id')
         .limit(1);
       
-      if (checkError && checkError.code === '42P01') {        return [];
+      if (checkError && checkError.code === '42P01') {
+        return [];
       }
       
       const { data, error } = await supabase
@@ -331,11 +344,13 @@ export class SupabaseDataService {
         .order('created_at', { ascending: true })
         .limit(options.limit || 50);
       
-      if (error) {        return [];
+      if (error) {
+        return [];
       }
       
       return data || [];
-    } catch (err) {      return [];
+    } catch (err) {
+      return [];
     }
   }
 
@@ -356,11 +371,13 @@ export class SupabaseDataService {
         }])
         .select();
       
-      if (error) {        return null;
+      if (error) {
+        return null;
       }
       
       return data?.[0] || null;
-    } catch (err) {      return null;
+    } catch (err) {
+      return null;
     }
   }
 
@@ -370,7 +387,8 @@ export class SupabaseDataService {
       const allParticipants = [...new Set([...participantIds, creatorId])];
       
       // We should have at least two participants for a conversation
-      if (allParticipants.length < 2) {        return null;
+      if (allParticipants.length < 2) {
+        return null;
       }
 
       const participant1 = allParticipants[0];
@@ -388,11 +406,13 @@ export class SupabaseDataService {
         }])
         .select();
       
-      if (error) {        return null;
+      if (error) {
+        return null;
       }
       
       return data?.[0] || null;
-    } catch (err) {      return null;
+    } catch (err) {
+      return null;
     }
   }
 
@@ -405,11 +425,13 @@ export class SupabaseDataService {
         .neq('sender_id', userId)
         .eq('read', false);
       
-      if (error) {        return false;
+      if (error) {
+        return false;
       }
       
       return true;
-    } catch (err) {      return false;
+    } catch (err) {
+      return false;
     }
   }
 
@@ -422,11 +444,13 @@ export class SupabaseDataService {
         .neq('sender_id', userId)
         .eq('read', false);
       
-      if (error) {        return 0;
+      if (error) {
+        return 0;
       }
       
       return count || 0;
-    } catch (err) {      return 0;
+    } catch (err) {
+      return 0;
     }
   }
 }

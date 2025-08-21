@@ -1,5 +1,12 @@
 // src/pages/VerificationPage.jsx
 import React, { useState, useRef } from 'react';
+import { CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Progress } from '../components/ui/progress';
+import supabase from "../../lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 const VerificationPage = () => {
   const [frontFile, setFrontFile] = useState(null);
   const [backFile, setBackFile] = useState(null);
@@ -468,9 +475,10 @@ const VerificationPage = () => {
             </Card>
           )}
         </div>
-      </motion.div>
-    </>
-  );
+// (imports moved to top of file)
+};
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 };
 
 export default VerificationPage;

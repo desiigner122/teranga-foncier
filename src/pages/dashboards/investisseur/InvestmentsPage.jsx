@@ -1,53 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { DollarSign, Search, PlusCircle, TrendingUp, Calendar, MapPin, Target, BarChart3 } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from '../../../context/AuthContext';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { motion } from 'framer-motion';
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const InvestmentsPage = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: investments, loading: investmentsLoading, error: investmentsError, refetch } = useRealtimeTable();
-  const [filteredData, setFilteredData] = useState([]);
   
-  useEffect(() => {
-    if (investments) {
-      setFilteredData(investments);
-    }
-  }, [investments]);
-  
-  useEffect(() => {
-    if (user) {
-      loadInvestments();
-    }
-  }, [user]);
+  const { 
+    data: investments, 
+    loading, 
+    error 
+  } = useRealtimeTable('investments', 'created_at', {
+    filterField: 'investor_id',
+    filterValue: user?.id
+  });
 
-  const loadInvestments = async () => {
-    try {
-      setLoading(true);
-
-      // Récupérer les investissements (table 'investments' du schéma AI) rejoints sur parcels si FK (adapter selon schéma réel)
-      const { data: investmentData, error } = await supabase
-        .from('investments')
-        .select(`
-          *,
-          parcels:parcel_id(*)
-        `)
-        .eq('investor_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error && error.code !== 'PGRST116') {      }
-
-      setInvestments(investmentData || []);
-
-  // Pas de génération d'exemples: on affiche simplement vide + CTA
-
-    } catch (error) {      toast({
+  useMemo(() => {
+    if (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de charger les investissements"
+        description: "Impossible de charger les investissements."
       });
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // Removed sample generation block
+  }, [error, toast]);
 
   const calculateROI = (investment) => {
     const initial = investment.initial_investment || 0;
@@ -62,12 +50,24 @@ const InvestmentsPage = () => {
     return yearsHeld > 0 ? (totalROI / yearsHeld).toFixed(1) : 0;
   };
 
+  const filteredInvestments = useMemo(() => {
+    if (!investments) return [];
+    return investments.filter(investment => {
+      const matchesSearch = 
+        investment.parcels?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        investment.parcels?.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        investment.id.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || investment.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [investments, searchTerm, statusFilter]);
+
   const getTotalValue = () => {
-    return investments.reduce((sum, inv) => sum + (inv.current_value || 0), 0);
+    return filteredInvestments.reduce((sum, inv) => sum + (inv.current_value || 0), 0);
   };
 
   const getTotalInvested = () => {
-    return investments.reduce((sum, inv) => sum + (inv.initial_investment || 0), 0);
+    return filteredInvestments.reduce((sum, inv) => sum + (inv.initial_investment || 0), 0);
   };
 
   const getTotalGainLoss = () => {
@@ -114,16 +114,7 @@ const InvestmentsPage = () => {
     }
   };
 
-  const filteredInvestments = investments.filter(investment => {
-    const matchesSearch = 
-      investment.parcels?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      investment.parcels?.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      investment.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || investment.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  if (loading || dataLoading) {
+  if (loading && !investments) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner />
@@ -256,10 +247,10 @@ const InvestmentsPage = () => {
             <div className="text-center py-8">
               <TrendingUp className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {investments.length === 0 ? 'Aucun investissement' : 'Aucun résultat'}
+                {investments && investments.length === 0 ? 'Aucun investissement' : 'Aucun résultat'}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                {investments.length === 0 
+                {investments && investments.length === 0 
                   ? 'Commencez votre premier investissement immobilier'
                   : 'Essayez de modifier vos critéres de recherche'
                 }
@@ -360,4 +351,5 @@ const InvestmentsPage = () => {
 };
 
 export default InvestmentsPage;
+
 

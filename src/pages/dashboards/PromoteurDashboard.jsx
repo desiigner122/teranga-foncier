@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { Users, Building, DollarSign, PieChart as PieChartIcon, Eye, AlertCircle, CheckCircle, Clock, Plus, TrendingUp, ClipboardList, Calendar, MapPin } from 'lucide-react';
+import { Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, CartesianGrid } from 'recharts';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import supabase from '../../lib/supabaseClient';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const PromoteurDashboard = () => {
-  const { user, profile } = useAuth();
+  
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+const { user, profile } = useAuth();
   const navigate = useNavigate();
   // Loading géré par le hook temps réel
   const { data: projects, loading: projectsLoading, error: projectsError, refetch } = useRealtimeTable();
@@ -125,7 +141,8 @@ const PromoteurDashboard = () => {
       // Analyser les risques des projets
       await analyzeProjectRisks(projectsData, constructionData);
 
-    } catch (error) {      // Fallback avec données de démonstration enrichies
+    } catch (error) {
+      // Fallback avec données de démonstration enrichies
       setStats({
         totalProjects: 18,
         activeProjects: 7,
@@ -177,7 +194,8 @@ const PromoteurDashboard = () => {
       });
       
       setAiInsights(response);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Vérification des alertes de construction
@@ -210,7 +228,8 @@ const PromoteurDashboard = () => {
       });
 
       setConstructionAlerts(alerts);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Analyser les risques des projets avec IA
@@ -257,7 +276,8 @@ const PromoteurDashboard = () => {
       }) || [];
 
       setProjectRisks(risks);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Fonction utilitaire pour calculer la progression attendue
@@ -344,7 +364,8 @@ const PromoteurDashboard = () => {
       case 'SALES_FORECAST':
         await generateAIInsights();
         break;
-      default:    }
+      default:
+    }
   };
 
   if (loading || dataLoading) {

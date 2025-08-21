@@ -61,6 +61,8 @@ export function RealtimeProvider({ children }) {
           realtimeStore.primeTable('transactions', { limit: 200 }),
           realtimeStore.primeTable('municipal_requests', { limit: 100 })
         );
+import { useToast } from "@/components/ui/use-toast";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
       } else if (user.type?.toLowerCase() === 'vendeur') {
         // Vendeur: ses parcelles et soumissions
         loadPromises.push(

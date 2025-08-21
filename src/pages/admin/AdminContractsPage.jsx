@@ -1,7 +1,25 @@
 // src/pages/admin/AdminContractsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { Eye, Search } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Input } from '../../components/ui/input';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const AdminContractsPage = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { data: contracts, loading: contractsLoading, error: contractsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -115,3 +133,4 @@ const AdminContractsPage = () => {
 };
 
 export default AdminContractsPage;
+

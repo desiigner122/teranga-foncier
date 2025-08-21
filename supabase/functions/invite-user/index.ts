@@ -1,3 +1,4 @@
+// @ts-ignore
 // Edge Function: invite-user
 // Purpose: Send invitation email & create auth.user (if using admin API) or send magic link
 // Deployment: supabase functions deploy invite-user --no-verify-jwt (if you secure with service key header instead)

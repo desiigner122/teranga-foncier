@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MapPin, Maximize, CheckCircle, AlertCircle, Clock, Share2, Heart, MessageSquare } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const formatPrice = (price) => {
    if (typeof price !== 'number' || isNaN(price)) {

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from "@/components/ui/use-toast";
 
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {

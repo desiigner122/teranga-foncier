@@ -8,9 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 const BlogPostPage = () => {
-  const { slug } = useParams();
+  
+  const [loading, setLoading] = useState(false);
+const { slug } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [post, setPost] = useState(null);

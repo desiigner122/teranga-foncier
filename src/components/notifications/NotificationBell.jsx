@@ -1,4 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { Bell } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 const POLL_INTERVAL_MS = 15000;
 
 const NotificationBell = () => {

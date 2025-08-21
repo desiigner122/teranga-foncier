@@ -1,5 +1,27 @@
 // src/pages/admin/AdminNewDashboardPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  User, Building, DollarSign, LandPlot, 
+  Activity, Bell, Briefcase, Users, 
+  FileCheck, BarChart, PieChart as PieChartIcon, 
+  Home, Landmark, Gavel, UserCheck, CalendarDays
+} from 'lucide-react';
+import { 
+  BarChart as RechartsBarChart, 
+  Bar, Cell, XAxis, YAxis, 
+  Tooltip, Legend, ResponsiveContainer, 
+  PieChart, Pie
+} from 'recharts';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { useToast } from '../../components/ui/use-toast';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import SupabaseDataService from '../../services/supabaseDataService';
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 // Quick Actions pour l'admin
 const QUICK_ACTIONS = [
   {
@@ -105,7 +127,7 @@ const AdminNewDashboardPage = () => {
     upcomingEvents: []
   });
   
-  // Loading géré par le hook temps réel
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   // Charger les données du dashboard
@@ -132,7 +154,8 @@ const AdminNewDashboardPage = () => {
       if (!metrics) throw new Error('Données non disponibles');
       setDashboardData(metrics);
       
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         title: "Erreur de chargement",
         description: "Impossible de charger les données du dashboard",
         variant: "destructive"

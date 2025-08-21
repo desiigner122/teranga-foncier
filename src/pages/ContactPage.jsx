@@ -9,9 +9,13 @@ import { Phone, Mail, MapPin, Clock, Send, Building, HelpCircle, Loader2, Linked
 import { useToast } from "@/components/ui/use-toast";
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from "../../contexts/AuthContext";
 
 const ContactPage = () => {
-  const { toast } = useToast();
+  
+
+  /* REMOVED DUPLICATE */ ({});
+const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
 

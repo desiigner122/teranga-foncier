@@ -4,6 +4,8 @@ import { FileCheck, UserCheck, SearchCheck, Gavel } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const preventionPoints = [
   { icon: FileCheck, title: "Vérification Documentaire Approfondie", description: "Analyse minutieuse des titres fonciers, baux, délibérations, plans cadastraux et certificats d'urbanisme pour détecter toute incohérence ou falsification.", color: "text-red-600", bgColor: "bg-red-100" },

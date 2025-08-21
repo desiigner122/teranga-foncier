@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useRealtimeTable, useRealtimeParcels } from '@/hooks/useRealtimeTable';
+import { useRealtimeParcels } from '@/hooks/useRealtimeTable';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -11,6 +11,11 @@ import { Input } from '@/components/ui/input';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner'; 
 import { Card, CardContent } from '@/components/ui/card';
+import { Legend } from 'recharts';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "@/components/ui/table";
+
 // Import Card and CardContent
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -21,7 +26,10 @@ L.Icon.Default.mergeOptions({
 });
 
 const createIcon = (color) => {
-  return new L.Icon({
+  
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+return new L.Icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
     iconSize: [25, 41],

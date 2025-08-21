@@ -7,7 +7,9 @@ import { ShieldCheck, BarChart3, FileSearch, Users, ArrowRight, CheckSquare, Set
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { Helmet } from 'react-helmet-async';
-import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage';// <<< CORRECTION DU CHEMIN ICI
+import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage';
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";// <<< CORRECTION DU CHEMIN ICI
 
 const SolutionsBanquesPage = () => {
   const { isAuthenticated } = useAuth();

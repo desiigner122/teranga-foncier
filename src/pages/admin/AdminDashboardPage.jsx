@@ -14,6 +14,8 @@ import { SupabaseDataService } from '@/services/supabaseDataService';
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 // Quick Actions pour l'admin
 const QUICK_ACTIONS = [

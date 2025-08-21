@@ -1,5 +1,14 @@
 // src/pages/solutions/dashboards/AgentDashboardPage.jsx
 import React, { useState, useEffect } from 'react';
+import { Users, LandPlot, CalendarDays, Mail, Phone, AlertCircle, Clock, TrendingUp, ClipboardList, CheckCircle2 } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Progress } from '../../../components/ui/progress';
+import { Avatar, AvatarFallback } from '../../../components/ui/avatar';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const AgentDashboardPage = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({

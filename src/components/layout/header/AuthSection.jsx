@@ -9,6 +9,8 @@ import { LayoutGrid, User, LogOut, Settings, MessageSquare } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext';
 import { useMessagingNotification } from '@/context/MessagingNotificationContext';
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 
 const getInitials = (email) => {

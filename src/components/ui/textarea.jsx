@@ -12,6 +12,8 @@ const Textarea = React.forwardRef(({ className, ...props }, ref) => {
       ref={ref}
       {...props} />)
   );
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 })
 Textarea.displayName = "Textarea"
 

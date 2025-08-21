@@ -12,8 +12,13 @@ import { Landmark, Send, UploadCloud, CheckCircle2, ArrowLeft, ArrowRight, FileT
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useNavigate } from "react-router-dom";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 const MunicipalLandRequestPage = () => {
-  const { toast } = useToast();
+  
+
+  /* REMOVED DUPLICATE */ ({});
+const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 

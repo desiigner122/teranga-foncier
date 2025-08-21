@@ -7,9 +7,15 @@ import { Tag, Calendar, ArrowRight, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Helmet } from 'react-helmet-async';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 const BlogPage = () => {
-  const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();
+  
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {

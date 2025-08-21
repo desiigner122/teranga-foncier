@@ -1,7 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { Search, Filter, RefreshCw, ClipboardList, Calendar } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/SupabaseDataService';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 // Helper to compute progress placeholder until a dedicated progress tracking table exists
 const deriveProgress = (project) => {
-  // If units_total available, approximate progress by units_sold ratio
+  
+  
+  /* REMOVED DUPLICATE */ (false);
+const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+// If units_total available, approximate progress by units_sold ratio
   if (project?.units_total && project.units_total > 0) {
     return Math.min(100, Math.round((project.units_sold || 0) / project.units_total * 100));
   }
@@ -133,3 +153,4 @@ const ConstructionTrackingPage = () => {
 };
 
 export default ConstructionTrackingPage;
+

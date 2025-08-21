@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { Eye, Search, Edit } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Input } from '../../components/ui/input';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import supabase from "../../lib/supabaseClient";
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const AgentParcelsPage = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -107,3 +125,4 @@ const AgentParcelsPage = () => {
 };
 
 export default AgentParcelsPage;
+

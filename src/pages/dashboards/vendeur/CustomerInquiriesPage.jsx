@@ -1,5 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { DollarSign, Eye, Mail, Phone, Search, AlertCircle, CheckCircle, Clock, MessageSquare, Calendar, Reply } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../components/ui/tabs';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/SupabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from '../../../context/AuthContext';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const CustomerInquiriesPage = () => {
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dataLoading, setDataLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { data: inquiries, loading: inquiriesLoading, error: inquiriesError, refetch } = useRealtimeTable();
@@ -22,7 +40,8 @@ const CustomerInquiriesPage = () => {
       setLoading(true);
       const vendeurInquiries = await SupabaseDataService.getVendeurInquiries(user.id);
       setInquiries(vendeurInquiries || []);
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les demandes clients"
@@ -45,7 +64,8 @@ const CustomerInquiriesPage = () => {
         title: "Statut mis é jour",
         description: `La demande a été marquée comme ${getStatusLabel(newStatus)}`
       });
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de mettre é jour le statut"
@@ -457,4 +477,5 @@ const CustomerInquiriesPage = () => {
 };
 
 export default CustomerInquiriesPage;
+
 

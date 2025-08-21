@@ -1,4 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Building, DollarSign, LandPlot, Activity, BarChart, Landmark, Eye, CheckCircle, Clock, MessageSquare, Plus, TrendingUp, MapPin, FileText, FileSignature, Map, Archive, Settings, Globe, Shield, BarChart3, AlertTriangle, XCircle, Brain } from 'lucide-react';
+import { BarChart as RechartsBarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, CartesianGrid } from 'recharts';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import supabase from "../../lib/supabaseClient";
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 // Carte de cadastre interactive réelle
 const CadastreMapReal = ({ onAction }) => (
   <div className="h-full bg-gradient-to-br from-blue-50 to-sky-100 dark:from-blue-900/30 dark:to-sky-800/30 rounded-lg p-4 flex flex-col items-center justify-center shadow-inner">
@@ -13,6 +25,9 @@ const CadastreMapReal = ({ onAction }) => (
 );
 
 const MairiesDashboard = () => {
+  
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   // Loading géré par le hook temps réel
   // Etat initial vide (plus de données simulées)
   const [dashboardData, setDashboardData] = useState({
@@ -39,7 +54,6 @@ const MairiesDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ type: null, title: '', description: '', data: null });
-  const [searchTerm, setSearchTerm] = useState('');
   const [user, setUser] = useState(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -71,7 +85,8 @@ const MairiesDashboard = () => {
         securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
       }));
 
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   const loadMairieData = async () => {
@@ -207,7 +222,8 @@ const MairiesDashboard = () => {
       // Générer insights IA
       await generateMunicipalInsights();
 
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur de chargement",
         description: "Certaines données municipales n'ont pas pu être chargées (aucune donnée simulée utilisée)",
@@ -224,16 +240,16 @@ const MairiesDashboard = () => {
         approvalRate: dashboardData.totalRequests > 0 ? (dashboardData.approvedRequests / dashboardData.totalRequests) * 100 : 0,
         revenue: dashboardData.totalRevenue,
         availableLands: dashboardData.municipalLands,
-        disputesRatio: dashboardData.totalRequests > 0 ? (dashboardData.disputes / dashboardData.totalRequests) * 100 : 0
+        disputesRatio: dashboardData.totalRequests > 0 ? ((dashboardData.disputes || 0) / dashboardData.totalRequests) * 100 : 0
       };
 
       const query = `Analyse les données municipales suivantes:
-      - ${context.totalRequests} demandes totales avec ${context.approvalRate.toFixed(1)}% d'approbation
-      - Revenus municipaux: ${context.revenue.toLocaleString()} FCFA
-      - ${context.availableLands} terrains disponibles
-      - Taux de litiges: ${context.disputesRatio.toFixed(1)}%
-      
-      Fournis 3 recommandations stratégiques et 2 alertes importantes pour améliorer la gestion municipale.`;
+- ${context.totalRequests} demandes totales avec ${context.approvalRate.toFixed(1)}% d'approbation
+- Revenus municipaux: ${context.revenue.toLocaleString()} FCFA
+- ${context.availableLands} terrains disponibles
+- Taux de litiges: ${context.disputesRatio.toFixed(1)}%
+
+Fournis 3 recommandations stratégiques et 2 alertes importantes pour améliorer la gestion municipale.`;
 
       const response = await hybridAI.generateResponse(query, [], { 
         role: 'municipal_advisor', 
@@ -254,7 +270,8 @@ const MairiesDashboard = () => {
           }))
         }));
       }
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -317,7 +334,8 @@ const MairiesDashboard = () => {
           description: "Prévisions de revenus générées avec succès",
         });
         break;
-      default:    }
+      default:
+    }
   };
 
   const openModal = (type, title, description, data = null) => {
@@ -339,7 +357,8 @@ const MairiesDashboard = () => {
       
       await loadMairieData();
       closeModal();
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de traiter la demande",
@@ -829,3 +848,4 @@ const MairiesDashboard = () => {
 };
 
 export default MairiesDashboard;
+

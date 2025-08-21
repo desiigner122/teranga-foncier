@@ -253,6 +253,7 @@ const DigitalVaultPage = () => {
       </motion.div>
     </div>
   );
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 };
 
 export default DigitalVaultPage;

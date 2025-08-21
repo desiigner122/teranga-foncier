@@ -1,5 +1,12 @@
 // src/components/layout/Sidebar.jsx
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Avatar, AvatarFallback } from '../../components/ui/avatar';
+import { Link } from 'react-router-dom';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 // Ce composant est maintenant juste pour l'affichage, il ne reéoit plus `active`
 const NavItemContent = ({ item, unreadCount }) => (
   <>

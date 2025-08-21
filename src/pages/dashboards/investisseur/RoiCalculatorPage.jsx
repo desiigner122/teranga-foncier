@@ -1,48 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { RefreshCw, TrendingUp, Calculator, Save, History } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Label } from '../../../components/ui/label';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from '../../../context/AuthContext';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { motion } from 'framer-motion';
+import supabase from '../../../lib/supabaseClient';
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const RoiCalculatorPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  // Loading géré par le hook temps réel
   const [calculating, setCalculating] = useState(false);
-  const { data: savedCalculations, loading: savedCalculationsLoading, error: savedCalculationsError, refetch } = useRealtimeTable();
-  const [filteredData, setFilteredData] = useState([]);
-  
+  const [calculationType, setCalculationType] = useState('simple');
+  const [coutTotal, setCoutTotal] = useState('');
+  const [revenuEstime, setRevenuEstime] = useState('');
+  const [dureeInvestissement, setDureeInvestissement] = useState('1');
+  const [tauxActualisation, setTauxActualisation] = useState('5');
+  const [fraisAnnuels, setFraisAnnuels] = useState('0');
+  const [results, setResults] = useState(null);
+  const [calculationName, setCalculationName] = useState('');
+
+  const { 
+    data: savedCalculations, 
+    loading, 
+    error, 
+    refetch 
+  } = useRealtimeTable('roi_calculations', 'created_at', {
+    filterField: 'investor_id',
+    filterValue: user?.id
+  });
+
   useEffect(() => {
-    if (savedCalculations) {
-      setFilteredData(savedCalculations);
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de charger les calculs sauvegardés."
+      });
     }
-  }, [savedCalculations]);
-  
-  useEffect(() => {
-    if (user) {
-      loadSavedCalculations();
-    }
-    setLoading(false);
-  }, [user]);
-
-  const loadSavedCalculations = async () => {
-    try {
-      if (!user?.id) return;
-
-      const { data: calculations, error } = await SupabaseDataService.supabaseClient
-        .from('roi_calculations')
-        .select('*')
-        .eq('investor_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error && error.code !== 'PGRST116') {      }
-
-      setSavedCalculations(calculations || []);
-    } catch (error) {    }
-  };
+  }, [error, toast]);
 
   const calculateRoi = async () => {
     if (!coutTotal || !revenuEstime) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Veuillez remplir au minimum le coét total et le revenu estimé"
+        description: "Veuillez remplir au minimum le coût total et le revenu estimé."
       });
       return;
     }
@@ -59,7 +68,6 @@ const RoiCalculatorPage = () => {
       let calculationResults;
 
       if (calculationType === 'simple') {
-        // ROI simple
         const gain = revenu - cout;
         const roiSimple = (gain / cout) * 100;
         const roiAnnualise = duree > 0 ? roiSimple / duree : roiSimple;
@@ -72,13 +80,24 @@ const RoiCalculatorPage = () => {
           rentabilite: roiSimple > 0 ? 'Profitable' : 'Non profitable'
         };
       } else {
-        // ROI actualisé (VAN/TRI)
         const fluxAnnuel = (revenu - frais) / duree;
         let van = -cout;
         
         for (let i = 1; i <= duree; i++) {
           van += fluxAnnuel / Math.pow(1 + taux, i);
         }
+
+        const calculateTRI = (investissement, flux, duree) => {
+          let tauxMin = -0.99, tauxMax = 5.0, taux, vanCalc;
+          for (let i = 0; i < 100; i++) {
+            taux = (tauxMin + tauxMax) / 2;
+            vanCalc = -investissement;
+            for (let j = 1; j <= duree; j++) vanCalc += flux / Math.pow(1 + taux, j);
+            if (Math.abs(vanCalc) < 0.01) break;
+            if (vanCalc > 0) tauxMin = taux; else tauxMax = taux;
+          }
+          return taux * 100;
+        };
 
         const tri = calculateTRI(cout, fluxAnnuel, duree);
         const roiActualise = (van / cout) * 100;
@@ -92,41 +111,16 @@ const RoiCalculatorPage = () => {
           rentabilite: van > 0 ? 'Profitable (VAN positive)' : 'Non profitable (VAN négative)'
         };
       }
-
       setResults(calculationResults);
-
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erreur de calcul",
-        description: "Vérifiez que tous les montants sont des nombres valides"
+        description: "Vérifiez que tous les montants sont des nombres valides."
       });
     } finally {
       setCalculating(false);
     }
-  };
-
-  const calculateTRI = (investissement, fluxAnnuel, duree) => {
-    // Calcul approximatif du TRI par dichotomie
-    let tauxMin = -0.99;
-    let tauxMax = 5.0;
-    let taux, van;
-    
-    for (let i = 0; i < 100; i++) {
-      taux = (tauxMin + tauxMax) / 2;
-      van = -investissement;
-      
-      for (let j = 1; j <= duree; j++) {
-        van += fluxAnnuel / Math.pow(1 + taux, j);
-      }
-      
-      if (Math.abs(van) < 0.01) break;
-      
-      if (van > 0) tauxMin = taux;
-      else tauxMax = taux;
-    }
-    
-    return taux * 100;
   };
 
   const saveCalculation = async () => {
@@ -134,7 +128,7 @@ const RoiCalculatorPage = () => {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Veuillez effectuer un calcul et donner un nom é votre simulation"
+        description: "Veuillez effectuer un calcul et donner un nom à votre simulation."
       });
       return;
     }
@@ -152,25 +146,14 @@ const RoiCalculatorPage = () => {
         results: results
       };
 
-      const { error } = await SupabaseDataService.supabaseClient
-        .from('roi_calculations')
-        .insert([calculationData]);
-
+      const { error } = await supabase.from('roi_calculations').insert([calculationData]);
       if (error) throw error;
 
-      toast({
-        title: "Succés",
-        description: "Calcul sauvegardé avec succés"
-      });
-
+      toast({ title: "Succès", description: "Calcul sauvegardé avec succès." });
       setCalculationName('');
-      loadSavedCalculations();
-
-    } catch (error) {      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder le calcul"
-      });
+      refetch();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible de sauvegarder le calcul." });
     }
   };
 
@@ -182,19 +165,11 @@ const RoiCalculatorPage = () => {
     setTauxActualisation((calculation.discount_rate * 100).toString());
     setFraisAnnuels(calculation.annual_costs?.toString() || '0');
     setResults(calculation.results);
-    
-    toast({
-      title: "Calcul chargé",
-      description: `Simulation "${calculation.name}" chargée avec succés`
-    });
+    toast({ title: "Calcul chargé", description: `Simulation "${calculation.name}" chargée.` });
   };
 
-  if (loading || dataLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <LoadingSpinner size="large" />
-      </div>
-    );
+  if (loading && !savedCalculations) {
+    return <div className="flex items-center justify-center h-full"><LoadingSpinner size="large" /></div>;
   }
 
   return (
@@ -209,130 +184,72 @@ const RoiCalculatorPage = () => {
           <Calculator className="mr-3 h-8 w-8 text-primary"/>
           Calculateur de ROI
         </h1>
-        <Button variant="outline" size="sm" onClick={loadSavedCalculations}>
+        <Button variant="outline" size="sm" onClick={refetch}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Actualiser
         </Button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Formulaire de calcul */}
         <Card>
           <CardHeader>
             <CardTitle>Simulez le Retour sur Investissement</CardTitle>
-            <CardDescription>
-              Entrez les paramétres de votre investissement pour calculer le ROI
-            </CardDescription>
+            <CardDescription>Entrez les paramètres de votre investissement.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="calculationType">Type de calcul</Label>
               <Select value={calculationType} onValueChange={setCalculationType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir le type de calcul" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="simple">ROI Simple</SelectItem>
                   <SelectItem value="advanced">ROI Actualisé (VAN/TRI)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
             <div>
-              <Label htmlFor="coutTotal">Coét Total de l'Investissement (FCFA)</Label>
-              <Input 
-                id="coutTotal" 
-                type="number" 
-                placeholder="Ex: 50000000" 
-                value={coutTotal} 
-                onChange={(e) => setCoutTotal(e.target.value)} 
-              />
+              <Label htmlFor="coutTotal">Coût Total (FCFA)</Label>
+              <Input id="coutTotal" type="number" placeholder="Ex: 50000000" value={coutTotal} onChange={(e) => setCoutTotal(e.target.value)} />
             </div>
-
             <div>
-              <Label htmlFor="revenuEstime">Revenu/Valeur de Revente Estimé (FCFA)</Label>
-              <Input 
-                id="revenuEstime" 
-                type="number" 
-                placeholder="Ex: 65000000" 
-                value={revenuEstime} 
-                onChange={(e) => setRevenuEstime(e.target.value)} 
-              />
+              <Label htmlFor="revenuEstime">Revenu/Valeur Revente (FCFA)</Label>
+              <Input id="revenuEstime" type="number" placeholder="Ex: 65000000" value={revenuEstime} onChange={(e) => setRevenuEstime(e.target.value)} />
             </div>
-
             {calculationType === 'advanced' && (
               <>
                 <div>
-                  <Label htmlFor="dureeInvestissement">Durée de l'investissement (années)</Label>
-                  <Input 
-                    id="dureeInvestissement" 
-                    type="number" 
-                    placeholder="Ex: 5" 
-                    value={dureeInvestissement} 
-                    onChange={(e) => setDureeInvestissement(e.target.value)} 
-                  />
+                  <Label htmlFor="dureeInvestissement">Durée (années)</Label>
+                  <Input id="dureeInvestissement" type="number" placeholder="Ex: 5" value={dureeInvestissement} onChange={(e) => setDureeInvestissement(e.target.value)} />
                 </div>
-
                 <div>
                   <Label htmlFor="tauxActualisation">Taux d'actualisation (%)</Label>
-                  <Input 
-                    id="tauxActualisation" 
-                    type="number" 
-                    step="0.1"
-                    placeholder="Ex: 5" 
-                    value={tauxActualisation} 
-                    onChange={(e) => setTauxActualisation(e.target.value)} 
-                  />
+                  <Input id="tauxActualisation" type="number" step="0.1" placeholder="Ex: 5" value={tauxActualisation} onChange={(e) => setTauxActualisation(e.target.value)} />
                 </div>
-
                 <div>
                   <Label htmlFor="fraisAnnuels">Frais annuels (FCFA)</Label>
-                  <Input 
-                    id="fraisAnnuels" 
-                    type="number" 
-                    placeholder="Ex: 500000" 
-                    value={fraisAnnuels} 
-                    onChange={(e) => setFraisAnnuels(e.target.value)} 
-                  />
+                  <Input id="fraisAnnuels" type="number" placeholder="Ex: 500000" value={fraisAnnuels} onChange={(e) => setFraisAnnuels(e.target.value)} />
                 </div>
               </>
             )}
-
             <Button onClick={calculateRoi} disabled={calculating} className="w-full">
-              {calculating ? (
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <TrendingUp className="mr-2 h-4 w-4" />
-              )}
+              {calculating ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <TrendingUp className="mr-2 h-4 w-4" />}
               Calculer le ROI
             </Button>
-
             {results && (
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Nom de la simulation"
-                    value={calculationName}
-                    onChange={(e) => setCalculationName(e.target.value)}
-                  />
-                  <Button onClick={saveCalculation} variant="outline">
-                    <Save className="h-4 w-4" />
-                  </Button>
-                </div>
+              <div className="flex gap-2">
+                <Input placeholder="Nom de la simulation" value={calculationName} onChange={(e) => setCalculationName(e.target.value)} />
+                <Button onClick={saveCalculation} variant="outline"><Save className="h-4 w-4" /></Button>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Résultats */}
         <div className="space-y-6">
           {results && (
             <Card>
               <CardHeader>
                 <CardTitle>Résultats du calcul</CardTitle>
-                <CardDescription>
-                  {results.type === 'simple' ? 'Calcul ROI simple' : 'Calcul ROI actualisé'}
-                </CardDescription>
+                <CardDescription>{results.type === 'simple' ? 'Calcul ROI simple' : 'Calcul ROI actualisé'}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -342,83 +259,46 @@ const RoiCalculatorPage = () => {
                         <p className="text-lg font-semibold text-green-800 dark:text-green-200">ROI Total</p>
                         <p className="text-4xl font-bold text-green-600">{results.roiSimple}%</p>
                       </div>
-                      
                       <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="p-3 border rounded">
-                          <span className="text-muted-foreground">ROI Annualisé:</span>
-                          <p className="text-lg font-bold">{results.roiAnnualise}%</p>
-                        </div>
-                        <div className="p-3 border rounded">
-                          <span className="text-muted-foreground">Gain/Perte:</span>
-                          <p className={`text-lg font-bold ${parseFloat(results.gain) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {parseFloat(results.gain).toLocaleString()} FCFA
-                          </p>
-                        </div>
+                        <div className="p-3 border rounded"><span className="text-muted-foreground">ROI Annualisé:</span><p className="text-lg font-bold">{results.roiAnnualise}%</p></div>
+                        <div className="p-3 border rounded"><span className="text-muted-foreground">Gain/Perte:</span><p className={`text-lg font-bold ${parseFloat(results.gain) >= 0 ? 'text-green-600' : 'text-red-600'}`}>{parseFloat(results.gain).toLocaleString()} FCFA</p></div>
                       </div>
                     </>
                   ) : (
                     <>
                       <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
                         <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">Valeur Actuelle Nette</p>
-                        <p className={`text-4xl font-bold ${parseFloat(results.van) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {parseFloat(results.van).toLocaleString()} FCFA
-                        </p>
+                        <p className={`text-4xl font-bold ${parseFloat(results.van) >= 0 ? 'text-green-600' : 'text-red-600'}`}>{parseFloat(results.van).toLocaleString()} FCFA</p>
                       </div>
-                      
                       <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="p-3 border rounded">
-                          <span className="text-muted-foreground">TRI:</span>
-                          <p className="text-lg font-bold">{results.tri}%</p>
-                        </div>
-                        <div className="p-3 border rounded">
-                          <span className="text-muted-foreground">ROI Actualisé:</span>
-                          <p className="text-lg font-bold">{results.roiActualise}%</p>
-                        </div>
+                        <div className="p-3 border rounded"><span className="text-muted-foreground">TRI:</span><p className="text-lg font-bold">{results.tri}%</p></div>
+                        <div className="p-3 border rounded"><span className="text-muted-foreground">ROI Actualisé:</span><p className="text-lg font-bold">{results.roiActualise}%</p></div>
                       </div>
                     </>
                   )}
-                  
-                  <div className="p-3 bg-muted rounded">
-                    <strong>Conclusion:</strong> {results.rentabilite}
-                  </div>
+                  <div className="p-3 bg-muted rounded"><strong>Conclusion:</strong> {results.rentabilite}</div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Historique des calculs */}
-          {savedCalculations.length > 0 && (
+          {savedCalculations && savedCalculations.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <History className="h-5 w-5" />
-                  Calculs sauvegardés
-                </CardTitle>
-                <CardDescription>
-                  Vos simulations récentes
-                </CardDescription>
+                <CardTitle className="flex items-center gap-2"><History className="h-5 w-5" />Calculs sauvegardés</CardTitle>
+                <CardDescription>Vos simulations récentes.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {savedCalculations.map((calc) => (
-                    <div 
-                      key={calc.id}
-                      className="flex justify-between items-center p-2 border rounded hover:bg-muted/50 cursor-pointer"
-                      onClick={() => loadCalculation(calc)}
-                    >
+                    <div key={calc.id} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50 cursor-pointer" onClick={() => loadCalculation(calc)}>
                       <div>
                         <p className="font-medium">{calc.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(calc.created_at).toLocaleDateString('fr-FR')}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{new Date(calc.created_at).toLocaleDateString('fr-FR')}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium">
-                          {calc.calculation_type === 'simple' ? 'ROI Simple' : 'ROI Actualisé'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {(calc.initial_investment / 1000000).toFixed(1)}M FCFA
-                        </p>
+                        <p className="text-sm font-medium">{calc.calculation_type === 'simple' ? 'ROI Simple' : 'ROI Actualisé'}</p>
+                        <p className="text-xs text-muted-foreground">{(calc.initial_investment / 1000000).toFixed(1)}M FCFA</p>
                       </div>
                     </div>
                   ))}

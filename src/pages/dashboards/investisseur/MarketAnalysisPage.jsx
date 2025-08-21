@@ -1,127 +1,90 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
+import { Building, DollarSign, TrendingUp, MapPin, BarChart3, LineChart, Line } from 'lucide-react';
+import { XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import { useToast } from '../../../components/ui/use-toast';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { motion } from 'framer-motion';
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const MarketAnalysisPage = () => {
   const { toast } = useToast();
-  // Loading géré par le hook temps réel
-  const [marketData, setMarketData] = useState({
-    priceTrends: [],
-    zoneAnalysis: [],
-    marketStats: {
-      averagePrice: 0,
-      totalParcels: 0,
-      availableParcels: 0,
-      soldParcels: 0
-    }
-  });
+  const { data: parcels, loading, error } = useRealtimeTable('parcels', 'created_at');
 
-  useEffect(() => {
-    loadMarketAnalysis();
-  }, []);
-
-  const loadMarketAnalysis = async () => {
-    try {
-      setLoading(true);
-      
-      // Récupérer toutes les parcelles pour l'analyse
-      const { data: parcels, error } = await supabase
-        .from('parcels')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Analyser les données par zone
-      const zoneAnalysis = analyzeByZone(parcels || []);
-      
-  // Calculer les tendances de prix à partir des données réelles
-      const priceTrends = generatePriceTrends(zoneAnalysis);
-      
-      // Calculer les statistiques globales
-      const marketStats = calculateMarketStats(parcels || []);
-
-      setMarketData({
-        priceTrends,
-        zoneAnalysis,
-        marketStats
-      });
-
-    } catch (error) {      toast({
+  useMemo(() => {
+    if (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger l'analyse de marché"
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [error, toast]);
 
-  const analyzeByZone = (parcels) => {
-    const zones = {};
-    
-    parcels.forEach(parcel => {
-      const zone = extractZone(parcel.location || '');
-      if (!zones[zone]) {
-        zones[zone] = {
-          name: zone,
-          parcels: [],
-          averagePrice: 0,
-          totalSurface: 0,
-          availableCount: 0
-        };
-      }
-      
-      zones[zone].parcels.push(parcel);
-      zones[zone].totalSurface += parcel.surface || 0;
-      if (parcel.status === 'available') {
-        zones[zone].availableCount++;
-      }
-    });
+  const marketData = useMemo(() => {
+    if (!parcels) {
+      return {
+        priceTrends: [],
+        zoneAnalysis: [],
+        marketStats: { averagePrice: 0, totalParcels: 0, availableParcels: 0, soldParcels: 0 }
+      };
+    }
 
-    // Calculer les moyennes
-    return Object.values(zones).map(zone => ({
-      ...zone,
-      averagePrice: zone.parcels.reduce((sum, p) => sum + (p.price || 0), 0) / zone.parcels.length,
-      pricePerSqm: zone.parcels.reduce((sum, p) => sum + ((p.price || 0) / (p.surface || 1)), 0) / zone.parcels.length
-    }));
-  };
+    const extractZone = (location) => {
+      const parts = location?.split(',') || [];
+      return parts[0]?.trim() || 'Zone inconnue';
+    };
 
-  const extractZone = (location) => {
-    // Extraire la zone principale de la localisation
-    const parts = location.split(',');
-    return parts[0]?.trim() || 'Zone inconnue';
-  };
-
-  const generatePriceTrends = (zoneAnalysis) => {
-    // Générer des tendances basées sur les données actuelles
-    const currentYear = new Date().getFullYear();
-    const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
-    
-    return years.map((year, index) => {
-      const trendData = { name: year.toString() };
-      
-      zoneAnalysis.slice(0, 3).forEach(zone => {
-  // Projection d'évolution basée sur les prix actuels
-        const basePrice = zone.pricePerSqm || 50000;
-        const growth = 1 + (index * 0.08); // 8% de croissance par an
-        trendData[zone.name] = Math.round(basePrice * growth);
+    const analyzeByZone = (parcels) => {
+      const zones = {};
+      parcels.forEach(parcel => {
+        const zone = extractZone(parcel.location);
+        if (!zones[zone]) {
+          zones[zone] = { name: zone, parcels: [], totalSurface: 0, availableCount: 0 };
+        }
+        zones[zone].parcels.push(parcel);
+        zones[zone].totalSurface += parcel.surface || 0;
+        if (parcel.status === 'available') zones[zone].availableCount++;
       });
-      
-      return trendData;
-    });
-  };
 
-  const calculateMarketStats = (parcels) => {
-    const available = parcels.filter(p => p.status === 'available');
-    const sold = parcels.filter(p => p.status === 'sold');
-    
-    return {
+      return Object.values(zones).map(zone => ({
+        ...zone,
+        averagePrice: zone.parcels.reduce((sum, p) => sum + (p.price || 0), 0) / zone.parcels.length,
+        pricePerSqm: zone.parcels.reduce((sum, p) => sum + ((p.price || 0) / (p.surface || 1)), 0) / zone.parcels.length
+      }));
+    };
+
+    const generatePriceTrends = (zoneAnalysis) => {
+      const currentYear = new Date().getFullYear();
+      const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+      return years.map((year, index) => {
+        const trendData = { name: year.toString() };
+        zoneAnalysis.slice(0, 3).forEach(zone => {
+          const basePrice = zone.pricePerSqm || 50000;
+          const growth = 1 + (index * 0.08);
+          trendData[zone.name] = Math.round(basePrice * growth);
+        });
+        return trendData;
+      });
+    };
+
+    const calculateMarketStats = (parcels) => ({
       averagePrice: parcels.reduce((sum, p) => sum + (p.price || 0), 0) / parcels.length || 0,
       totalParcels: parcels.length,
-      availableParcels: available.length,
-      soldParcels: sold.length
-    };
-  };
+      availableParcels: parcels.filter(p => p.status === 'available').length,
+      soldParcels: parcels.filter(p => p.status === 'sold').length
+    });
 
-  if (loading) {
+    const zoneAnalysis = analyzeByZone(parcels);
+    const priceTrends = generatePriceTrends(zoneAnalysis);
+    const marketStats = calculateMarketStats(parcels);
+
+    return { priceTrends, zoneAnalysis, marketStats };
+  }, [parcels]);
+
+  if (loading && !parcels) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />
@@ -204,7 +167,7 @@ const MarketAnalysisPage = () => {
             <LineChart data={marketData.priceTrends}>
               <XAxis dataKey="name" />
               <YAxis tickFormatter={(value) => `${Math.round(value/1000)}k`} />
-              <Tooltip formatter={(value) => [`${value.toLocaleString()} FCFA/m²`, '']} />
+              <Tooltip formatter={(value) => [`${value.toLocaleString()} FCFA/m²`, '']}/>
               <Legend />
               {marketData.zoneAnalysis.slice(0, 3).map((zone, index) => (
                 <Line 

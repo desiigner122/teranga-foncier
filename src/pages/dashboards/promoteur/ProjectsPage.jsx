@@ -1,6 +1,32 @@
 import React, { useState, useEffect } from 'react';
+import { Building, DollarSign, Eye, Clock, TrendingUp, MapPin } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Label } from '../../../components/ui/label';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
+import { Textarea } from '../../../components/ui/textarea';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import supabase from "../../lib/supabaseClient";
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const ProjectsPage = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+  /* REMOVED DUPLICATE */ ('');
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [selectedProject, setSelectedProject] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { user } = useAuth();
   const { data: projects, loading: projectsLoading, error: projectsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -532,4 +558,5 @@ const ProjectsPage = () => {
 };
 
 export default ProjectsPage;
+
 

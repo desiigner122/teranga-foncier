@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { DollarSign, Activity, CheckCircle, Plus, TrendingUp, Calendar } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import supabase from '../../lib/supabaseClient';
+import { motion } from 'framer-motion';
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { useToast } from "@/components/ui/use-toast";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const AgriculteurDashboard = () => {
-  const { user, profile } = useAuth();
+  
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+const { user, profile } = useAuth();
   const navigate = useNavigate();
   // Loading géré par le hook temps réel
   const { data: lands, loading: landsLoading, error: landsError, refetch } = useRealtimeTable();
@@ -135,7 +149,8 @@ const AgriculteurDashboard = () => {
       // Récupérer prix du marché
       await fetchMarketPrices();
 
-    } catch (error) {      // Fallback avec données de démonstration enrichies
+    } catch (error) {
+      // Fallback avec données de démonstration enrichies
       setStats({
         totalLands: 8,
         totalArea: 120,
@@ -185,7 +200,8 @@ const AgriculteurDashboard = () => {
       }
 
       setWeatherAlerts(weatherAlerts);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Générer recommandations de cultures avec IA
@@ -213,7 +229,8 @@ const AgriculteurDashboard = () => {
       });
       
       setCropRecommendations(response.suggestions || []);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Générer insights IA pour l'agriculture
@@ -231,17 +248,16 @@ const AgriculteurDashboard = () => {
       - Productivité: ${context.productivity}%
       - Marge bénéficiaire: ${context.profitMargin.toFixed(1)}%
       - Efficacité hydrique: ${context.waterEfficiency}%
-      - ${context.activeCrops} cultures sur ${context.totalArea} hectares
-      
-      Fournis 3 recommandations pour optimiser la production et 2 alertes importantes é surveiller.`;
+Fournis 3 recommandations pour optimiser la production et 2 alertes importantes é surveiller.`;
 
-      const response = await hybridAI.generateResponse(query, [], { 
-        role: 'agricultural_advisor', 
-        domain: 'farm_optimization' 
-      });
+const response = await hybridAI.generateResponse(query, [], { 
+  role: 'agricultural_advisor', 
+  domain: 'farm_optimization' 
+});
       
       setAiInsights(response);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Récupérer prix du marché en temps réel
@@ -259,7 +275,8 @@ const AgriculteurDashboard = () => {
         // Fallback avec données simulées
         setMarketPrices(marketAnalysis);
       }
-    } catch (error) {      setMarketPrices(marketAnalysis);
+    } catch (error) {
+      setMarketPrices(marketAnalysis);
     }
   };
 
@@ -448,7 +465,8 @@ const AgriculteurDashboard = () => {
       case 'MARKET_FORECAST':
         await fetchMarketPrices();
         break;
-      default:    }
+      default:
+    }
   };
 
   if (loading || dataLoading) {

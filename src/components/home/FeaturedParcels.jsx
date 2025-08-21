@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Maximize, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const featuredParcels = [
   { id: 'DK001', name: 'Terrain Almadies', area: 600, status: 'Disponible', zone: 'Dakar', imageDesc: 'Terrain vue mer Almadies Dakar Sénégal', price: 150000000 },

@@ -1,9 +1,51 @@
 // src/pages/admin/AdminParcelsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { LandPlot, Eye, Search, Edit, Trash2, Plus } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { 
+  Table, TableBody, TableCell, TableHead, 
+  TableHeader, TableRow 
+} from '../../components/ui/table';
+import { 
+  Dialog, DialogContent, DialogDescription, DialogClose,
+  DialogHeader, DialogTitle, DialogFooter 
+} from '../../components/ui/dialog';
+import { 
+  AlertDialog, AlertDialogAction, AlertDialogCancel, 
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter, 
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger 
+} from '../../components/ui/alert-dialog';
+import { useToast } from "@/components/ui/use-toast";
+import { useRealtimeParcels } from '../../hooks/useRealtimeTable';
+import supabase from '../../lib/supabaseClient';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
+
 const AdminParcelsPage = () => {
-  const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentEditParcel, setCurrentEditParcel] = useState(null);
+  const [isFormLoading, setIsFormLoading] = useState(false);
+  const [owners, setOwners] = useState([]);
+  const [loadingOwners, setLoadingOwners] = useState(false);
+  const { toast } = useToast();
+  const { data: parcels = [], loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
+
   useEffect(() => {
     if (parcels) {
       setFilteredData(parcels);
@@ -11,11 +53,30 @@ const AdminParcelsPage = () => {
   }, [parcels]);
   
   useEffect(() => {
-    fetchParcels();
     fetchOwners();
-  }, [fetchParcels, fetchOwners]);
-
-  // --- NOUVEAU : Ouvre le modal et charge les données de la parcelle ---
+  }, []);
+  
+  const fetchOwners = async () => {
+    setLoadingOwners(true);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, email, type')
+        .order('full_name', { ascending: true });
+      
+      if (error) throw error;
+      setOwners(data || []);
+    } catch (err) {
+      console.error('Error fetching owners:', err);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de charger la liste des propriétaires.",
+      });
+    } finally {
+      setLoadingOwners(false);
+    }
+  };  // --- NOUVEAU : Ouvre le modal et charge les données de la parcelle ---
   const handleEditClick = (parcel) => {
     setCurrentEditParcel(parcel);
     setFormData({
@@ -100,7 +161,7 @@ const AdminParcelsPage = () => {
       }
 
       setIsModalOpen(false);
-      fetchParcels(); // Recharger les données
+      refetch(); // Recharger les données
     } catch (err) {
       toast({
         variant: "destructive",
@@ -118,7 +179,7 @@ const AdminParcelsPage = () => {
       const { error } = await supabase.from('parcels').delete().eq('id', parcelId);
       if (error) throw error;
       toast({ title: "Parcelle supprimée", description: `La parcelle "${parcelName}" a été supprimée.` });
-      fetchParcels();
+      refetch();
     } catch (err) {
       toast({ variant: "destructive", title: "Erreur de suppression", description: err.message });
     }
@@ -343,3 +404,4 @@ const AdminParcelsPage = () => {
 };
 
 export default AdminParcelsPage;
+

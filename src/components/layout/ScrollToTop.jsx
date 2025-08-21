@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 function ScrollToTop() {
   const { pathname } = useLocation();

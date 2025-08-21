@@ -3,6 +3,10 @@ import { motion } from 'framer-motion';
 import { Percent, AlertTriangle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Helmet } from 'react-helmet-async';
+import { Plus } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 
 const taxInfo = [
   {

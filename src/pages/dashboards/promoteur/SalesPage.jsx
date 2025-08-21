@@ -1,6 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { Users, DollarSign, BarChart, Search, Filter, RefreshCw } from 'lucide-react';
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const SalesPage = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ (false);
+const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [chartData, setChartData] = useState(false);
+const { toast } = useToast();
   const { user } = useAuth();
   const { data: salesData, loading: salesDataLoading, error: salesDataError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -129,3 +149,4 @@ const SalesPage = () => {
 };
 
 export default SalesPage;
+

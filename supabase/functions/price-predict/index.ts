@@ -1,10 +1,15 @@
 // Edge Function: price-predict (stub)
 // Input: { parcel_id }
 // Returns cached prediction or placeholder; to be replaced by real model logic.
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+// If using Deno, ensure you have the correct Deno environment and types installed.
+// If using Node.js, switch to a compatible HTTP server, e.g. 'serve' from 'npm:std/http/server':
+// import { serve } from 'npm:std/http/server';
+// For Deno, you can also try updating the import to a newer version if available:
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { config } from 'https://deno.land/x/dotenv@v3.2.2/mod.ts'
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
 serve(async (req: Request) => {
   if (req.method !== 'POST') {

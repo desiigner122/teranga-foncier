@@ -13,9 +13,15 @@ import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import ParcelSubmissionModal from '@/components/vendeur/ParcelSubmissionModal';
 import { antiFraudAI } from '@/lib/antiFraudAI';
+import { Plus } from 'lucide-react';
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const VendeurDashboard = () => {
   const { toast } = useToast();
   const [user, setUser] = useState(null);
+  const [selectedInquiry, setSelectedInquiry] = useState(null);
+  const [inquiries, setInquiries] = useState([]);
   const [stats, setStats] = useState({
     totalListings: 0,
     activeViews: 0,
@@ -38,7 +44,6 @@ const VendeurDashboard = () => {
   const [form, setForm] = useState({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' });
   const [inquiriesByListing, setInquiriesByListing] = useState([]);
   const [submissions, setSubmissions] = useState([]);
-  const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [marketInsights, setMarketInsights] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   
@@ -701,3 +706,4 @@ const VendeurDashboard = () => {
 };
 
 export default VendeurDashboard;
+

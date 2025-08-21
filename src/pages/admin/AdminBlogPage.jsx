@@ -1,10 +1,30 @@
 // src/pages/admin/AdminBlogPage.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Edit, Trash2 } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import supabase from '../lib/supabaseClient';
+import { motion } from 'framer-motion';
+
 // Import nommé
 
 const AdminBlogPage = () => {
-  const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();
+  
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [formData, setFormData] = useState({});
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const [dataLoading, setDataLoading] = useState(false);
+const { data: blogPosts, loading: blogPostsLoading, error: blogPostsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -325,3 +345,4 @@ const AdminBlogPage = () => {
 };
 
 export default AdminBlogPage;
+

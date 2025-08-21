@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from 'react';
+import { Calendar } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const BlogPreview = () => {
-  const sectionVariants = {
+  
+  const [loading, setLoading] = useState(false);
+const sectionVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };

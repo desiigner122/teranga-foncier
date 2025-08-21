@@ -1,24 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Landmark, Layers, Download } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from "../../contexts/AuthContext";
+
 const UrbanPlanPage = () => {
   const { toast } = useToast();
-  // Loading géré par le hook temps réel
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Future integration: dynamic urban zoning layers + regulation PDF download from storage
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <LoadingSpinner size="large" />
-      </div>
-    );
-  }
+  const handleAction = (message) => {
+    toast({ title: 'Information', description: message });
+  };
 
   return (
     <motion.div
@@ -39,10 +32,10 @@ const UrbanPlanPage = () => {
             <img src="https://images.unsplash.com/photo-1614783702763-48dcc1f32a91" alt="Carte d'urbanisme" className="w-full h-full object-cover rounded-lg" />
           </div>
           <div className="flex space-x-2 mt-4">
-            <Button variant="outline" disabled title="Bientôt: couches dynamiques basées sur urban_zones">
+            <Button variant="outline" onClick={() => handleAction("Bientôt: couches dynamiques basées sur urban_zones")}>
               <Layers className="mr-2 h-4 w-4" /> Afficher les Zones
             </Button>
-            <Button variant="outline" disabled title="Bientôt: téléchargement PDF règlement">
+            <Button variant="outline" onClick={() => handleAction("Bientôt: téléchargement PDF règlement")}>
               <Download className="mr-2 h-4 w-4" /> Télécharger le Règlement
             </Button>
           </div>

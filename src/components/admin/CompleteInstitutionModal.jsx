@@ -1,7 +1,25 @@
 import React, { useState } from 'react';
+import { User, Building, Landmark, Eye, Mail, Phone, AlertCircle, CheckCircle, RefreshCw, MapPin } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Checkbox } from '../../components/ui/checkbox';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+
 // Utilitaires pour génération de mots de passe sécurisés
 const generateSecurePassword = (length = 12) => {
-  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  
+  
+  const [formData, setFormData] = useState({});
+/* REMOVED DUPLICATE */ ({});
+const lowercase = 'abcdefghijklmnopqrstuvwxyz';
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const numbers = '0123456789';
   const symbols = '!@#$%&*+=?';

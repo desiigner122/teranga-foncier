@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { Building2, Scale, Briefcase, ArrowRight, Landmark, Smartphone, Banknote as BankIcon } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const senegal2050LogoUrl = "https://storage.googleapis.com/hostinger-horizons-assets-prod/bcc20f7d-f81b-4a6f-9229-7d6ba486204e/6cbcb36b5ee5efb7f4a236679ac5ad51.png";
 const waveLogoUrl = "https://storage.googleapis.com/hostinger-horizons-assets-prod/bcc20f7d-f81b-4a6f-9229-7d6ba486204e/a6815a54888f8206821508084773171d.png";

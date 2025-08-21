@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { CheckCircle } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+
 const formatPrice = (price) => {
-  if (isNaN(price)) return '0 FCFA';
+  
+  
+  const [formData, setFormData] = useState({});
+/* REMOVED DUPLICATE */ ({});
+if (isNaN(price)) return '0 FCFA';
   return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(price);
 };
 
@@ -156,3 +170,4 @@ const InstallmentPaymentModal = ({ isOpen, onClose, parcelPrice, parcelName }) =
 };
 
 export default InstallmentPaymentModal;
+

@@ -1,4 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import SupabaseDataService from '../../services/supabaseDataService';
+import supabase from "../../lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);

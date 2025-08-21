@@ -136,6 +136,8 @@ import TransactionTrackingPage from '@/pages/TransactionTrackingPage';
 import MarketPredictionPage from '@/pages/MarketPredictionPage';
 import DocumentManagementPage from '@/pages/DocumentManagementPage';
 import AlertsNotificationsPage from '@/pages/AlertsNotificationsPage';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 const PublicLayout = () => (
   <div className="flex flex-col min-h-screen">
     <Header />

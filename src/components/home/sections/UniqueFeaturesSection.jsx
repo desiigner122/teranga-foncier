@@ -47,6 +47,8 @@ const features = [
     bgColor: "bg-teal-100/50",
   }
 ];
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const UniqueFeaturesSection = () => {
   const sectionVariants = {

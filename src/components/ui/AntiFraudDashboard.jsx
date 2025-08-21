@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-const AntiFraudDashboard = ({ userRole, dashboardContext }) => {
+import { Users, Eye, CheckCircle, Clock, MapPin } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import supabase from "../../lib/supabaseClient";
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
+const AntiFraudDashboard = ({ 
+  const [loading, setLoading] = useState(false);
+userRole, dashboardContext }) => {
   const { toast } = useToast();
   const { data: fraudAlerts, loading: fraudAlertsLoading, error: fraudAlertsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);

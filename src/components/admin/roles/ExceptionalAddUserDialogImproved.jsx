@@ -1,4 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../../components/ui/button';
+import { Label } from '../../../components/ui/label';
+import { Input } from '../../../components/ui/input';
+import SupabaseDataService from '../../../services/supabaseDataService';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 // Utility
 const slugify = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 
@@ -47,7 +57,8 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
           setNotaireSpecs(ns);
           setShowLocalData(false);
         }
-      } catch (error) {        handleMissingData();
+      } catch (error) {
+        handleMissingData();
       }
     })();
   }, [open]);
@@ -77,7 +88,8 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
         } else {
           setDepartments(deps);
         }
-      } catch (error) {        toast({
+      } catch (error) {
+        toast({
           variant: 'destructive',
           title: 'Erreur',
           description: 'Impossible de charger les départements'
@@ -109,7 +121,8 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
         } else {
           setCommunes(cms);
         }
-      } catch (error) {        toast({
+      } catch (error) {
+        toast({
           variant: 'destructive',
           title: 'Erreur',
           description: 'Impossible de charger les communes'
@@ -175,7 +188,8 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
       // Assign role (new RBAC) if function is there
       try { 
         await SupabaseDataService.assignRole(created.id, baseType.toLowerCase()); 
-      } catch (e) {      }
+      } catch (e) {
+      }
       
       // Institution profile for institution types
       if (['Mairie', 'Banque', 'Notaire', 'Agent Immobilier', 'Géomètre', 'Avocat', 'Expert Immobilier'].includes(baseType)) {
@@ -194,36 +208,31 @@ export default function ExceptionalAddUserDialogImproved({ open, onOpenChange, o
         });
       }
       
-      if (invitation) {
-        setSendingInvite(true);
-        await SupabaseDataService.sendAuthInvitation(userPayload.email, 'user');
-      }
-      
-      // Event logging (best-effort)
-      SupabaseDataService.logEvent({ 
-        entityType: 'user', 
-        entityId: created.id, 
-        eventType: 'user.created_exceptional', 
-        actorUserId: null, 
-        source: 'admin_ui', 
-        importance: 1, 
-        data: { 
-          type: baseType, 
-          slug 
-        } 
-      });
-      
-      toast({ title: 'Créé', description: `Utilisateur ${created.full_name}` });
-      onCreated?.(created);
-      onOpenChange(false);
-      reset();
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Erreur création', description: e.message || String(e) });
-    } finally { 
-      setLoading(false); 
-      setSendingInvite(false); 
-    }
-  };
+    // Event logging (best-effort)
+    SupabaseDataService.logEvent({ 
+      entityType: 'user', 
+      entityId: created.id, 
+      eventType: 'user.created_exceptional', 
+      actorUserId: null, 
+      source: 'admin_ui', 
+      importance: 1, 
+      data: { 
+        type: baseType, 
+        slug 
+      } 
+    });
+    
+    toast({ title: 'Créé', description: `Utilisateur ${created.full_name}` });
+    onCreated?.(created);
+    onOpenChange(false);
+    reset();
+  } catch (e) {
+    toast({ variant: 'destructive', title: 'Erreur création', description: e.message || String(e) });
+  } finally { 
+    setLoading(false); 
+    setSendingInvite(false); 
+  }
+};
 
   const renderField = (field) => {
     const common = { 

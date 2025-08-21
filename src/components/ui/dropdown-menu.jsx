@@ -135,6 +135,8 @@ const DropdownMenuShortcut = ({
       className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
       {...props} />)
   );
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 }
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
 

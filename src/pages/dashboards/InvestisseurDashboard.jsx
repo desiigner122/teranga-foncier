@@ -1,8 +1,47 @@
 import React, { useState, useEffect } from 'react';
+import { Activity, Briefcase, Eye, Search, AlertCircle, TrendingUp, ClipboardList, MapPin, 
+  LayoutDashboard, Calculator, Target, Brain, Zap, Shield, Star, ArrowUp, ArrowDown, Minus, 
+  BarChart3 } from 'lucide-react';
+import { Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area, LineChart, Line } from 'recharts';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Alert, AlertDescription } from '../../components/ui/alert';
+import { useNavigate } from 'react-router-dom';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
+import { useToast } from '../../components/ui/use-toast';
+import { useAuth } from '../../context/AuthContext';
+import supabase from '../../lib/supabaseClient';
+import { motion } from 'framer-motion';
+import AntiFraudDashboard from '../../components/dashboard/AntiFraudDashboard';
+import AIAssistantWidget from '../../components/dashboard/AIAssistantWidget';
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const InvestisseurDashboard = () => {
+  const { toast } = useToast();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  // Loading géré par le hook temps réel
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [properties, setProperties] = useState([]);
+  
+  // Performance metrics
+  const [performanceMetrics, setPerformanceMetrics] = useState({
+    sharpeRatio: 1.85,
+    volatility: 15.2,
+    maxDrawdown: -8.5,
+    beta: 0.72
+  });
+  
+  // Watchlist and alerts
+  const [watchlist, setWatchlist] = useState([]);
+  const [alertsData, setAlertsData] = useState([]);
+  
+  // AI insights and fraud analysis
+  const [aiInsights, setAiInsights] = useState(null);
+  const [fraudAnalysis, setFraudAnalysis] = useState(null);
+
+  // Default market data
   const [marketData, setMarketData] = useState({
     totalProperties: 0,
     averagePrice: 0,
@@ -12,6 +51,8 @@ const InvestisseurDashboard = () => {
     marketTrends: [],
     riskLevel: 'Modéré'
   });
+  
+  // Default portfolio data
   const [portfolio, setPortfolio] = useState({
     totalInvestments: 0,
     currentValue: 0,
@@ -21,8 +62,49 @@ const InvestisseurDashboard = () => {
     performanceHistory: [],
     diversificationScore: 0
   });
-  const { data: opportunities, loading: opportunitiesLoading, error: opportunitiesError, refetch } = useRealtimeTable();
+  
+  // Opportunities using the useRealtimeTable hook
+  const { 
+    data: opportunities, 
+    loading: opportunitiesLoading, 
+    error: opportunitiesError, 
+    refetch 
+  } = useRealtimeTable('parcels', 'created_at', {
+    filterField: 'status',
+    filterValue: 'available'
+  });
+  
   const [filteredData, setFilteredData] = useState([]);
+  
+  // Sample data for the dashboard
+  const portfolioDistribution = [
+    { type: 'Résidentiel', percentage: 45 },
+    { type: 'Commercial', percentage: 30 },
+    { type: 'Terrain', percentage: 25 }
+  ];
+  
+  const priceEvolutionData = [
+    { month: 'Jan', price: 2500000, volume: 12, sentiment: 65 },
+    { month: 'Fév', price: 2550000, volume: 14, sentiment: 68 },
+    { month: 'Mar', price: 2600000, volume: 18, sentiment: 72 },
+    { month: 'Avr', price: 2650000, volume: 16, sentiment: 70 },
+    { month: 'Mai', price: 2700000, volume: 20, sentiment: 75 },
+    { month: 'Juin', price: 2750000, volume: 22, sentiment: 78 }
+  ];
+  
+  const riskMetrics = [
+    { metric: 'Ratio de Sharpe', value: '1.85', benchmark: '1.50' },
+    { metric: 'Volatilité', value: '15.2%', benchmark: '18.0%' },
+    { metric: 'Beta', value: '0.72', benchmark: '1.00' },
+    { metric: 'Max Drawdown', value: '-8.5%', benchmark: '-12.0%' }
+  ];
+  
+  const roiComparison = [
+    { zone: 'Dakar Plateau', roi: 12.5, risk: 'Modéré', volume: 'élevé', appreciation: 4.2 },
+    { zone: 'Almadies', roi: 10.8, risk: 'Faible', volume: 'Modéré', appreciation: 3.5 },
+    { zone: 'Rufisque', roi: 18.5, risk: 'élevé', volume: 'Faible', appreciation: 6.8 },
+    { zone: 'Grand Mbao', roi: 15.2, risk: 'Modéré', volume: 'Modéré', appreciation: 5.1 }
+  ];
   
   useEffect(() => {
     if (opportunities) {
@@ -178,7 +260,10 @@ const InvestisseurDashboard = () => {
       // Générer des opportunités basées sur l'IA
       await generateInvestmentOpportunities(properties, investments);
 
-    } catch (error) {      // Fallback avec données de démonstration enrichies
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      
+      // Fallback avec données de démonstration enrichies
       setMarketData({
         totalProperties: 1247,
         averagePrice: 2890000,
@@ -206,45 +291,12 @@ const InvestisseurDashboard = () => {
         beta: 0.72
       });
 
-      // Opportunities simulées avec scoring IA
-      setOpportunities([
-        {
-          id: 1,
-          title: 'Terrain Commercial - Dakar Plateau',
-          type: 'Terrain',
-          price: 5000000,
-          expectedROI: 15.2,
-          risk: 'Modéré',
-          location: 'Dakar Plateau',
-          aiScore: 87,
-          marketSentiment: 'Positif',
-          liquidityScore: 8.5
-        },
-        {
-          id: 2,
-          title: 'Appartement - Almadies',
-          type: 'Résidentiel',
-          price: 12000000,
-          expectedROI: 12.8,
-          risk: 'Faible',
-          location: 'Almadies',
-          aiScore: 91,
-          marketSentiment: 'Trés Positif',
-          liquidityScore: 9.2
-        },
-        {
-          id: 3,
-          title: 'Local Commercial - Rufisque',
-          type: 'Commercial',
-          price: 8500000,
-          expectedROI: 18.5,
-          risk: 'élevé',
-          location: 'Rufisque',
-          aiScore: 76,
-          marketSentiment: 'Neutre',
-          liquidityScore: 6.8
-        }
-      ]);
+      // Montrer un message d'erreur à l'utilisateur
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de charger les données du dashboard. Affichage des données de démonstration."
+      });
     } finally {
       setLoading(false);
     }
@@ -410,7 +462,8 @@ const InvestisseurDashboard = () => {
       });
 
       setAiInsights(response);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Analyse IA des insights d'investissement
@@ -439,7 +492,8 @@ const InvestisseurDashboard = () => {
       });
       
       setAiInsights(response);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Analyse anti-fraude des opportunités d'investissement
@@ -457,7 +511,8 @@ const InvestisseurDashboard = () => {
 
       const analysis = await antiFraudAI.analyzeInvestmentOpportunities(analysisData);
       setFraudAnalysis(analysis);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -519,7 +574,8 @@ const InvestisseurDashboard = () => {
       case 'OPTIMIZE_PORTFOLIO':
         await generateAIInsights();
         break;
-      default:    }
+      default:
+    }
   };
 
   const addToWatchlist = async (opportunity) => {
@@ -541,7 +597,8 @@ const InvestisseurDashboard = () => {
         .eq('user_id', user.id);
       
       setWatchlist(updatedWatchlist || []);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   if (loading || dataLoading) {
@@ -987,4 +1044,5 @@ const InvestisseurDashboard = () => {
 };
 
 export default InvestisseurDashboard;
+
 

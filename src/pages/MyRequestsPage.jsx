@@ -9,10 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileText, Info, ShoppingCart, CalendarPlus, Clock, ArrowRight, Banknote } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 
 const formatDate = (dateString) => {
-  if (!dateString) return 'Date inconnue';
+  
+  const [loading, setLoading] = useState(false);
+if (!dateString) return 'Date inconnue';
   return new Date(dateString).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 

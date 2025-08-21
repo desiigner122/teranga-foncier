@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import GlobalAIChat from '@/components/ui/GlobalAIChat';
 import DashboardAIAssistant from '@/components/ui/DashboardAIAssistant';
+import { useToast } from "@/components/ui/use-toast";
 
 const DashboardLayout = ({ children }) => {
   // Renommé pour plus de clarté, `false` = ouvert, `true` = réduit

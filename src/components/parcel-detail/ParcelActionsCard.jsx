@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const ParcelActionsCard = ({ parcel, onRequestInfo, onInitiateBuy, onRequestVisit }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 

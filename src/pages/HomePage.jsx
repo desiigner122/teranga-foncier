@@ -8,6 +8,11 @@ import { MapPin, Handshake, ShieldCheck, TrendingUp, MessageSquareText, Landmark
 import { motion } from 'framer-motion';
 import { useChatbot } from '@/context/ChatbotContext';
 import { SupabaseDataService } from '@/services/supabaseDataService';
+import { Badge } from '../components/ui/badge';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 
 const HomePage = () => {
   const { openChatbot } = useChatbot();

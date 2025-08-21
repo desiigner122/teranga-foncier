@@ -1,4 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Landmark, CheckCircle } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
+import { LoadingSpinner } from '../components/ui/loading-spinner';
+import { useToast } from '../components/ui/use-toast';
+import { useAuth } from '../context/AuthContext';
+import { useRealtimeTable } from '../hooks/useRealtimeTable';
+import SupabaseDataService from '../services/supabaseDataService';
+import { motion } from 'framer-motion';
+import { useNavigate } from "react-router-dom";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const formatPrice = (price) => new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(price);
 
 const PaymentPage = () => {
@@ -7,13 +23,14 @@ const PaymentPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [transaction, setTransaction] = useState(null);
   const [selectedMethod, setSelectedMethod] = useState('');
   const [paymentDetails, setPaymentDetails] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
   const [currentStatus, setCurrentStatus] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
   const { data: paymentMethods, loading: paymentMethodsLoading, error: paymentMethodsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -98,7 +115,8 @@ const PaymentPage = () => {
         toast({ title:'Paiement', description:'Transaction marquée payée.', variant:'success' });
       }
       setTimeout(()=> navigate('/transactions'), 2500);
-    } catch (err) {      setIsProcessing(false);
+    } catch (err) {
+      setIsProcessing(false);
       toast({ title:'Erreur paiement', description: err.message || 'échec du paiement', variant:'destructive' });
     }
   };
@@ -263,3 +281,4 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
+

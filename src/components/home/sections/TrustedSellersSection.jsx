@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck, ArrowRight, Landmark, Building2 } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const trustedSellers = [
   { name: 'Mairie de Dakar', type: 'Mairie', logo: 'mairie', color: 'text-blue-600', link: '/parcelles?ownerType=Mairie' },

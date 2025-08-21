@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { Users, Bell, Search, CheckCircle, Trash2, TrendingUp } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Input } from '../../components/ui/input';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import supabase from "../../lib/supabaseClient";
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+
 const AdminUsersPageWithAI = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { profile } = useAuth();
   // Loading géré par le hook temps réel
   const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
@@ -472,4 +490,5 @@ const AdminUsersPageWithAI = () => {
 };
 
 export default AdminUsersPageWithAI;
+
 

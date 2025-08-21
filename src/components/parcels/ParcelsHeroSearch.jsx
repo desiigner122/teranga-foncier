@@ -1,4 +1,12 @@
 import React, { useState } from 'react';
+import { Search, MapPin } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const ParcelsHeroSearch = ({ onSearch, initialFilters }) => {
   const [search, setSearch] = useState(initialFilters.search || '');
   const [zone, setZone] = useState(initialFilters.zone || 'all');

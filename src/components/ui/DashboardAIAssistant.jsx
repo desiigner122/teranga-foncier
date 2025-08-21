@@ -1,5 +1,12 @@
 // src/components/ui/DashboardAIAssistant.jsx - Assistant IA spécialisé à gauche
 import React, { useState, useEffect, useRef } from 'react';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Avatar, AvatarFallback } from '../../components/ui/avatar';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const DashboardAIAssistant = ({ dashboardContext, onAction, userRole = 'user' }) => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);

@@ -1,9 +1,16 @@
 // src/components/ui/TestAccountsHelper.jsx - Aide pour les comptes de test
 import React, { useState } from 'react';
+import { User, Users, Building, Eye, TrendingUp } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+
 const TestAccountsHelper = ({ onAccountSelect }) => {
   // In production we hide the helper entirely to avoid exposing test account hints
   if (import.meta.env.PROD) {
-    return null; // Silent noop in production builds
+    return null;
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext"; // Silent noop in production builds
   }
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);

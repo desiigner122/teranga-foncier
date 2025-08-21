@@ -14,6 +14,8 @@ import { LogIn, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
 import { getDashboardRoute } from '@/services/authRoutingService';
+import { useNavigate } from "react-router-dom";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');

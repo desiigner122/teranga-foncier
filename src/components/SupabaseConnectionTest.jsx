@@ -1,5 +1,13 @@
 // Composant de test pour vérifier la connexion Supabase
 import React, { useState, useEffect } from 'react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import supabase from "../../lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const SupabaseConnectionTest = () => {
   const [connectionStatus, setConnectionStatus] = useState('testing');
   const [results, setResults] = useState({

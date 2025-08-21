@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Linkedin, MapPin, Phone, Mail } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();

@@ -1,11 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import { User, Gavel, Eye, Search, CheckCircle, TrendingUp, Calendar, MapPin, XCircle, FileText, FileDown, Brain, Zap, History, Scale, FileClock } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import supabase from '../../lib/supabaseClient';
+import { motion } from 'framer-motion';
+import { useToast } from "../../components/ui/use-toast";
+import { useAuth } from "../../context/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const NotairesDashboard = () => {
+  
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
   const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState('dossiers');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDossier, setCurrentDossier] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   // Loading géré par le hook temps réel
   const { data: dossiers, loading: dossiersLoading, error: dossiersError, refetch } = useRealtimeTable();
@@ -38,7 +57,8 @@ const NotairesDashboard = () => {
         .or(`notary_id.eq.${profile.id},assigned_notary.eq.${profile.id}`)
         .order('created_at', { ascending: false });
 
-      if (dossiersError) {        // Fallback: chercher dans les contrats
+      if (dossiersError) {
+        // Fallback: chercher dans les contrats
         const { data: contractsData, error: contractsError } = await supabase
           .from('contracts')
           .select('*')
@@ -98,7 +118,8 @@ const NotairesDashboard = () => {
         },
       ]);
 
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les données du notaire",
@@ -199,7 +220,8 @@ const NotairesDashboard = () => {
       
       const response = await hybridAI.generateResponse(query, [], { role: 'notaire', domain: 'legal_analysis' });
       setAiInsights(response);
-    } catch (error) {    }
+    } catch (error) {
+    }
   };
 
   // Analyser un document avec l'IA
@@ -217,7 +239,8 @@ const NotairesDashboard = () => {
       if (error) throw error;
       setDossiers(ds => ds.map(d=> d.id===dossier.id? { ...d, ...data }: d));
       toast({ title:'Acte authentifié', description:`Dossier ${dossier.reference || dossier.id}` });
-    } catch (e) {      toast({ variant:'destructive', title:'Erreur', description:'Authentification impossible' });
+    } catch (e) {
+      toast({ variant:'destructive', title:'Erreur', description:'Authentification impossible' });
     } finally {
       setAuthenticating(null);
     }
@@ -298,7 +321,8 @@ Fournis une réponse structurée avec score et recommandations.`;
         title: "Analyse IA terminée",
         description: `Document ${dossier.reference || dossier.id} analysé - Risque: ${Math.min(100, riskScore)}%`,
       });
-    } catch (error) {      setDocumentAnalysis({ loading: false, error: error.message });
+    } catch (error) {
+      setDocumentAnalysis({ loading: false, error: error.message });
       toast({
         variant: "destructive",
         title: "Erreur d'analyse IA",
@@ -327,7 +351,8 @@ Fournis une réponse structurée avec score et recommandations.`;
           description: "Consultation programmée avec succés.",
         });
         break;
-      default:    }
+      default:
+    }
   };
   
   const openModal = (dossier) => {
@@ -389,7 +414,8 @@ Fournis une réponse structurée avec score et recommandations.`;
           title: decision === 'approve' ? "Dossier approuvé" : "Dossier rejeté",
           description: `${currentDossier.id} - ${decision === 'approve' ? 'Approuvé' : 'Rejeté'} avec succés.`,
         });
-      } catch (error) {        toast({
+      } catch (error) {
+        toast({
           variant: "destructive",
           title: "Erreur",
           description: "Impossible de mettre é jour le dossier",
@@ -840,4 +866,5 @@ Fournis une réponse structurée avec score et recommandations.`;
 };
 
 export default NotairesDashboard;
+
 

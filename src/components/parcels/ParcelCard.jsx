@@ -1,4 +1,13 @@
 import React, { useState, useContext } from 'react';
+import { MapPin } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const formatPrice = (price) => {
   if (price === null || price === undefined) return 'Prix sur demande';
   return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(price);

@@ -43,6 +43,8 @@ const Carousel = React.forwardRef((
     }
     // Check if methods exist before calling them
     setCanScrollPrev(typeof currentApi.canScrollPrev === 'function' ? currentApi.canScrollPrev() : false);
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
     setCanScrollNext(typeof currentApi.canScrollNext === 'function' ? currentApi.canScrollNext() : false);
   }, [])
 

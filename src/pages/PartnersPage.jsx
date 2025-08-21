@@ -4,6 +4,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { HeartHandshake as Handshake, Building, Landmark, Users, ExternalLink, Phone, Briefcase, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const partnersData = [
   {

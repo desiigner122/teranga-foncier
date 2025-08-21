@@ -1,4 +1,6 @@
 import React from 'react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 const CasesPage = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold">Dossiers Notariaux</h1>

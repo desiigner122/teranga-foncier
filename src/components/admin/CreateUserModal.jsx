@@ -1,5 +1,19 @@
 import React, { useState } from 'react';
-const CreateUserModal = ({ isOpen, onClose, onUserCreated, userType }) => {
+import { User, Building, Eye, Mail, Phone, CheckCircle, MapPin } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+
+const CreateUserModal = ({ 
+  /* REMOVED DUPLICATE */ ({});
+isOpen, onClose, onUserCreated, userType }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -108,7 +122,9 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated, userType }) => {
   };
 
   const resetForm = () => {
-    setFormData({
+    
+  const [formData, setFormData] = useState({});
+setFormData({
       email: '',
       password: '',
       confirmPassword: '',

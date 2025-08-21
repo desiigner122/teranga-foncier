@@ -9,6 +9,10 @@ import { ArrowRight, Maximize, MapPin, Trash2, CheckCircle, AlertCircle, FileTex
 import { Badge } from '@/components/ui/badge';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { supabase } from '@/lib/supabaseClient';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 const formatPrice = (price) => {
    return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(price);

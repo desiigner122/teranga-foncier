@@ -1,4 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Search, Filter, Plus } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Checkbox } from '../../components/ui/checkbox';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const ParcelFilters = ({ filters: initialFiltersFromProps, onFilterChange, onResetFilters, parcelCount }) => {
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 

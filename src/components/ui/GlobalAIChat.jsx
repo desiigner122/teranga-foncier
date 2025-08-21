@@ -1,5 +1,13 @@
 // src/components/ui/GlobalAIChat.jsx - Chat IA principal à droite
 import React, { useState, useEffect, useRef } from 'react';
+import { User, Trash2 } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Avatar, AvatarFallback } from '../../components/ui/avatar';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const GlobalAIChat = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
@@ -29,7 +37,7 @@ const GlobalAIChat = () => {
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
-    let greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon aprés-midi" : "Bonsoir";
+    const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon aprés-midi" : "Bonsoir";
     const username = isAuthenticated ? ` ${user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}` : '';
     
     return `?? ${greeting}${username} !

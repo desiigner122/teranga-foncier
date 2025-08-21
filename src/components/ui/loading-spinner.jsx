@@ -1,7 +1,12 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
-export function LoadingSpinner({ size = 'default', className = '' }) {
+export function LoadingSpinner({ 
+  size = 'default', 
+  className = '' 
+}) {
   const sizeClasses = {
     small: 'h-4 w-4',
     default: 'h-6 w-6',

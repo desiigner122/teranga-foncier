@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import supabase from "../../lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 /** ParcelTimeline
  * Displays unified parcel timeline (events + price changes) with basic pagination.
  */
-export default function ParcelTimeline({ parcelId }) {
+export default function ParcelTimeline({ 
+  const [loading, setLoading] = useState(false);
+parcelId }) {
   const { data: items, loading: itemsLoading, error: itemsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   

@@ -10,6 +10,8 @@ const zones = [
   { name: "Saly / Mbour", description: "Zone touristique prisée, plages et résidences secondaires.", imageDesc: "Plage de Saly Sénégal cocotiers sable blanc", link: "/parcelles?zone=Saly" },
   { name: "Thiès", description: "Carrefour régional important, potentiel résidentiel et agricole.", imageDesc: "Marché animé Thiès Sénégal étals colorés", link: "/parcelles?zone=Thiès" },
 ];
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const FocusZones = () => {
   const sectionVariants = {

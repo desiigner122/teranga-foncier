@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const HeaderLogo = ({ isScrolled, onClick }) => {
   const useDarkText = isScrolled;

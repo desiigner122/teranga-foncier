@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 // Données géographiques complètes du Sénégal
 export const senegalGeoData = {
   regions: [

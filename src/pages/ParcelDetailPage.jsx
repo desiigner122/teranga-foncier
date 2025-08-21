@@ -2,6 +2,17 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ComparisonContext } from '@/context/ComparisonContext';
 import { Helmet } from 'react-helmet-async';
 import ParcelTimeline from '@/components/parcel-detail/ParcelTimeline';
+import { User, Home, RefreshCw, MapPin } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import SupabaseDataService from '../services/SupabaseDataService';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 const ParcelDetailPage = () => {
   const { id } = useParams();

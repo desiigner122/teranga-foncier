@@ -1,4 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { CardHeader, CardTitle } from '../../components/ui/card';
+import SupabaseDataService from '../../services/supabaseDataService';
+import supabase from "../../lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 export default function AdminGlobalTimelinePage() {
   const [events, setEvents] = useState([]);
   const [page, setPage] = useState(1);

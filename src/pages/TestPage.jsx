@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { User, AlertCircle, CheckCircle } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
+import supabase from "../../lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 const TestPage = () => {
   const [testResults, setTestResults] = useState({});
   const [loading, setLoading] = useState(false);

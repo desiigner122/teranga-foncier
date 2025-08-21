@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { User, Users, DollarSign, BarChart, PieChart } from 'lucide-react';
+import { BarChart as RechartsBarChart, Bar, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { useToast } from "@/components/ui/use-toast";
+import supabase from '../../lib/supabaseClient';
+import { motion } from 'framer-motion';
+import { useAuth } from "../../contexts/AuthContext";
+
 // Composant de graphique à barres simple (réutilisable)
 const SimpleBarChart = ({ data, dataKey, labelKey, barColorClass, title }) => {
   const color = barColorClass.replace('bg-', ''); // Extraire la couleur de la classe Tailwind
@@ -27,7 +36,7 @@ const SimplePieChart = ({ data, title }) => {
     <div className="h-[250px] w-full flex flex-col items-center justify-center">
       <h3 className="text-sm font-semibold text-center mb-2">{title}</h3>
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
+        <RechartsPieChart>
           <Pie
             data={data}
             cx="50%"
@@ -44,14 +53,14 @@ const SimplePieChart = ({ data, title }) => {
           </Pie>
           <Tooltip formatter={(value, name, props) => [`${value} ${props.payload.unit || ''}`, props.payload.name]} />
           <Legend />
-        </PieChart>
+        </RechartsPieChart>
       </ResponsiveContainer>
     </div>
   );
 };
 
 const AdminReportsPage = () => {
-  // Loading géré par le hook temps réel
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState({
     userRegistrations: [],

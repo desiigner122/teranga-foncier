@@ -1,5 +1,12 @@
 // src/components/admin/TypeSpecificUserCreation.jsx
 import React, { useState } from 'react';
+import { Users, Landmark, Plus, TrendingUp } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 /**
  * Système de Création d'Utilisateurs par Type Spécifique
  * Chaque type a son propre bouton et processus de création

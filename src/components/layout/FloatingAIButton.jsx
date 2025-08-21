@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+import { Button } from '../../components/ui/button';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const FloatingAIButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 

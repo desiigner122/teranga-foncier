@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Map, FileSearch, CheckCircle, Smile } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const steps = [
     { icon: Map, title: "Explorez", description: "Trouvez le terrain idéal parmi des offres vérifiées à travers le Sénégal.", color: "text-green-600" },

@@ -6,9 +6,33 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Edit, Trash2 } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import supabase from "../../lib/supabaseClient";
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
+
 
 const AdminCompliancePage = () => {
-  // Loading géré par le hook temps réel
+  
+  
+  const [formData, setFormData] = useState({});
+const [loading, setLoading] = useState(false);
+  
+  const [dataLoading, setDataLoading] = useState(false);
+// Loading géré par le hook temps réel
   const [error, setError] = useState(null);
   const { data: complianceChecks, loading: complianceChecksLoading, error: complianceChecksError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -305,3 +329,4 @@ const AdminCompliancePage = () => {
 };
 
 export default AdminCompliancePage;
+

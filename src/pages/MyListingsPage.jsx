@@ -20,9 +20,16 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { SupabaseDataService } from '@/services/supabaseDataService';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
 
 const getStatusInfo = (status) => {
-    switch (status) {
+    
+  const [loading, setLoading] = useState(false);
+switch (status) {
       case 'available': return { variant: 'success', icon: CheckCircle, text: 'Publié' };
       case 'pending': return { variant: 'warning', icon: Clock, text: 'En vérification' };
       case 'reserved': return { variant: 'info', icon: Banknote, text: 'Réservé' };

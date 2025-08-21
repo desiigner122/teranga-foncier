@@ -4,12 +4,15 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import VerificationRequired from '@/components/VerificationRequired';
+import { useToast } from "@/components/ui/use-toast";
 
 /**
  * Composant de protection strict pour la vérification d'identité
  * Empéche toute navigation si la vérification n'est pas compléte
  */
-const VerificationGuard = ({ children, allowedPaths = [] }) => {
+const VerificationGuard = ({ 
+  const [loading, setLoading] = useState(false);
+children, allowedPaths = [] }) => {
   const { 
     isAuthenticated, 
     needsVerification, 

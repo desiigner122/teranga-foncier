@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { Search, Filter } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import supabase from "../../lib/supabaseClient";
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 // We reuse documents table (category='compliance_report') as data source for compliance reports
 
 const CompliancePage = () => {
-  const { toast } = useToast();
+  
+  const [loading, setLoading] = useState(false);
+const { toast } = useToast();
   const [reports, setReports] = useState([]);
   // Loading géré par le hook temps réel
 

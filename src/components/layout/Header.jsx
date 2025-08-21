@@ -8,6 +8,8 @@ import AuthSection from '@/components/layout/header/AuthSection';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import MobileMenu from '@/components/layout/header/MobileMenu';
 import { cn } from '@/lib/utils';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Header = ({ children, isDashboard, isSolutionDashboard }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

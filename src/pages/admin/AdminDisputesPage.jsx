@@ -1,7 +1,36 @@
 // src/pages/admin/AdminDisputesPage.jsx
 import React, { useState, useEffect } from 'react';
+import { Eye, Search, Clock } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Textarea } from '../../components/ui/textarea';
+import supabase from "../../lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const AdminDisputesPage = () => {
-  const { data: disputes, loading: disputesLoading, error: disputesError, refetch } = useRealtimeTable();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+  /* REMOVED DUPLICATE */ ('');
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dataLoading, setDataLoading] = useState(false);
+  const statusOptions = [
+    { id: 'disponible', name: 'Disponible' },
+    { id: 'vendu', name: 'Vendu' },
+    { id: 'reserve', name: 'Réservé' },
+    { id: 'construction', name: 'En Construction' }
+  ];
+
+const { data: disputes, loading: disputesLoading, error: disputesError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -518,3 +547,4 @@ const AdminDisputesPage = () => {
 };
 
 export default AdminDisputesPage;
+

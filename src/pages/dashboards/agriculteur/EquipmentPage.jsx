@@ -1,6 +1,32 @@
 import React, { useState, useEffect } from 'react';
+import { Search, RefreshCw, Calendar } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/supabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const EquipmentPage = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+  /* REMOVED DUPLICATE */ ('');
+  /* REMOVED DUPLICATE */ ('');
+  /* REMOVED DUPLICATE */ (false);
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { user } = useAuth();
   const { data: equipment, loading: equipmentLoading, error: equipmentError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -32,11 +58,13 @@ const EquipmentPage = () => {
         .eq('farmer_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') {      }
+      if (error && error.code !== 'PGRST116') {
+      }
 
       setEquipment(equipmentData || []);
 
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger l'inventaire d'équipement"
@@ -405,4 +433,5 @@ const EquipmentPage = () => {
 };
 
 export default EquipmentPage;
+
 

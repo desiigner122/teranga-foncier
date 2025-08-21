@@ -2,6 +2,23 @@
 // NOTE: Supports deep-link filtering via query param ?type=Vendeur (etc.).
 // The select stays in sync with the URL and allows dashboard cards to link directly.
 import React, { useState, useEffect } from 'react';
+import { User, Users, UserCheck, Eye, Clock, Plus, Edit, Trash2, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import SupabaseDataService from '../../services/supabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const userTypes = [
   'Particulier', 'Vendeur', 'Investisseur', 'Promoteur', 'Agriculteur', 
   'Banque', 'Notaire', 'Mairie', 'Agent', 'Administrateur'
@@ -21,7 +38,13 @@ const verificationStatuses = [
 ];
 
 const AdminUsersPageAdvanced = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -87,7 +110,8 @@ const AdminUsersPageAdvanced = () => {
         grouped[r.user_id].push(r);
       });
       setUserRolesMap(grouped);
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger les utilisateurs"
@@ -171,7 +195,8 @@ const AdminUsersPageAdvanced = () => {
       });
       
       setChangeStatusComment('');
-    } catch (e) {      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de statut impossible' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de statut impossible' });
     }
   };
 
@@ -182,7 +207,8 @@ const AdminUsersPageAdvanced = () => {
       await SupabaseDataService.updateUser(user.id, { role: newRole });
       setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
       toast({ title: 'Rôle principal mis à jour', description: `${user.email} → ${newRole}` });
-    } catch (e) {      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de rôle impossible' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Changement de rôle impossible' });
     }
   };
 
@@ -214,7 +240,8 @@ const AdminUsersPageAdvanced = () => {
         return { ...prev, [userId]: existing };
       });
       toast({ title: 'Rôle assigné', description: roleKey });
-    } catch (e) {      toast({ variant: 'destructive', title: 'Erreur', description: 'Assignation échouée' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Assignation échouée' });
     }
   };
   const handleRevokeUserRole = async (userId, roleKey) => {
@@ -225,7 +252,8 @@ const AdminUsersPageAdvanced = () => {
         [userId]: (prev[userId]||[]).filter(r => r.role_key !== roleKey)
       }));
       toast({ title: 'Rôle révoqué', description: roleKey });
-    } catch (e) {      toast({ variant: 'destructive', title: 'Erreur', description: 'Révocation échouée' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Révocation échouée' });
     }
   };
 
@@ -245,7 +273,8 @@ const AdminUsersPageAdvanced = () => {
 
       setIsEditModalOpen(false);
       setSelectedUser(null);
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de modifier l'utilisateur"
@@ -267,7 +296,8 @@ const AdminUsersPageAdvanced = () => {
 
       setIsDeleteModalOpen(false);
       setSelectedUser(null);
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de supprimer l'utilisateur"
@@ -836,7 +866,8 @@ const AdminUsersPageAdvanced = () => {
                   });
                   
                   setIsChangeTypeModalOpen(false);
-                } catch (error) {                  toast({
+                } catch (error) {
+                  toast({
                     variant: "destructive",
                     title: "Erreur",
                     description: "Impossible de changer le type d'utilisateur"
@@ -857,3 +888,4 @@ const AdminUsersPageAdvanced = () => {
 };
 
 export default AdminUsersPageAdvanced;
+

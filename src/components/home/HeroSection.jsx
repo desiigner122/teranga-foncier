@@ -6,6 +6,11 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import Autoplay from "embla-carousel-autoplay";
 import { Input } from '@/components/ui/input';
 import { SLink } from 'react-router-dom';
+import { Search } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 const HeroSection = () => {
   const navigate = useNavigate();
   const carouselImages = [

@@ -1,3 +1,4 @@
+// @ts-ignore
 // Fonction Edge Supabase pour créer un utilisateur avec mot de passe
 // À déployer dans Supabase Edge Functions
 

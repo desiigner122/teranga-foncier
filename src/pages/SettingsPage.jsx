@@ -23,6 +23,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Link } from 'react-router-dom';
 // Added missing import
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+// The following AlertDialog import is already present above, so you can remove this duplicate if not needed
+// import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
 
 const SettingsPage = () => {
    const { toast } = useToast();

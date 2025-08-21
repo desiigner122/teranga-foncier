@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { BookOpen } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const glossaryTerms = [
   {

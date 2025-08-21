@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/navigation-menu';
 import { Building, Landmark, Leaf, Banknote, TrendingUp, HeartHandshake as Handshake, Scale, Users, FileSignature, AlertTriangle, LifeBuoy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const solutions = [
   { title: 'Banques & Finances', href: '/solutions/banques', description: 'Évaluez les garanties et analysez les risques fonciers.', icon: Banknote },

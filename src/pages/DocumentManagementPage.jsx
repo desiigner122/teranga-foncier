@@ -1,4 +1,13 @@
 import React, { useState } from 'react';
+import { Eye, CheckCircle, Clock } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+
 const DocumentManagementPage = () => {
   const { toast } = useToast();
   const [isSigningOpen, setIsSigningOpen] = useState(false);

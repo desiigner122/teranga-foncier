@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { Building2, Scale, Briefcase, ArrowRight } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const partners = [
   { icon: Building2, title: "Mairies & Collectivités", description: "Accédez à une vue d'ensemble du foncier sur votre territoire, suivez les transactions et facilitez la gestion administrative.", color: "text-blue-600" },

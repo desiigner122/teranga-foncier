@@ -1,5 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const ParcelImageGallery = ({ images = [], parcelName, parcelId }) => {
   const mainImageDesc = images[0] || `Image principale pour ${parcelName}`;

@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 
 import { CheckCircle, LogIn, UserPlus, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';// Pour vérifier l'authentification
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";// Pour vérifier l'authentification
 
 const MunicipalLandRequestInfoPage = () => {
   const { isAuthenticated } = useAuth();

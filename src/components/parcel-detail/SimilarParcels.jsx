@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { MapPin } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import { Link } from 'react-router-dom';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const formatPrice = (price) => {
-  if (price === null || price === undefined) return 'N/A';
+  
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+if (price === null || price === undefined) return 'N/A';
   return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(price);
 };
 

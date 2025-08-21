@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const weatherData = {
   'Champ Kagnout 1': { temp: '31°C', humidity: '65%', wind: '12 km/h NE', forecast: 'Ensoleillé avec passages nuageux.' },
   'Verger Anacardiers Bignona': { temp: '32°C', humidity: '70%', wind: '10 km/h E', forecast: 'Risque d\'averses en soirée.' },
@@ -6,7 +13,9 @@ const weatherData = {
 };
 
 const WeatherPage = () => {
-  const [selectedParcel, setSelectedParcel] = useState('Champ Kagnout 1');
+  
+  const [loading, setLoading] = useState(false);
+const [selectedParcel, setSelectedParcel] = useState('Champ Kagnout 1');
   // Loading géré par le hook temps réel
 
   useEffect(() => {

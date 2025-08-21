@@ -1,41 +1,39 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
+import { LandPlot, Eye, Search, PlusCircle, X, Archive } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/supabaseDataService';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const LandManagementPage = () => {
   const { toast } = useToast();
-  const { data: parcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeParcels();
-  const [filteredData, setFilteredData] = useState([]);
-  
-  useEffect(() => {
-    if (parcels) {
-      setFilteredData(parcels);
-    }
-  }, [parcels]);
-  
-  useEffect(() => {
-    const loadMunicipalParcels = async () => {
-      try {
-        setLoading(true);
-        // Récupérer toutes les parcelles publiques/municipales
-  const allParcels = await SupabaseDataService.getParcels();
-  const municipalParcels = allParcels.filter(p => 
-          p.owner_type === 'Mairie' || 
-          p.owner_type === 'Public' ||
-          p.legal_status === 'municipal'
-        );
-        setParcels(municipalParcels);
-      } catch (error) {        toast({ 
-          variant: "destructive",
-          title: "Erreur", 
-          description: "Impossible de charger les terrains municipaux" 
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [zoneFilter, setZoneFilter] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ reference:'', location_name:'', zone:'', area_sqm:'', price:'', status:'Disponible' });
 
-    loadMunicipalParcels();
-  }, [error]);
+  const { data: allParcels, loading: parcelsLoading, error: parcelsError, refetch } = useRealtimeTable('parcels');
+
+  const parcels = useMemo(() => {
+    if (!allParcels) return [];
+    return allParcels.filter(p => 
+      p.owner_type === 'Mairie' || 
+      p.owner_type === 'Public' ||
+      p.legal_status === 'municipal'
+    );
+  }, [allParcels]);
 
   const zones = useMemo(() => Array.from(new Set(parcels.map(p => p.zone).filter(Boolean))).sort(), [parcels]);
+
   const filteredParcels = useMemo(() => {
     return parcels.filter(p => {
       const matchSearch = !searchTerm || [p.reference, p.location_name, p.zone].some(v => (v||'').toLowerCase().includes(searchTerm.toLowerCase()));
@@ -47,21 +45,23 @@ const LandManagementPage = () => {
 
   const resetForm = () => setForm({ reference:'', location_name:'', zone:'', area_sqm:'', price:'', status:'Disponible' });
 
-  const handleCreateParcel = async (e) => {
   const updateParcelInline = async (parcel, newStatus) => {
     try {
-      const updated = await SupabaseDataService.updateProperty(parcel.id, { status:newStatus });
-      setParcels(ps=> ps.map(p=> p.id===parcel.id? {...p, ...updated}: p));
+      await SupabaseDataService.updateProperty(parcel.id, { status:newStatus });
       toast({ title:'Statut mis à jour', description:`${parcel.reference||parcel.id} -> ${newStatus}` });
+      refetch();
     } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Maj statut impossible'}); }
   };
+
   const archiveParcel = async (parcel) => {
     try {
-      const updated = await SupabaseDataService.updateProperty(parcel.id, { archived:true, status:'Archivé' });
-      setParcels(ps=> ps.map(p=> p.id===parcel.id? {...p, ...updated}: p));
+      await SupabaseDataService.updateProperty(parcel.id, { archived:true, status:'Archivé' });
       toast({ title:'Parcelle archivée' });
+      refetch();
     } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Archive impossible'}); }
   };
+
+  const handleCreateParcel = async (e) => {
     e.preventDefault();
     if (!form.reference || !form.location_name || !form.area_sqm) {
       toast({ variant:'destructive', title:'Champs requis', description:'Référence, localisation et surface sont obligatoires.' });
@@ -80,22 +80,27 @@ const LandManagementPage = () => {
         legal_status: 'municipal'
       };
       const created = await SupabaseDataService.createProperty(payload);
-      setParcels(prev => [created, ...prev]);
       toast({ title:'Parcelle créée', description:`${created.reference || created.id} ajoutée avec succès.` });
       resetForm();
       setShowCreate(false);
-    } catch (error) {      toast({ variant:'destructive', title:'Erreur création', description:"Impossible de créer la parcelle" });
+      refetch();
+    } catch (error) {
+      toast({ variant:'destructive', title:'Erreur création', description:"Impossible de créer la parcelle" });
     } finally {
       setCreating(false);
     }
   };
 
-  if (loading || dataLoading) {
+  if (parcelsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />
       </div>
     );
+  }
+  
+  if (parcelsError) {
+    return <div className="text-red-500">Erreur de chargement des données.</div>;
   }
 
   return (
@@ -150,7 +155,7 @@ const LandManagementPage = () => {
               <tbody>
                 {filteredParcels.map(p => (
                   <tr key={p.id} className="border-b hover:bg-muted/30">
-                    <td className="p-2 font-mono">{p.id}</td>
+                    <td className="p-2 font-mono">{p.reference}</td>
                     <td className="p-2">{p.location_name}</td>
                     <td className="p-2">{p.area_sqm}</td>
                     <td className="p-2">
@@ -229,3 +234,4 @@ const LandManagementPage = () => {
 };
 
 export default LandManagementPage;
+

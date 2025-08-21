@@ -1,4 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import SupabaseDataService from '../../services/supabaseDataService';
+import supabase from '../../lib/supabaseClient';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 // Simple fallback components if shadcn variants differ
 const Badge = ({ children, className='' }) => <span className={`inline-block px-2 py-0.5 text-xs rounded bg-primary/10 text-primary ${className}`}>{children}</span>;
 
@@ -47,7 +55,7 @@ export default function AdminInstitutionsPage() {
       const { data, error } = await supabase.from('regions').select('id,name').order('name');
       if (!error) setRegions(data);
     })();
-  }, [data, error]);
+  }, []);
 
   const updateStatus = async (inst, newStatus) => {
     setUpdatingId(inst.id);
@@ -55,7 +63,8 @@ export default function AdminInstitutionsPage() {
       const { error } = await supabase.from('institution_profiles').update({ status: newStatus }).eq('id', inst.id);
       if (error) throw error;
       await load();
-    } catch (e) {    } finally {
+    } catch (e) {
+    } finally {
       setUpdatingId(null);
     }
   };

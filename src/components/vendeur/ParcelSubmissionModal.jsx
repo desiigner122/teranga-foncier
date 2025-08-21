@@ -1,4 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { CheckCircle2, XCircle } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import supabase from "../../lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+
 /**
  * ParcelSubmissionModal
  * Permet à un vendeur de soumettre une nouvelle parcelle pour validation (anti-fraude) avant publication.
@@ -116,7 +127,8 @@ const ParcelSubmissionModal = ({ isOpen, onClose, owner, onSubmitted }) => {
       onSubmitted?.(submission);
       onClose();
       setStep(1); setForm({ reference:'', location:'', type:'terrain', surface:'', price:'', description:'' }); setDocuments([]);
-    } catch (e) {      toast({ variant:'destructive', title:'Erreur', description:'Impossible de soumettre la parcelle' });
+    } catch (e) {
+      toast({ variant:'destructive', title:'Erreur', description:'Impossible de soumettre la parcelle' });
     } finally { setSubmitting(false); }
   };
 

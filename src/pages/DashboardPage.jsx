@@ -1,10 +1,11 @@
 // src/pages/DashboardPage.jsx - Dashboard Dispatcher
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import VerificationRequired from '@/components/VerificationRequired';
+import { useToast } from "@/components/ui/use-toast";
 
 /**
  * DashboardPage Component - Dashboard Dispatcher
@@ -26,7 +27,9 @@ import VerificationRequired from '@/components/VerificationRequired';
  * - /dashboard/particulier - Individual dashboard
  */
 const DashboardPage = () => {
-  const { 
+  
+  const [loading, setLoading] = useState(false);
+const { 
     isAuthenticated, 
     user, 
     profile, 

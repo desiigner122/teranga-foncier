@@ -111,7 +111,7 @@ class AntiFraudAIService {
       }
 
       // Détecter les ventes multiples
-      const multiplesales = await this.detectMultipleSales(transaction.parcel_id);
+      const multipleSales = await this.detectMultipleSales(transaction.parcel_id);
       if (multipleSales.detected) {
         fraudIndicators.push({
           type: 'multiple_sales',

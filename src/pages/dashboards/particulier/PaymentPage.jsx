@@ -1,4 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { DollarSign, Eye, Search, AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../components/ui/tabs';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/SupabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from '../../../context/AuthContext';
+
 const PaymentPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -33,7 +45,8 @@ const PaymentPage = () => {
       
       setTransactions(userTransactions || []);
       setPaymentMethods(userPaymentMethods || []);
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger vos données de paiement"
@@ -432,4 +445,5 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
+
 

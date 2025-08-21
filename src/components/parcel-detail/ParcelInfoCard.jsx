@@ -2,7 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Maximize, Calendar, FileText, ShieldCheck, Info, ShoppingCart, CalendarPlus, Heart, Share2 } from 'lucide-react'; // Added Heart, Share2
+import { MapPin, Maximize, Calendar, FileText, ShieldCheck, Info, ShoppingCart, CalendarPlus, Heart, Share2 } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext"; // Added Heart, Share2
 
 const getStatusVariant = (status) => {
     switch (status) {

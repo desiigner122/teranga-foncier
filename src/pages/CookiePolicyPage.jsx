@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Cookie, Settings, ShieldCheck, Info, CheckCircle, XCircle } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const CookiePolicyPage = () => {
   const sectionVariants = {

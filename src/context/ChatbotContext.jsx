@@ -1,5 +1,7 @@
 // src/context/ChatbotContext.jsx
 import React, { createContext, useContext, useState } from 'react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const ChatbotContext = createContext();
 

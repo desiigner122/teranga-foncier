@@ -2,6 +2,23 @@
 // NOTE: Supports deep-link filtering via query param ?type=Vendeur (etc.).
 // The select stays in sync with the URL and allows dashboard cards to link directly.
 import React, { useState, useEffect } from 'react';
+import { Users, UserCheck, Eye, Clock, Edit, Trash2, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const userTypes = [
   'Particulier', 'Vendeur', 'Investisseur', 'Promoteur', 'Agriculteur', 
   'Banque', 'Notaire', 'Mairie', 'Agent', 'Administrateur'
@@ -21,7 +38,13 @@ const verificationStatuses = [
 ];
 
 const AdminUsersPageAdvanced = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
   const [filteredData, setFilteredData] = useState([]);
   
@@ -1473,3 +1496,4 @@ const AdminUsersPageAdvanced = () => {
 };
 
 export default AdminUsersPageAdvanced;
+

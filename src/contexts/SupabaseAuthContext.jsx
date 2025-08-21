@@ -3,6 +3,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 import { useContext, useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from "@/components/ui/use-toast";
+
+
+
 const SupabaseAuthContext = createContext({
   user: null,
   session: null,

@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { Home, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import SupabaseDataService from '../services/SupabaseDataService';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const formatDate = (dateString) => new Date(dateString).toLocaleDateString('fr-FR', {
   year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
 });
 
 const getStatusInfo = (status) => {
-  switch (status) {
+  
+  const [loading, setLoading] = useState(false);
+switch (status) {
     case 'Nouvelle': return { icon: FileText, color: 'text-blue-500' };
     case 'En instruction': return { icon: Clock, color: 'text-yellow-500' };
     case 'Approuvée': case 'Traitée': return { icon: CheckCircle, color: 'text-green-500' };

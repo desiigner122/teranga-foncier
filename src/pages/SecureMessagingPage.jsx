@@ -13,9 +13,12 @@ import { Send, MessageSquare, Users, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 const getInitials = (name) => {
-  if (!name) return '??';
+  
+  const [loading, setLoading] = useState(false);
+if (!name) return '??';
   const parts = name.split(' ');
   if (parts.length > 1) {
     return parts[0][0] + parts[parts.length - 1][0];

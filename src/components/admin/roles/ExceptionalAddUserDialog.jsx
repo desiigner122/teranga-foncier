@@ -1,5 +1,9 @@
 import React, { useState, useMemo, useEffect, React } from 'react';
 // Static lists removed: now fetched dynamically from Supabase import { SupabaseDataService } from '@/services/supabaseDataService';
+import { Button } from '../../../components/ui/button';
+import { Label } from '../../../components/ui/label';
+import { Input } from '../../../components/ui/input';
+
 
 // Utility
 const slugify = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
@@ -132,6 +136,9 @@ export default function ExceptionalAddUserDialog({ open, onOpenChange, onCreated
       }
       // Event logging (best-effort)
       SupabaseDataService.logEvent({ entityType:'user', entityId: created.id, eventType:'user.created_exceptional', actorUserId:null, source:'admin_ui', importance:1, data:{ type:baseType, slug } });
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
       toast({ title:'Créé', description: `Utilisateur ${created.full_name}` });
       onCreated?.(created);
       onOpenChange(false);

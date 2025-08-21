@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldAlert, FileCheck, UserCheck, Lock } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const preventionPoints = [
   { icon: FileCheck, title: "Vérification Documentaire Approfondie", description: "Nous analysons minutieusement les titres de propriété, plans cadastraux et certificats d'urbanisme pour détecter toute anomalie ou falsification." },

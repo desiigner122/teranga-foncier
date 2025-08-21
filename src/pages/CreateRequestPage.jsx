@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { MapPin } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
+import { Textarea } from '../components/ui/textarea';
+import { Progress } from '../components/ui/progress';
+import SupabaseDataService from '../services/supabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const CreateRequestPage = () => {
-  const { toast } = useToast();
+  
+
+  const [formData, setFormData] = useState({});
+const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -31,7 +50,8 @@ const CreateRequestPage = () => {
         // Charger les parcelles de l'utilisateur pour financement
         const userParcelsData = await SupabaseDataService.getParcelsByOwner(user.id);
         setUserParcels(userParcelsData || []);
-      } catch (error) {      } finally {
+      } catch (error) {
+      } finally {
         setLoadingOptions(false);
       }
     };
@@ -115,7 +135,8 @@ const CreateRequestPage = () => {
       // Redirect to requests page
       navigate('/dashboard/my-requests');
       
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de créer la demande. Veuillez réessayer."
@@ -495,4 +516,5 @@ const CreateRequestPage = () => {
 };
 
 export default CreateRequestPage;
+
 

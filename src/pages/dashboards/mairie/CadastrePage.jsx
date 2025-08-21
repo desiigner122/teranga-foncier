@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import { motion } from 'framer-motion';
+
 // Fix for Leaflet's default icon
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -9,7 +16,13 @@ L.Icon.Default.mergeOptions({
 
 // Données de zonage réel - À connecter avec la base de données
 const getZoningData = () => {
-  return {
+  
+  
+  /* REMOVED DUPLICATE */ (false);
+const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [properties, setProperties] = useState(false);
+return {
     type: "FeatureCollection",
     features: [
       { type: "Feature", properties: { zone: 'Résidentiel', status: 'active' }, geometry: { type: "Polygon", coordinates: [[[-17.03, 14.44], [-17.02, 14.44], [-17.02, 14.45], [-17.03, 14.45], [-17.03, 14.44]]] } },
@@ -109,3 +122,4 @@ const CadastrePage = () => {
 };
 
 export default CadastrePage;
+

@@ -1,4 +1,9 @@
 import React, { useState, useMemo, useEffect, React } from 'react';
+import { Button } from '../../../components/ui/button';
+import { Label } from '../../../components/ui/label';
+import { Input } from '../../../components/ui/input';
+import SupabaseDataService from '../../../services/SupabaseDataService';
+
 // Utility
 const slugify = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 
@@ -153,6 +158,9 @@ export default function ExceptionalAddUserDialogWithPassword({ open, onOpenChang
         importance: 1, 
         data: { type: baseType, slug } 
       });
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
       
       toast({ title: 'Créé', description: `Utilisateur ${created.full_name}` });
       onCreated?.(created);

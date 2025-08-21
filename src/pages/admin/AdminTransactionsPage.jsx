@@ -1,7 +1,24 @@
 // src/pages/admin/AdminTransactionsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { DollarSign } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Input } from '../../components/ui/input';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const AdminTransactionsPage = () => {
-  const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dataLoading, setDataLoading] = useState(false);
+const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -81,3 +98,4 @@ const AdminTransactionsPage = () => {
 };
 
 export default AdminTransactionsPage;
+

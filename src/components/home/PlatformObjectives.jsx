@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Users, Scale, Globe, CalendarCheck, Plane } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const objectives = [
    { icon: ShieldCheck, title: "Contre la Fraude", description: "Vérification systématique des titres fonciers, identités des vendeurs et mandats pour prévenir les doubles ventes et litiges.", color: "text-red-600" },

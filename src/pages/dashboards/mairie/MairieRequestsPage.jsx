@@ -1,70 +1,67 @@
 import React, { useState, useEffect } from 'react';
+import { Search, CheckCircle, FileSignature, XCircle } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/supabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from '../../../context/AuthContext';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const MairieRequestsPage = () => {
+  const [statusFilter, setStatusFilter] = useState('all');
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeRequests();
+  const { data: requests, loading: requestsLoading, error: requestsError, refetch } = useRealtimeTable('requests');
   const [filteredData, setFilteredData] = useState([]);
+  const [search, setSearch] = useState('');
   
   useEffect(() => {
     if (requests) {
-      setFilteredData(requests);
-    }
-  }, [requests]);
-  
-  useEffect(() => {
-    const loadMairieRequests = async () => {
-      try {
-        setLoading(true);
-        
+      const mairieRequests = requests.filter(r => {
         if (user && user.id) {
-          // Utiliser la nouvelle méthode pour récupérer les demandes destinées spécifiquement é cette mairie
-          const mairieRequests = await SupabaseDataService.getRequestsByRecipient(user.id, 'mairie');
-          setRequests(mairieRequests);
-        } else {
-          // Fallback: récupérer toutes les demandes de type mairie si pas d'utilisateur spécifique
-          const allRequests = await SupabaseDataService.getRequests();
-          const mairieRequests = allRequests.filter(r => 
-            r.recipient_type === 'Mairie' || 
-            r.category === 'municipal' ||
-            r.type === 'land_request'
-          );
-          setRequests(mairieRequests);
+          // Requests for a mairie might have a recipient_id matching the mairie user's id
+          // This logic assumes such a field exists on the request objects.
+          return (r.recipient_id === user.id && r.recipient_type === 'mairie') ||
+                 (r.recipient_type === 'Mairie' || r.category === 'municipal' || r.type === 'land_request');
         }
-      } catch (error) {        toast({ 
-          variant: "destructive",
-          title: "Erreur", 
-          description: "Impossible de charger les demandes" 
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadMairieRequests();
-  }, [user]);
+        // Fallback for general mairie-related requests if no specific user context
+        return r.recipient_type === 'Mairie' || r.category === 'municipal' || r.type === 'land_request';
+      });
+      setFilteredData(mairieRequests);
+    }
+  }, [requests, user]);
 
   const handleRequestAction = async (requestId, action, status) => {
     try {
       const updated = await SupabaseDataService.updateRequestStatus(requestId, status);
       toast({ title: `Demande ${action}`, description: `Statut: ${updated.status}` });
-      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: updated.status } : r));
+      refetch();
     } catch (error) {
       toast({ variant: 'destructive', title: 'Erreur', description: `Action impossible (${error.message})` });
     }
   };
 
-  const filtered = requests.filter(r => {
+  const filtered = filteredData.filter(r => {
     const matchSearch = !search || (r.user_name || r.full_name || '').toLowerCase().includes(search.toLowerCase()) || (r.request_type || '').toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || (r.status || '').toLowerCase() === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  if (loading || dataLoading) {
+  if (requestsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />
       </div>
     );
+  }
+  
+  if (requestsError) {
+    return <div className="text-red-500">Erreur de chargement des données.</div>;
   }
 
   return (
@@ -142,3 +139,4 @@ const MairieRequestsPage = () => {
 };
 
 export default MairieRequestsPage;
+

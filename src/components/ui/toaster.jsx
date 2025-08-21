@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/toast';
 import { useToast } from '@/components/ui/use-toast';
 import React from 'react';
+import { useAuth } from "../../contexts/AuthContext";
 
 export function Toaster() {
 	const { toasts } = useToast();

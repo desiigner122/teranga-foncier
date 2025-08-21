@@ -1,6 +1,6 @@
-// src/services/UserManagementService.import { supabase } from '@/lib/supabaseClient';
+// src/services/UserManagementService.js
+import { supabase } from '../lib/supabaseClient';
 
-;
 class UserManagementService {
   /**
    * Suppression complète d'un utilisateur (Auth + Database + Sessions)
@@ -21,7 +21,8 @@ class UserManagementService {
       // 2. Supprimer l'utilisateur de Supabase Auth (via Admin API)
       const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
       
-      if (authDeleteError) {        // On continue même si la suppression Auth échoue
+      if (authDeleteError) {
+        // On continue même si la suppression Auth échoue
       }
 
       // 3. Soft delete dans la base de données (pour l'historique)
@@ -51,7 +52,8 @@ class UserManagementService {
         deletedUser: userProfile
       };
 
-    } catch (error) {      throw error;
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -63,10 +65,12 @@ class UserManagementService {
       // Utiliser l'API Admin pour révoquer toutes les sessions
       const { error } = await supabase.auth.admin.signOut(userId, 'global');
       
-      if (error) {      }
+      if (error) {
+      }
 
       return { success: !error };
-    } catch (error) {      return { success: false, error };
+    } catch (error) {
+      return { success: false, error };
     }
   }
 
@@ -103,7 +107,8 @@ class UserManagementService {
       await Promise.allSettled(cleanupOperations);
       return { success: true };
 
-    } catch (error) {      return { success: false, error };
+    } catch (error) {
+      return { success: false, error };
     }
   }
 
@@ -128,7 +133,8 @@ class UserManagementService {
         user: data.user 
       };
 
-    } catch (error) {      return { exists: false, error };
+    } catch (error) {
+      return { exists: false, error };
     }
   }
 
@@ -157,7 +163,8 @@ class UserManagementService {
 
       return { success: true, message: 'Utilisateur bloqué avec succès' };
 
-    } catch (error) {      throw error;
+    } catch (error) {
+      throw error;
     }
   }
 }

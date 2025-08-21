@@ -1,6 +1,8 @@
 import React from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const ParcelDetailSkeleton = () => (
    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

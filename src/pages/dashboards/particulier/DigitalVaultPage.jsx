@@ -1,62 +1,64 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { Eye, Trash2, Calendar, Upload, Search, FolderOpen, Image, FileText, File, Download, Share2 } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Tabs, TabsTrigger, TabsList, TabsContent } from '../../../components/ui/tabs';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/supabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from '../../../context/AuthContext';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const DigitalVaultPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: documents, loading: documentsLoading, error: documentsError, refetch } = useRealtimeTable();
-  const [filteredData, setFilteredData] = useState([]);
-  
-  useEffect(() => {
-    if (documents) {
-      setFilteredData(documents);
-    }
-  }, [documents]);
-  
-  useEffect(() => {
-    loadDocuments();
-  }, [user]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [uploadLoading, setUploadLoading] = useState(false);
 
-  const loadDocuments = async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      const userDocuments = await SupabaseDataService.getUserDocuments(user.id);
-      setDocuments(userDocuments || []);
-    } catch (error) {      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger vos documents"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: documents, loading: documentsLoading, error: documentsError, refetch } = useRealtimeTable('documents', {
+    filters: user ? [['user_id', 'eq', user.id]] : [],
+    enabled: !!user,
+  });
+
+  const categories = [
+    { id: 'all', label: 'Tout', icon: FolderOpen },
+    { id: 'identity', label: 'Identité', icon: FileText },
+    { id: 'property', label: 'Propriété', icon: FileText },
+    { id: 'contracts', label: 'Contrats', icon: FileText },
+    { id: 'receipts', label: 'Reçus', icon: FileText },
+    { id: 'photos', label: 'Photos', icon: Image },
+    { id: 'other', label: 'Autre', icon: File },
+  ];
 
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
-    if (files.length === 0) return;
+    if (files.length === 0 || !user) return;
 
     setUploadLoading(true);
     try {
       for (const file of files) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('category', selectedCategory === 'all' ? 'other' : selectedCategory);
-        formData.append('user_id', user.id);
-        
-        await SupabaseDataService.uploadUserDocument(formData);
+        await SupabaseDataService.uploadUserDocument(file, {
+          category: selectedCategory === 'all' ? 'other' : selectedCategory,
+          user_id: user.id,
+        });
       }
       
       toast({
         title: "Documents téléchargés",
-        description: `${files.length} document(s) ajouté(s) é votre coffre-fort numérique`
+        description: `${files.length} document(s) ajouté(s) à votre coffre-fort numérique`
       });
       
-      loadDocuments();
-    } catch (error) {      toast({
+      refetch();
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de télécharger les documents"
+        description: `Impossible de télécharger les documents: ${error.message}`
       });
     } finally {
       setUploadLoading(false);
@@ -66,12 +68,13 @@ const DigitalVaultPage = () => {
   const deleteDocument = async (documentId, documentName) => {
     try {
       await SupabaseDataService.deleteUserDocument(documentId);
-      setDocuments(prev => prev.filter(doc => doc.id !== documentId));
       toast({
         title: "Document supprimé",
         description: `"${documentName}" a été supprimé de votre coffre-fort`
       });
-    } catch (error) {      toast({
+      refetch();
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de supprimer ce document"
@@ -79,7 +82,7 @@ const DigitalVaultPage = () => {
     }
   };
 
-  const getFileIcon = (fileName, type) => {
+  const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase();
     
     if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
@@ -115,7 +118,7 @@ const DigitalVaultPage = () => {
       'identity': { label: 'Identité', variant: 'default' },
       'property': { label: 'Propriété', variant: 'secondary' },
       'contracts': { label: 'Contrats', variant: 'outline' },
-      'receipts': { label: 'Reéus', variant: 'default' },
+      'receipts': { label: 'Reçus', variant: 'default' },
       'photos': { label: 'Photos', variant: 'secondary' },
       'other': { label: 'Autre', variant: 'outline' }
     };
@@ -124,25 +127,27 @@ const DigitalVaultPage = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = doc.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
+  const filteredDocuments = useMemo(() => {
+    if (!documents) return [];
+    return documents.filter(doc => {
+      const matchesSearch = doc.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (doc.description || '')?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  }, [documents, searchTerm, selectedCategory]);
 
-  const getDocumentsByCategory = (category) => {
-    if (category === 'all') return documents;
-    return documents.filter(doc => doc.category === category);
-  };
-
-  if (loading || dataLoading) {
+  if (documentsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />
       </div>
     );
+  }
+  
+  if (documentsError) {
+    return <div className="text-red-500 p-8">Erreur de chargement de vos documents.</div>
   }
 
   return (
@@ -183,10 +188,11 @@ const DigitalVaultPage = () => {
                 onChange={handleFileUpload}
                 className="hidden"
                 id="file-upload"
+                disabled={uploadLoading}
               />
               <label
                 htmlFor="file-upload"
-                className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                className={`flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg ${uploadLoading ? 'cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:border-primary hover:bg-primary/5'} transition-colors`}
               >
                 <div className="text-center">
                   <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
@@ -225,7 +231,7 @@ const DigitalVaultPage = () => {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold">{documents.length}</p>
+              <p className="text-2xl font-bold">{documents?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Documents stockés</p>
             </div>
           </CardContent>
@@ -233,17 +239,16 @@ const DigitalVaultPage = () => {
       </div>
 
       {/* Documents by Category */}
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            const count = getDocumentsByCategory(category.id).length;
-            return (
-              <TabsTrigger
-                key={category.id}
-                value={category.id}
-                className="flex flex-col gap-1 py-2"
-                onClick={() => setSelectedCategory(category.id)}
+      <Tabs defaultValue="all" onValueChange={setSelectedCategory} className="space-y-4">
+{categories.map((category) => {
+  const Icon = category.icon;
+  const count = category.id === 'all' ? (documents?.length || 0) : (documents?.filter(d => d.category === category.id).length || 0);
+  return (
+    <TabsTrigger
+      key={category.id}
+      value={category.id}
+      className="flex flex-col gap-1 py-2"
+    >
               >
                 <Icon className="h-4 w-4" />
                 <span className="text-xs">{category.label}</span>
@@ -257,17 +262,16 @@ const DigitalVaultPage = () => {
           })}
         </TabsList>
 
-        {categories.map((category) => (
-          <TabsContent key={category.id} value={category.id} className="space-y-4">
+        <TabsContent value={selectedCategory} className="space-y-4">
             {filteredDocuments.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
                   <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Aucun document</h3>
                   <p className="text-muted-foreground">
-                    {documents.length === 0 
+                    {documents?.length === 0 
                       ? "Vous n'avez pas encore téléchargé de documents. Commencez par ajouter vos premiers documents."
-                      : "Aucun document ne correspond é vos critéres de recherche."
+                      : "Aucun document ne correspond à vos critères de recherche."
                     }
                   </p>
                 </CardContent>
@@ -279,11 +283,11 @@ const DigitalVaultPage = () => {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          {getFileIcon(document.name, document.type)}
+                          {getFileIcon(document.name)}
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium truncate">{document.name}</h4>
                             <p className="text-xs text-muted-foreground">
-                              {formatFileSize(document.size)}
+                              {formatFileSize(document.metadata?.size)}
                             </p>
                           </div>
                         </div>
@@ -329,11 +333,11 @@ const DigitalVaultPage = () => {
               </div>
             )}
           </TabsContent>
-        ))}
       </Tabs>
     </motion.div>
   );
 };
 
 export default DigitalVaultPage;
+
 

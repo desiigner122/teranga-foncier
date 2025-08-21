@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../components/ui/tabs';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+
 export default function AdminUsersManagement() {
-  const { toast } = useToast();
+  
+  const [loading, setLoading] = useState(false);
+const { toast } = useToast();
   const { data: users, loading: usersLoading, error: usersError, refetch } = useRealtimeUsers();
   const [filteredData, setFilteredData] = useState([]);
   

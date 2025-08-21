@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { Building, ArrowRight, CheckCircle } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const constructorPartners = [
   { name: "Senegindia SA", alt: "Logo Senegindia", desc: "Constructeur majeur projets résidentiels et commerciaux.", color: "text-blue-600", website: "#" },

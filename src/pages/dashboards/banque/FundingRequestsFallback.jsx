@@ -1,4 +1,6 @@
 import React from 'react';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const FundingRequestsFallback = () => (
   <div className="p-6">

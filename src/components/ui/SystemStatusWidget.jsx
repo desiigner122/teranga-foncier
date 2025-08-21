@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Zap, Shield, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const SystemStatusWidget = () => {
   const systemFeatures = [

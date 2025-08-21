@@ -1,4 +1,34 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { UserCheck, Eye, Search, Edit, Trash2, PlusCircle } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { 
+  Table, TableBody, TableCell, TableHead, 
+  TableHeader, TableRow 
+} from '../../components/ui/table';
+import { 
+  Dialog, DialogContent, DialogDescription, 
+  DialogHeader, DialogTitle, DialogFooter 
+} from '../../components/ui/dialog';
+import { 
+  AlertDialog, AlertDialogAction, AlertDialogCancel, 
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter, 
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger 
+} from '../../components/ui/alert-dialog';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from 'react-router-dom';
+import supabase from '../../lib/supabaseClient';
+import { motion } from 'framer-motion';
+import { useAuth } from "../../contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
+
 // Configuration des champs spécifiques pour les agents (peuvent être étendus si nécessaire)
 const agentSpecificFields = [
   // { id: 'agent_id_number', label: 'Numéro d\'Agent', type: 'text', optional: true },
@@ -6,7 +36,15 @@ const agentSpecificFields = [
 ];
 
 const AdminAgentsPage = () => {
-  const { data: agents, loading: agentsLoading, error: agentsError, refetch } = useRealtimeTable();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentEditAgent, setCurrentEditAgent] = useState(null);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { data: agents = [], loading: agentsLoading, error: agentsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -14,10 +52,6 @@ const AdminAgentsPage = () => {
       setFilteredData(agents);
     }
   }, [agents]);
-  
-  useEffect(() => {
-    fetchAgents();
-  }, [fetchAgents]);
 
   const filteredAgents = agents.filter(agent =>
     agent.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -35,7 +69,7 @@ const AdminAgentsPage = () => {
         title: "Agent supprimé",
         description: `L'agent ${agentEmail} a été supprimé.`,
       });
-      fetchAgents(); // Recharger après suppression
+      refetch(); // Recharger après suppression
     } catch (err) {
       toast({
         variant: "destructive",
@@ -135,7 +169,7 @@ const AdminAgentsPage = () => {
         */
       }
       setIsModalOpen(false);
-      fetchAgents();
+      refetch();
     } catch (err) {
       toast({
         variant: "destructive",
@@ -343,3 +377,4 @@ const AdminAgentsPage = () => {
 };
 
 export default AdminAgentsPage;
+

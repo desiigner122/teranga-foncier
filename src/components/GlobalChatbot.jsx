@@ -1,7 +1,17 @@
 // src/components/GlobalChatbot.jsx
 import React, { useState, useEffect, useRef } from 'react';
+import { User, Trash2 } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const GlobalChatbot = () => {
-  const { isAuthenticated, user } = useAuth();
+  
+  const [loading, setLoading] = useState(false);
+const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const { isChatbotOpen, toggleChatbot, closeChatbot } = useChatbot();
   // Abonnement temps réel à la table messages (retourne {data, loading, error, refetch})

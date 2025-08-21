@@ -1,43 +1,44 @@
-import React, { useState, useEffect } from 'react';
-// Source: documents table categories actes
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Filter, Archive, Download } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 const ArchivesPage = () => {
   const { toast } = useToast();
-  const { data: archives, loading: archivesLoading, error: archivesError, refetch } = useRealtimeTable();
-  const [filteredData, setFilteredData] = useState([]);
-  
-  useEffect(() => {
-    if (archives) {
-      setFilteredData(archives);
-    }
-  }, [archives]);
-  
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('documents')
-          .select('id,title,category,created_at,parties')
-          .in('category',[ 'acte_vente','acte_succession','acte_autre' ])
-          .order('created_at',{ ascending:false })
-          .limit(300);
-        if (error) throw error;
-        const mapCategory = (c) => c==='acte_vente' ? 'Vente' : c==='acte_succession' ? 'Succession' : 'Autre';
-        const mapped = (data||[data, error]).map(d=>({ id:d.id, acteId:d.title || d.id, type:mapCategory(d.category), date:d.created_at?.split('T')[0]||'', parties:d.parties||'—' }));
-        setArchives(mapped);
-      } catch(e) {
-        if (process.env.NODE_ENV !== 'production') console.warn('Archives non chargées', e.message||e);
-      } finally { setLoading(false); }
-    };
-    load();
-  }, []);
+  const { data, loading: archivesLoading, error: archivesError } = useRealtimeTable('documents', {
+    select: 'id,title,category,created_at,parties',
+    filters: [['category', 'in', '("acte_vente","acte_succession","acte_autre")']],
+    orderBy: ['created_at', { ascending: false }],
+    limit: 300
+  });
 
-  if (loading || dataLoading) {
+  const archives = useMemo(() => {
+    if (!data) return [];
+    const mapCategory = (c) => c === 'acte_vente' ? 'Vente' : c === 'acte_succession' ? 'Succession' : 'Autre';
+    return data.map(d => ({ id: d.id, acteId: d.title || d.id, type: mapCategory(d.category), date: d.created_at?.split('T')[0] || '', parties: d.parties || '—' }));
+  }, [data]);
+
+  const handleAction = (message) => {
+    toast({ title: 'Action', description: message });
+  };
+
+  if (archivesLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />
       </div>
     );
+  }
+
+  if (archivesError) {
+    return <div className="text-red-500">Erreur de chargement des archives.</div>;
   }
 
   return (
@@ -81,7 +82,6 @@ const ArchivesPage = () => {
                     <td className="p-2">{a.parties}</td>
                     <td className="p-2 text-right">
                       <Button variant="outline" size="sm" onClick={() => handleAction(`Consultation de l'acte ${a.acteId}.`)}><Download className="mr-1 h-4 w-4" /> Consulter</Button>
-                        <Button variant="outline" size="sm" disabled title="Consultation à venir"><Download className="mr-1 h-4 w-4" /> Consulter</Button>
                     </td>
                   </tr>
                 ))}

@@ -1,5 +1,32 @@
 // src/pages/admin/AdminParcelSubmissionsPage.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Eye, RefreshCw, CheckCircle2, MapPin, XCircle, Images } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { Textarea } from '../../components/ui/textarea';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { 
+  Table, TableBody, TableCell, TableHead, 
+  TableHeader, TableRow 
+} from '../../components/ui/table';
+import { 
+  Dialog, DialogContent, DialogDescription, 
+  DialogHeader, DialogTitle, DialogFooter 
+} from '../../components/ui/dialog';
+import { useToast } from "@/components/ui/use-toast";
+import { useRealtimeParcelSubmissions, useRealtimeTable } from '../../hooks/useRealtimeTable';
+import SupabaseDataService from '../../services/supabaseDataService';
+import supabase from '../../lib/supabaseClient';
+import { motion } from 'framer-motion';
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const AdminParcelSubmissionsPage = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -7,7 +34,7 @@ const AdminParcelSubmissionsPage = () => {
   
   // Utiliser le hook real-time pour les soumissions de parcelles
   const { 
-    data: parcelSubmissions, 
+    data: parcelSubmissions = [], 
     loading, 
     error, 
     refresh 
@@ -20,7 +47,7 @@ const AdminParcelSubmissionsPage = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   
   // Enrichir les données avec les informations utilisateur
-  const { data: enrichedSubmissions, loading: enrichedSubmissionsLoading, error: enrichedSubmissionsError, refetch } = useRealtimeTable();
+  const { data: enrichedSubmissions = [], loading: enrichedSubmissionsLoading, error: enrichedSubmissionsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -32,7 +59,6 @@ const AdminParcelSubmissionsPage = () => {
   useEffect(() => {
     const enrichSubmissions = async () => {
       if (!parcelSubmissions || parcelSubmissions.length === 0) {
-        setEnrichedSubmissions([]);
         return;
       }
       
@@ -60,15 +86,17 @@ const AdminParcelSubmissionsPage = () => {
             documents: Array.isArray(sub.documents)? sub.documents.map(d => ({ id: d.key, name: d.name || d.key, url: d.url || '#', verified: !!d.verified })) : []
           };
         }));
-        setEnrichedSubmissions(enriched);
-      } catch (error) {      }
+        setFilteredData(enriched);
+      } catch (error) {
+        console.error("Error enriching submissions:", error);
+      }
     };
     
     enrichSubmissions();
   }, [parcelSubmissions]);
   
   // Filtrage des soumissions enrichies
-  const filteredSubmissions = enrichedSubmissions.filter(submission => {
+  const filteredSubmissions = filteredData.filter(submission => {
     // Filtre par statut
     if (statusFilter !== 'all' && submission.status !== statusFilter) {
       return false;
@@ -93,7 +121,8 @@ const AdminParcelSubmissionsPage = () => {
       await SupabaseDataService.approveParcelSubmission(submission.id, {});
       toast({ title:'Parcelle approuvée', description: submission.parcel_name });
       // L'update sera automatiquement reflété par le real-time
-    } catch (error) {      toast({ variant:'destructive', title:'Erreur', description:"Impossible d'approuver" });
+    } catch (error) {
+      toast({ variant:'destructive', title:'Erreur', description:"Impossible d'approuver" });
     }
   };
 
@@ -113,7 +142,8 @@ const AdminParcelSubmissionsPage = () => {
       setIsRejectReasonModalOpen(false); 
       setSelectedSubmission(null);
       // L'update sera automatiquement reflété par le real-time
-    } catch (error) {      toast({ variant:'destructive', title:'Erreur', description:'Rejet impossible' });
+    } catch (error) {
+      toast({ variant:'destructive', title:'Erreur', description:'Rejet impossible' });
     }
   };
 
@@ -537,3 +567,4 @@ const AdminParcelSubmissionsPage = () => {
 };
 
 export default AdminParcelSubmissionsPage;
+

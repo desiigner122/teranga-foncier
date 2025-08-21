@@ -11,6 +11,7 @@ import { UploadCloud, FileText, Award, Check, ShieldCheck, AlertTriangle } from 
 import { Link } from 'react-router-dom';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 
+import { useMemo, useState } from 'react';
 const SellPropertyPage = () => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);

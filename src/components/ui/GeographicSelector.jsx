@@ -1,4 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Building, Home, MapPin } from 'lucide-react';
+import { Label } from '../../components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const GeographicSelector = ({ 
   value = { region: '', department: '', commune: '' },
   onChange,

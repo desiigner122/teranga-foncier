@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import supabase from '../lib/supabaseClient';
+import { motion } from 'framer-motion';
+
 const ComplianceCheckPage = () => {
-  const { toast } = useToast();
+  
+  const [loading, setLoading] = useState(false);
+const { toast } = useToast();
   const [parcelId, setParcelId] = useState('');
   const [checkResult, setCheckResult] = useState(null);
   // Loading géré par le hook temps réel
@@ -60,7 +71,8 @@ const ComplianceCheckPage = () => {
         description: `Résultats pour la parcelle ${parcelId} affichés.` 
       });
 
-    } catch (error) {      toast({ 
+    } catch (error) {
+      toast({ 
         variant: 'destructive', 
         title: 'Erreur', 
         description: 'Impossible de vérifier la conformité.' 

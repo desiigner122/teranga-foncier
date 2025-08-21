@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import { Button } from '../../../components/ui/button';
+import SupabaseDataService from '../../../services/SupabaseDataService';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const FeaturedParcelsSection = () => {
-  const { data: featuredParcels, loading: featuredParcelsLoading, error: featuredParcelsError, refetch } = useRealtimeTable();
+  
+  const [loading, setLoading] = useState(false);
+const { data: featuredParcels, loading: featuredParcelsLoading, error: featuredParcelsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {

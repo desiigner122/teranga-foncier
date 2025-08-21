@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import SupabaseDataService from '../services/SupabaseDataService';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const MyDocumentsPage = () => {
-  const { user, isAuthenticated } = useAuth();
+  
+  const [loading, setLoading] = useState(false);
+const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [docs, setDocs] = useState([]);
   // Loading géré par le hook temps réel

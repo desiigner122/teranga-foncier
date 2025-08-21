@@ -1,8 +1,56 @@
 import React, { useState, useEffect } from 'react';
+import { DollarSign, Home, Eye, Search, Plus, Edit, Trash2, MapPin } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Label } from '../../../components/ui/label';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
+import { Checkbox } from '../../../components/ui/checkbox';
+import { Textarea } from '../../../components/ui/textarea';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/supabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from '../../../context/AuthContext';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const MyPropertiesPage = () => {
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [formData, setFormData] = useState({});
+  const propertyTypes = [
+    { id: 'maison', name: 'Maison' },
+    { id: 'appartement', name: 'Appartement' },
+    { id: 'terrain', name: 'Terrain' },
+    { id: 'commercial', name: 'Local Commercial' },
+    { id: 'bureau', name: 'Bureau' }
+  ];
+
+  const statusOptions = [
+    { id: 'disponible', name: 'Disponible' },
+    { id: 'vendu', name: 'Vendu' },
+    { id: 'reserve', name: 'Réservé' },
+    { id: 'construction', name: 'En Construction' }
+  ];
+
+  const featuresOptions = [
+    { id: 'parking', name: 'Parking' },
+    { id: 'piscine', name: 'Piscine' },
+    { id: 'jardin', name: 'Jardin' },
+    { id: 'balcon', name: 'Balcon' },
+    { id: 'ascenseur', name: 'Ascenseur' },
+    { id: 'securite', name: 'Sécurité 24/7' }
+  ];
+
+const { toast } = useToast();
   const { user } = useAuth();
-  const { data: properties, loading: propertiesLoading, error: propertiesError, refetch } = useRealtimeTable();
+  const { data: properties, loading: propertiesLoading, error: propertiesError, refetch } = useRealtimeTable('properties');
   const [filteredData, setFilteredData] = useState([]);
   
   useEffect(() => {
@@ -12,25 +60,8 @@ const MyPropertiesPage = () => {
   }, [properties]);
   
   useEffect(() => {
-    loadProperties();
-  }, [user]);
-
-  const loadProperties = async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      const userProperties = await SupabaseDataService.getVendeurProperties(user.id);
-      setProperties(userProperties || []);
-    } catch (error) {      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger vos biens"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    refetch();
+  }, [user, refetch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,7 +107,8 @@ const MyPropertiesPage = () => {
       });
       setShowAddForm(false);
       loadProperties();
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible d'ajouter le bien"
@@ -101,7 +133,8 @@ const MyPropertiesPage = () => {
         title: "Bien supprimé",
         description: `"${propertyTitle}" a été supprimé`
       });
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de supprimer ce bien"
@@ -504,4 +537,5 @@ const MyPropertiesPage = () => {
 };
 
 export default MyPropertiesPage;
+
 

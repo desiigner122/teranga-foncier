@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState from 'react' };
 import { cn } from "@/lib/utils";
 import { Loader2 } from 'lucide-react';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
-const LoadingSpinner = ({ size = 'md', className }) => {
+
+const LoadingSpinner = ({ 
+  const [loading, setLoading] = useState(false);
+size = 'md', className }) => {
   const sizeClasses = {
     sm: 'h-5 w-5',
     md: 'h-8 w-8',

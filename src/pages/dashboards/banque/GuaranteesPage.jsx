@@ -1,38 +1,47 @@
-import React, { useState, useEffect } from 'react';
-// Data source: bank_guarantees table (expected). Falls back to empty list if missing.
+import React, { useState, useEffect, useMemo } from 'react';
+import { Eye, Search, Filter, ShieldCheck } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import { useRealtimeTable } from '../../../hooks/useRealtimeTable';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
 
 const GuaranteesPage = () => {
   const { toast } = useToast();
-  const [guarantees, setGuarantees] = useState([]);
-  // Loading géré par le hook temps réel
+  const { 
+    data: guaranteesData, 
+    loading, 
+    error 
+  } = useRealtimeTable('bank_guarantees', 'created_at');
 
-  const loadGuarantees = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('bank_guarantees')
-        .select('id,parcel_id,client_name,estimated_value,risk_level')
-        .order('created_at',{ ascending:false })
-        .limit(200);
-      if (error) throw error;
-      const mapped = (data||[]).map(g => ({
-        id: g.id,
-        parcelId: g.parcel_id,
-        valeur: g.estimated_value ? new Intl.NumberFormat('fr-FR').format(g.estimated_value) + ' XOF' : '—',
-        risque: g.risk_level || '—',
-        client: g.client_name || '—'
-      }));
-      setGuarantees(mapped);
-    } catch (e) {
-      // Silent fallback, maybe table not present yet
-      if (process.env.NODE_ENV !== 'production') console.warn('Garanties non chargées', e.message || e);
-    } finally {
-      setLoading(false);
+  const guarantees = useMemo(() => {
+    if (!guaranteesData) return [];
+    return guaranteesData.map(g => ({
+      id: g.id,
+      parcelId: g.parcel_id,
+      valeur: g.estimated_value ? new Intl.NumberFormat('fr-FR').format(g.estimated_value) + ' XOF' : '—',
+      risque: g.risk_level || '—',
+      client: g.client_name || '—'
+    }));
+  }, [guaranteesData]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erreur de chargement',
+        description: 'Impossible de charger le portefeuille de garanties.',
+      });
     }
-  };
+  }, [error, toast]);
 
-  useEffect(()=>{ loadGuarantees(); },[]);
-
-  if (loading) {
+  if (loading && guarantees.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="large" />

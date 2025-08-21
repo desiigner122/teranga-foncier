@@ -1,4 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { DollarSign, CheckCircle, TrendingUp } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import SupabaseDataService from '../../services/supabaseDataService';
+import supabase from '../../lib/supabaseClient';
+import { motion } from 'framer-motion';
+import { useToast } from "../../components/ui/use-toast";
+import { useAuth } from "../../context/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const BanqueDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -40,7 +52,8 @@ const BanqueDashboard = () => {
           ...prev,
           securityScore: Math.round((1 - securityAnalysis.riskScore) * 100)
         }));
-      } catch (error) {      }
+      } catch (error) {
+      }
     };
 
     loadSecurityAnalysis();
@@ -122,7 +135,8 @@ const BanqueDashboard = () => {
       setRiskAnalysis(risks);
       setMarketTrends(trends);
 
-    } catch (error) {    } finally {
+    } catch (error) {
+    } finally {
       setLoading(false);
     }
   };
@@ -193,7 +207,8 @@ const BanqueDashboard = () => {
 
       return risks;
 
-    } catch (error) {      return [];
+    } catch (error) {
+      return [];
     }
   };
 
@@ -255,7 +270,8 @@ const BanqueDashboard = () => {
 
       return trends;
 
-    } catch (error) {      return [];
+    } catch (error) {
+      return [];
     }
   };
 
@@ -276,7 +292,8 @@ const BanqueDashboard = () => {
         description: `Score de risque global: ${Math.round(riskAnalysis.overallRisk * 100)}%`,
       });
 
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible d'effectuer l'analyse des risques",
@@ -296,7 +313,8 @@ const BanqueDashboard = () => {
         description: `Taux de conformité: ${Math.round(complianceCheck.complianceRate * 100)}%`,
       });
 
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de vérifier la conformité",
@@ -339,7 +357,8 @@ const BanqueDashboard = () => {
         if (updated.estimated_value !== undefined || kind.startsWith('evaluation')) setEvaluations(ev=> ev.map(e=> e.id===id? {...e, ...updated}: e));
       }
       toast({ title:'Action effectuée', description: key });
-    } catch(e) {      toast({ variant:'destructive', title:'Erreur', description:'Action impossible'});
+    } catch(e) {
+      toast({ variant:'destructive', title:'Erreur', description:'Action impossible'});
     } finally {
       setActionBusy(null);
     }

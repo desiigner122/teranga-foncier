@@ -32,6 +32,8 @@ function Badge({
   ...props
 }) {
   return (<div className={cn(badgeVariants({ variant }), className)} {...props} />);
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 }
 
 export { Badge, badgeVariants }

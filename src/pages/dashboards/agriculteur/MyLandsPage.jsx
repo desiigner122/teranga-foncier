@@ -1,6 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { LandPlot, Search, Filter, Plus, RefreshCw } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
+import { LoadingSpinner } from '../../../components/ui/loading-spinner';
+import SupabaseDataService from '../../../services/supabaseDataService';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const MyLandsPage = () => {
-  const { toast } = useToast();
+  
+  
+  /* REMOVED DUPLICATE */ ('');
+  /* REMOVED DUPLICATE */ ('');
+  /* REMOVED DUPLICATE */ (false);
+const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { user } = useAuth();
   const { data: lands, loading: landsLoading, error: landsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
@@ -36,11 +61,13 @@ const MyLandsPage = () => {
         .or('usage.eq.agricultural,usage.eq.farming')
         .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') {      }
+      if (error && error.code !== 'PGRST116') {
+      }
 
       setLands(parcelsData || []);
 
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger vos parcelles agricoles"
@@ -363,3 +390,4 @@ const MyLandsPage = () => {
 };
 
 export default MyLandsPage;
+

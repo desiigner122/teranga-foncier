@@ -1,4 +1,13 @@
 import React, { useState } from 'react';
+import { Bell, Mail, Filter, CheckCircle, MessageSquare, TrendingUp, Calendar } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Label } from '../components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const AlertsNotificationsPage = () => {
   const { toast } = useToast();
   const [filter, setFilter] = useState('all');

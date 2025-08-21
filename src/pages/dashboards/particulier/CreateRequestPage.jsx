@@ -1,4 +1,17 @@
 import React, { useState } from 'react';
+import { DollarSign, TreePine, FileText } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
+import { Label } from '../../../components/ui/label';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
+import { Textarea } from '../../../components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '../../../components/ui/radio-group';
+import SupabaseDataService from '../../../services/supabaseDataService';
+import { motion } from 'framer-motion';
+import { useToast } from '../../../components/ui/use-toast';
+import { useAuth } from '../../../context/AuthContext';
+
 const CreateRequestPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -112,7 +125,8 @@ const CreateRequestPage = () => {
       });
       setStep(1);
       
-    } catch (error) {      toast({
+    } catch (error) {
+      toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de créer la demande. Veuillez réessayer."

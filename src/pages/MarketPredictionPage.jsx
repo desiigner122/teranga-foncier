@@ -1,4 +1,12 @@
 import React, { useState } from 'react';
+import { AlertCircle, TrendingUp } from 'lucide-react';
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+
 const MarketPredictionPage = () => {
   const [selectedRegion, setSelectedRegion] = useState('dakar');
   const [timeFrame, setTimeFrame] = useState('6months');

@@ -1,5 +1,18 @@
 // src/pages/admin/AdminDashboardPageNew.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { User, Users, Building, DollarSign, LandPlot, Bell, Briefcase, FileCheck, BarChart, PieChart as PieChartIcon, UserCheck, CalendarDays } from 'lucide-react';
+import { BarChart as RechartsBarChart, Bar, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import SupabaseDataService from '../../services/SupabaseDataService';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 // Navigation Items pour le sidebar admin
 const ADMIN_NAV_ITEMS = [
   {
@@ -91,7 +104,9 @@ const QUICK_ACTIONS = [
 ];
 
 // AdminSidebar Component
-const AdminSidebar = ({ isCollapsed, onToggle }) => {
+const AdminSidebar = ({ 
+  const [loading, setLoading] = useState(false);
+isCollapsed, onToggle }) => {
   return (
     <div className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-50 ${
       isCollapsed ? 'w-16' : 'w-64'

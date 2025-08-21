@@ -1,6 +1,9 @@
 // src/components/ui/table.jsx
 import * as React from "react";
-import { cn } from "@/lib/utils"; // Assurez-vous que le chemin vers cn est correct
+import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table"; // Assurez-vous que le chemin vers cn est correct
 
 const Table = React.forwardRef(({ className, ...props }, ref) => (
   <div className="relative w-full overflow-auto">

@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { Bell, Eye, CheckCircle, Clock } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Progress } from '../components/ui/progress';
+import SupabaseDataService from '../services/SupabaseDataService';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRealtimeTable } from "../../hooks/useRealtimeTable";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell } from "../../components/ui/table";
+
 const TransactionTrackingPage = () => {
-  const { toast } = useToast();
+  
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+const { toast } = useToast();
   const { data: transactions, loading: transactionsLoading, error: transactionsError, refetch } = useRealtimeTable();
   const [filteredData, setFilteredData] = useState([]);
   

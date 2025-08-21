@@ -1,7 +1,6 @@
-// fix-errors.js
-// Liste des erreurs communes à corriger dans les composants import { fixCharacters } from './fix-accent-encoding.mjs';
+import { fixCharacters } from './fix-accent-encoding.mjs';
 
-import { useEffect, useRef, React } from 'react';
+import React, { useEffect, useRef } from 'react';
 // Exportation de la fonction pour l'utiliser dans les composants
 export function fixScrollToBottom(component) {
   // S'assurer que la fonction scrollToBottom est définie

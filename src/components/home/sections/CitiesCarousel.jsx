@@ -4,6 +4,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Link } from 'react-router-dom';
 import { MapPin, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 
 const cities = [
   { name: "Dakar", description: "La capitale vibrante", imageDesc: "Skyline de Dakar avec l'océan", link: "/parcelles?zone=Dakar" },
