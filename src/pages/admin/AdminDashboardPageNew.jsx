@@ -200,6 +200,9 @@ const SimplePieChart = ({ data, title }) => {
   );
 };
 
+
+import { useLocation } from 'react-router-dom';
+
 const AdminDashboardPage = () => {
   const [reportData, setReportData] = useState({
     totalUsers: 0,
@@ -210,96 +213,27 @@ const AdminDashboardPage = () => {
     parcelStatus: [],
     upcomingEvents: []
   });
-  
-  const [actorStats, setActorStats] = useState({
-    agents: { assigned: 0, visits: 0 },
-    users: { active: 0, verified: 0 },
-    institutions: { registered: 0, active: 0 },
-    parcels: { listed: 0, sold: 0 },
-    transactions: { completed: 0, pending: 0 }
-  });
-  
+  const [actorStats, setActorStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { toast } = useToast();
+  const location = useLocation();
 
-  // Charger les données du dashboard
+  // Charger les données dynamiques du dashboard
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Charger toutes les données en parallèle
-      const [usersData, parcelsData, requestsData] = await Promise.all([
-        SupabaseDataService.getAllUsers(),
-        SupabaseDataService.getAllParcels(),
-        SupabaseDataService.getAllRequests?.() || Promise.resolve([])
-      ]);
-
-      // Calculer les statistiques
-      const totalUsers = usersData?.length || 0;
-      const totalParcels = parcelsData?.length || 0;
-      const totalRequests = requestsData?.length || 0;
-      const totalSalesAmount = parcelsData?.reduce((sum, parcel) => sum + (parcel.price || 0), 0) || 0;
-
-      // Statistiques des utilisateurs par mois (6 derniers mois)
-      const userRegistrations = [
-        { name: 'Jan', value: 12 },
-        { name: 'Fév', value: 19 },
-        { name: 'Mar', value: 15 },
-        { name: 'Avr', value: 25 },
-        { name: 'Mai', value: 22 },
-        { name: 'Jun', value: 30 }
-      ];
-      
-      // Statut des parcelles
-      const parcelStatus = [
-        { name: 'Disponible', value: Math.floor(totalParcels * 0.6) },
-        { name: 'Vendu', value: Math.floor(totalParcels * 0.25) },
-        { name: 'En Attente', value: Math.floor(totalParcels * 0.15) }
-      ];
-
-      // Événements à venir
-      const upcomingEvents = [
-        { id: 1, title: "Réunion mensuelle", date: new Date(Date.now() + 86400000 * 2), type: "meeting" },
-        { id: 2, title: "Audit sécurité", date: new Date(Date.now() + 86400000 * 7), type: "audit" },
-        { id: 3, title: "Formation équipe", date: new Date(Date.now() + 86400000 * 14), type: "training" }
-      ];
-
-      // Mise à jour des données
+      const { totals, charts, actorStats: newActorStats, upcomingEvents } = await SupabaseDataService.getAdminDashboardMetrics();
       setReportData({
-        totalUsers,
-        totalParcels,
-        totalRequests,
-        totalSalesAmount,
-        userRegistrations,
-        parcelStatus,
-        upcomingEvents
+        totalUsers: totals.totalUsers,
+        totalParcels: totals.totalParcels,
+        totalRequests: totals.totalRequests,
+        totalSalesAmount: totals.totalSalesAmount,
+        userRegistrations: charts.userRegistrations,
+        parcelStatus: charts.parcelStatus,
+        upcomingEvents: upcomingEvents || []
       });
-
-      // Statistiques détaillées
-      setActorStats({
-        agents: {
-          assigned: usersData?.filter(u => u.role === 'agent')?.length || 0,
-          visits: Math.floor(Math.random() * 50) + 10
-        },
-        users: {
-          active: usersData?.filter(u => u.verification_status === 'verified')?.length || 0,
-          verified: usersData?.filter(u => u.verification_status === 'verified')?.length || 0
-        },
-        institutions: {
-          registered: usersData?.filter(u => u.role === 'admin')?.length || 0,
-          active: usersData?.filter(u => u.role === 'admin' && u.verification_status === 'verified')?.length || 0
-        },
-        parcels: {
-          listed: parcelsData?.filter(p => p.status === 'available')?.length || 0,
-          sold: parcelsData?.filter(p => p.status === 'sold')?.length || 0
-        },
-        transactions: {
-          completed: Math.floor(totalRequests * 0.3),
-          pending: Math.floor(totalRequests * 0.7)
-        }
-      });
-
+      setActorStats(newActorStats || {});
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
       toast({
@@ -312,17 +246,18 @@ const AdminDashboardPage = () => {
     }
   }, [toast]);
 
+  // Rafraîchit à chaque navigation sur la page
+  useEffect(() => {
+    loadDashboardData();
+    // eslint-disable-next-line
+  }, [location.pathname]);
+
   const handleAIAction = (action, data) => {
-    console.log('Action IA:', action, data);
     toast({
       title: "Action IA",
       description: `Action ${action} exécutée avec succès`,
     });
   };
-
-  useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
 
   if (loading) {
     return (
