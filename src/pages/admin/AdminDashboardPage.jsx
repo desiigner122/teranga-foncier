@@ -1,5 +1,6 @@
 // src/pages/admin/AdminDashboardPageNew.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import {
@@ -123,6 +124,7 @@ const AdminDashboardPage = () => {
   const { toast } = useToast();
 
   // Charger les données du dashboard
+  const location = useLocation();
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
@@ -160,7 +162,8 @@ const AdminDashboardPage = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [loadDashboardData]);
+    // recharge à chaque navigation
+  }, [loadDashboardData, location.pathname]);
 
   if (loading) {
     return (
