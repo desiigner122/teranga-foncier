@@ -251,7 +251,7 @@ const HomePage = () => {
             transition={{ delay: 0.2, type: 'spring', stiffness: 100 }}
             className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight max-w-5xl"
           >
-            Accédez aux Terrains Communaux & Sécurisez Vos Transactions Foncières
+            Accédez aux Terrains Communaux & Sécurisez Vos Transactions Foncières au Sénégal
           </motion.h1>
           <motion.p
             initial={{ y: 50, opacity: 0 }}
