@@ -2320,7 +2320,12 @@ export class SupabaseDataService {
         if (r.error) throw r.error;
       }
 
-      const users = usersRes.data || [];
+      // Filtrer uniquement les utilisateurs actifs (non supprimés)
+      const users = (usersRes.data || []).filter(u => 
+        (u.is_active !== false) && 
+        (!u.deleted_at) && 
+        (u.status !== 'deleted')
+      );
       const parcels = parcelsRes.data || [];
       const requests = requestsRes.data || [];
       const transactions = transactionsRes.data || [];
