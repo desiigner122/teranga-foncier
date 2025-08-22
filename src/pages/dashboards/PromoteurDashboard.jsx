@@ -71,7 +71,7 @@ const PromoteurDashboard = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [timeline, setTimeline] = useState([]);
 
-  // Données de démonstration enrichies
+  // Données de démonstration enrichies oui
   const projectStatusData = [
     { status: 'Planification', count: 3, color: '#F59E0B', budget: 2400000000, completion: 15 },
     { status: 'En cours', count: 5, color: '#3B82F6', budget: 8900000000, completion: 45 },
