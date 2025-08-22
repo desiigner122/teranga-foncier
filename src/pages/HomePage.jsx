@@ -71,7 +71,7 @@ const HomePage = () => {
         })) : [
           {
             id: 't1',
-            name: 'Fatou Ndiaye',
+            name: 'Fatoumata Ndiaye',
             role: 'Particulier',
             quote: '"Teranga Foncier a rendu l\'achat de mon terrain incroyablement simple et sécurisé. Une équipe très professionnelle et une plateforme intuitive !"',
             avatar: 'https://placehold.co/80x80/E0F2F7/0288D1?text=FN'
