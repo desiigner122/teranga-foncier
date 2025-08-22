@@ -32,7 +32,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import SupabaseDataService from '@/services/supabaseDataService';
-import UserManagementService from '@/services/UserManagementService';
+
 import LoadingSpinner from '@/components/ui/spinner';
 
 const userTypes = [
@@ -339,7 +339,16 @@ const AdminUsersPageAdvanced = () => {
 
   const confirmDeleteUser = async () => {
     try {
-  await UserManagementService.deleteUserCompletely(selectedUser.id);
+      // Appel à l'API serverless sécurisée pour suppression Auth + DB
+      const response = await fetch('/api/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: selectedUser.id })
+      });
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Suppression échouée');
+      }
       
       // Supprimer de la liste locale
       setUsers(prev => prev.filter(user => user.id !== selectedUser.id));
