@@ -32,6 +32,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import SupabaseDataService from '@/services/supabaseDataService';
+import UserManagementService from '@/services/UserManagementService';
 import LoadingSpinner from '@/components/ui/spinner';
 
 const userTypes = [
@@ -338,7 +339,7 @@ const AdminUsersPageAdvanced = () => {
 
   const confirmDeleteUser = async () => {
     try {
-      await SupabaseDataService.deleteUser(selectedUser.id);
+  await UserManagementService.deleteUserCompletely(selectedUser.id);
       
       // Supprimer de la liste locale
       setUsers(prev => prev.filter(user => user.id !== selectedUser.id));
