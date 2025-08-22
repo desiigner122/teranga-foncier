@@ -331,8 +331,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/users?role=agent"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.agents.assigned} <span className="text-sm text-muted-foreground">agents actifs</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.agents.visits} visites planifiées</p>
+                <div className="text-2xl font-bold">{actorStats?.agents?.assigned ?? 0} <span className="text-sm text-muted-foreground">agents actifs</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats?.agents?.visits ?? 0} visites planifiées</p>
               </CardContent>
             </Card>
 
@@ -342,8 +342,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/users"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.users.active} <span className="text-sm text-muted-foreground">utilisateurs actifs</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.users.verified} vérifiés</p>
+                <div className="text-2xl font-bold">{actorStats?.users?.active ?? 0} <span className="text-sm text-muted-foreground">utilisateurs actifs</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats?.users?.verified ?? 0} vérifiés</p>
               </CardContent>
             </Card>
 
@@ -353,8 +353,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/institutions"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.institutions.registered} <span className="text-sm text-muted-foreground">institutions</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.institutions.active} actives</p>
+                <div className="text-2xl font-bold">{actorStats?.institutions?.registered ?? 0} <span className="text-sm text-muted-foreground">institutions</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats?.institutions?.active ?? 0} actives</p>
               </CardContent>
             </Card>
 
@@ -364,8 +364,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/parcels"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.parcels.listed} <span className="text-sm text-muted-foreground">disponibles</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.parcels.sold} vendues</p>
+                <div className="text-2xl font-bold">{actorStats?.parcels?.listed ?? 0} <span className="text-sm text-muted-foreground">disponibles</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats?.parcels?.sold ?? 0} vendues</p>
               </CardContent>
             </Card>
 
@@ -375,8 +375,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/transactions"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.transactions.completed} <span className="text-sm text-muted-foreground">complétées</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.transactions.pending} en attente</p>
+                <div className="text-2xl font-bold">{actorStats?.transactions?.completed ?? 0} <span className="text-sm text-muted-foreground">complétées</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats?.transactions?.pending ?? 0} en attente</p>
               </CardContent>
             </Card>
           </div>
