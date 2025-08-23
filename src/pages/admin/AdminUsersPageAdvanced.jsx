@@ -477,8 +477,8 @@ const AdminUsersPageAdvanced = () => {
         </CardContent>
       </Card>
 
-      {/* Tabs de statut */}
-      <Tabs defaultValue="all" value={tabValue} onValueChange={setTabValue} className="mt-6">
+  {/* Tabs de statut */}
+  <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mt-6">
         <TabsList>
           <TabsTrigger value="all">
             Tous
