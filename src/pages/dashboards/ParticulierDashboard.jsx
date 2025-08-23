@@ -51,6 +51,9 @@ const ParticulierDashboard = () => {
   const [municipalReqForm, setMunicipalReqForm] = useState({ commune:'', department:'', region:'', area_sqm:'', message:'' });
   const [showMunicipalModal, setShowMunicipalModal] = useState(false);
 
+  // State pour la modale de transition vendeur
+  const [isVendeurTransitionModalOpen, setIsVendeurTransitionModalOpen] = useState(false);
+
   useEffect(() => {
     loadUserData();
     loadDashboardData();
