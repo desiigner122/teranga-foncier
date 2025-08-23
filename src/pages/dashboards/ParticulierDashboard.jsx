@@ -54,10 +54,27 @@ const ParticulierDashboard = () => {
   // State pour la modale de transition vendeur
   const [isVendeurTransitionModalOpen, setIsVendeurTransitionModalOpen] = useState(false);
 
+  // Blocage strict : tant que le particulier n'est pas vérifié, il ne doit pas accéder au dashboard
   useEffect(() => {
     loadUserData();
     loadDashboardData();
   }, []);
+
+  // Affichage du blocage si non vérifié
+  if (user && (user.type === 'Particulier' || user.type === 'particulier')) {
+    if (user.verification_status !== 'verified') {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen py-12">
+          <div className="bg-white rounded shadow p-8 max-w-md w-full text-center">
+            <h2 className="text-2xl font-bold mb-4">Votre compte est en attente de validation</h2>
+            <p className="mb-4">Vous avez bien soumis vos documents. L'accès au tableau de bord sera débloqué dès que l'administrateur aura validé votre compte.</p>
+            <p className="text-sm text-muted-foreground">Statut actuel : <span className="font-semibold">{user.verification_status === 'pending' ? 'En attente' : 'Non vérifié'}</span></p>
+            <p className="mt-4 text-xs text-gray-400">Contactez le support si la validation prend trop de temps.</p>
+          </div>
+        </div>
+      );
+    }
+  }
   useEffect(()=>{
     if(!user) return; 
     const favChannel = supabase.channel('favorites_changes').on('postgres_changes',{ event:'*', schema:'public', table:'favorites', filter:`user_id=eq.${user.id}`}, ()=> loadDashboardData());
