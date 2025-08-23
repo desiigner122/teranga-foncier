@@ -349,9 +349,9 @@ const AdminUsersPageAdvanced = () => {
       if (!result.success) {
         throw new Error(result.error || 'Suppression échouée');
       }
-      
-      // Supprimer de la liste locale
-      setUsers(prev => prev.filter(user => user.id !== selectedUser.id));
+
+      // Recharge la liste complète depuis Supabase (évite cache local)
+      await loadUsers();
 
       toast({
         title: "Utilisateur supprimé",
@@ -365,7 +365,7 @@ const AdminUsersPageAdvanced = () => {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de supprimer l'utilisateur"
+        description: error.message ? `Impossible de supprimer l'utilisateur : ${error.message}` : "Impossible de supprimer l'utilisateur"
       });
     }
   };
