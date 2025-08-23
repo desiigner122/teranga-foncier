@@ -23,8 +23,14 @@ export default async function handler(req, res) {
 
   // 1. Delete from Auth
   const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+  let authWarning = null;
   if (authError) {
-    return res.status(500).json({ error: 'Failed to delete user from Auth', details: authError.message });
+    if (authError.message && authError.message.includes('User not found')) {
+      // Ignore cette erreur, continue la suppression DB
+      authWarning = 'Utilisateur déjà supprimé de Auth';
+    } else {
+      return res.status(500).json({ error: 'Failed to delete user from Auth', details: authError.message });
+    }
   }
 
   // 2. Suppression définitive dans la table users
@@ -33,5 +39,5 @@ export default async function handler(req, res) {
     .delete()
     .eq('id', userId);
 
-  return res.status(200).json({ success: true });
+  return res.status(200).json({ success: true, warning: authWarning });
 }

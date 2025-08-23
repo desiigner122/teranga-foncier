@@ -350,6 +350,15 @@ const AdminUsersPageAdvanced = () => {
         throw new Error(result.error || 'Suppression échouée');
       }
 
+      // Affiche un warning si Auth déjà supprimé
+      if (result.warning) {
+        toast({
+          variant: "warning",
+          title: "Attention",
+          description: result.warning
+        });
+      }
+
       // Recharge la liste complète depuis Supabase (évite cache local)
       await loadUsers();
 
