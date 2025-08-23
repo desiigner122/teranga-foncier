@@ -466,31 +466,22 @@ const AdminUsersPageAdvanced = () => {
                 <SelectValue placeholder="Filtrer par type" />
               </SelectTrigger>
               <SelectContent>
+
                 <SelectItem value="all">Tous les types</SelectItem>
                 {userTypes.map(type => (
                   <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={loadUsers}
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Filtres par statut de vérification */}
-      <Tabs defaultValue="all" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 mb-6">
+      {/* Tabs de statut */}
+      <Tabs defaultValue="all" value={tabValue} onValueChange={setTabValue} className="mt-6">
+        <TabsList>
           <TabsTrigger value="all">
             Tous
-          </TabsTrigger>
-          <TabsTrigger value="not_verified">
-            Non vérifiés
             {users.filter(u => !u.verification_status || u.verification_status === 'not_verified').length > 0 && (
               <Badge variant="outline" className="ml-2">
                 {users.filter(u => !u.verification_status || u.verification_status === 'not_verified').length}
@@ -583,46 +574,51 @@ const AdminUsersPageAdvanced = () => {
                     {user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'Inconnue'}
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditUser(user)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(user, 'pending')} disabled={user.verification_status === 'pending'}>
-                          <Clock className="h-4 w-4 mr-2" /> Marquer En attente
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(user, 'verified')} disabled={user.verification_status === 'verified'}>
-                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" /> Vérifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(user, 'rejected')} disabled={user.verification_status === 'rejected'}>
-                          <XCircle className="h-4 w-4 mr-2 text-red-600" /> Rejeter
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleAssignRole(user, 'admin')} disabled={user.role === 'admin'}>
-                          <Shield className="h-4 w-4 mr-2" /> Assigner Admin
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAssignRole(user, 'agent')} disabled={user.role === 'agent'}>
-                          <UserCheck className="h-4 w-4 mr-2" /> Assigner Agent
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAssignRole(user, 'user')} disabled={user.role === 'user'}>
-                          <UserIcon className="h-4 w-4 mr-2" /> Assigner Utilisateur
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteUser(user)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2 items-center">
+                      <Button size="xs" variant="outline" onClick={() => handleViewDocuments(user.documents || [])}>
+                        Voir documents
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(user, 'pending')} disabled={user.verification_status === 'pending'}>
+                            <Clock className="h-4 w-4 mr-2" /> Marquer En attente
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(user, 'verified')} disabled={user.verification_status === 'verified'}>
+                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" /> Vérifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(user, 'rejected')} disabled={user.verification_status === 'rejected'}>
+                            <XCircle className="h-4 w-4 mr-2 text-red-600" /> Rejeter
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleAssignRole(user, 'admin')} disabled={user.role === 'admin'}>
+                            <Shield className="h-4 w-4 mr-2" /> Assigner Admin
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAssignRole(user, 'agent')} disabled={user.role === 'agent'}>
+                            <UserCheck className="h-4 w-4 mr-2" /> Assigner Agent
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAssignRole(user, 'user')} disabled={user.role === 'user'}>
+                            <UserIcon className="h-4 w-4 mr-2" /> Assigner Utilisateur
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteUser(user)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

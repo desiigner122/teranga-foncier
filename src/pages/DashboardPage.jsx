@@ -1,5 +1,6 @@
 // src/pages/DashboardPage.jsx - Dashboard Dispatcher
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import VendeurTransitionModal from '@/components/dashboard/VendeurTransitionModal';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '@/components/ui/spinner';
@@ -129,14 +130,16 @@ const DashboardPage = () => {
 
   // Show loading state while redirect is happening
   // Ajout du bouton 'Passer en compte vendeur' si particulier validé
+  const [isVendeurTransitionModalOpen, setIsVendeurTransitionModalOpen] = useState(false);
   if (profile?.type === 'Particulier' && profile?.verification_status === 'verified') {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[500px] space-y-4">
         <LoadingSpinner size="large" />
         <div className="text-center">
           <p className="text-lg font-medium text-muted-foreground">Redirection vers votre tableau de bord...</p>
-          <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded" onClick={() => alert('TODO: ouvrir formulaire passage vendeur')}>Passer en compte vendeur</button>
+          <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded" onClick={() => setIsVendeurTransitionModalOpen(true)}>Passer en compte vendeur</button>
         </div>
+        <VendeurTransitionModal isOpen={isVendeurTransitionModalOpen} onClose={() => setIsVendeurTransitionModalOpen(false)} />
       </div>
     );
   }
