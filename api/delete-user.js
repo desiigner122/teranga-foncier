@@ -27,15 +27,10 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to delete user from Auth', details: authError.message });
   }
 
-  // 2. Anonymize/delete in users table
+  // 2. Suppression définitive dans la table users
   await supabase
     .from('users')
-    .update({
-      status: 'deleted',
-      deleted_at: new Date().toISOString(),
-      is_active: false,
-      email: `deleted_${Date.now()}@deleted.com`
-    })
+    .delete()
     .eq('id', userId);
 
   return res.status(200).json({ success: true });
