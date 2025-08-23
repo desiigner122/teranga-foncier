@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'userId is required' });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const serviceRoleKey = process.env.VITE_SUPABASE_SERVICE_ROLE;
   if (!supabaseUrl || !serviceRoleKey) {
     return res.status(500).json({ error: 'Supabase env vars missing' });
