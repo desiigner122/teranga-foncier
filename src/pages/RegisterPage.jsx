@@ -11,17 +11,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { Users as UsersIcon, Briefcase, Building, Sprout, Banknote, Landmark, LandPlot, Store } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
-const accountTypes = [
-  { value: 'Particulier', label: 'Particulier (Acheteur)', icon: UsersIcon },
-  { value: 'Vendeur', label: 'Vendeur', icon: Store }
-];
+// Suppression du choix de type de compte : tout inscrit est Particulier
 
 const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [accountType, setAccountType] = useState('Particulier');
+  // Suppression du choix de type de compte
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -43,8 +40,8 @@ const RegisterPage = () => {
         options: {
           data: {
             full_name: name,
-            type: accountType,
-            role: accountType === 'Vendeur' ? 'seller' : 'user'
+            type: 'Particulier',
+            role: 'user'
           }
         }
       });
@@ -61,8 +58,8 @@ const RegisterPage = () => {
               id: authData.user.id,
               full_name: name,
               email: normalizedEmail,
-              type: accountType,
-              role: accountType === 'Vendeur' ? 'seller' : 'user',
+              type: 'Particulier',
+              role: 'user',
               verification_status: 'not_verified'
             }, { onConflict: 'id', ignoreDuplicates: false });
         
@@ -96,15 +93,7 @@ const RegisterPage = () => {
         <CardHeader><CardTitle className="text-2xl">Créer un Compte</CardTitle><CardDescription>Rejoignez Teranga Foncier.</CardDescription></CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="accountType">Je suis un(e)</Label>
-               <Select value={accountType} onValueChange={setAccountType}>
-                <SelectTrigger id="accountType"><SelectValue placeholder="Sélectionnez un type" /></SelectTrigger>
-                <SelectContent>
-                  {accountTypes.map(({ value, label, icon: Icon }) => ( <SelectItem key={value} value={value}><div className="flex items-center"><Icon className="h-4 w-4 mr-2 text-muted-foreground" /><span>{label}</span></div></SelectItem> ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Suppression du choix de type de compte */}
             <div className="grid gap-2"><Label htmlFor="name">Nom complet</Label><Input id="name" required value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} /></div>
             <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} /></div>
             <div className="grid gap-2"><Label htmlFor="password">Mot de passe</Label><Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} /></div>

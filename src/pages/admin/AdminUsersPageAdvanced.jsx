@@ -733,9 +733,9 @@ const AdminUsersPageAdvanced = () => {
       <CompleteInstitutionModal
         isOpen={isCompleteInstitutionModalOpen}
         onClose={() => setIsCompleteInstitutionModalOpen(false)}
-        onUserCreated={(created) => { 
-          setUsers(prev => [created, ...prev]); 
-          loadUsers(); // Recharger pour avoir les données complètes
+        onUserCreated={(created)=> { 
+          // Ajout uniquement à la liste, pas de connexion automatique !
+          setUsers(prev=>[created, ...prev]); 
         }}
       />
 

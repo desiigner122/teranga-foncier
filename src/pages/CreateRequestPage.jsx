@@ -41,8 +41,8 @@ const CreateRequestPage = () => {
     budget: '',
     urgency: 'normale',
     // Terrain communal specific - ROUTE VERS MAIRIE
-    mairie_id: '', // Mairie destinataire
-    geographic_location: { region: '', department: '', commune: '' }, // Localisation géographique
+  mairie_id: '', // Mairie destinataire (sera auto-déduite)
+  geographic_location: { region: '', department: '', commune: '' }, // Localisation géographique
     usage_prevu: '',
     duree_souhaitee: '',
     justification: '',
@@ -90,20 +90,18 @@ const CreateRequestPage = () => {
   ];
 
   // Charger les options (mairies, banques, parcelles utilisateur)
+  // Sélection dynamique Région > Département > Commune > Mairie
   useEffect(() => {
     const loadOptions = async () => {
       if (!user) return;
-      
       setLoadingOptions(true);
       try {
-        // Charger les mairies
+        // Charger toutes les mairies (pour mapping commune -> mairie)
         const mairesData = await SupabaseDataService.getUsersByType('Mairie');
         setMairies(mairesData || []);
-
         // Charger les banques
         const banquesData = await SupabaseDataService.getUsersByType('Banque');
         setBanques(banquesData || []);
-
         // Charger les parcelles de l'utilisateur pour financement
         const userParcelsData = await SupabaseDataService.getParcelsByOwner(user.id);
         setUserParcels(userParcelsData || []);
@@ -113,9 +111,17 @@ const CreateRequestPage = () => {
         setLoadingOptions(false);
       }
     };
-
     loadOptions();
   }, [user]);
+
+  // Quand la commune change, déduire la mairie concernée
+  useEffect(() => {
+    if (formData.geographic_location.commune && mairies.length > 0) {
+      // Suppose que chaque mairie a une propriété 'commune' ou 'communes' (adapter selon structure)
+      const found = mairies.find(m => m.commune === formData.geographic_location.commune || (Array.isArray(m.communes) && m.communes.includes(formData.geographic_location.commune)));
+      setFormData(prev => ({ ...prev, mairie_id: found ? found.id : '' }));
+    }
+  }, [formData.geographic_location.commune, mairies]);
 
   const handleSubmit = async () => {
     if (!formData.type || !formData.title || !formData.description) {

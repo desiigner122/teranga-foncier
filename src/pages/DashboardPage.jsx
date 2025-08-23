@@ -118,11 +118,28 @@ const DashboardPage = () => {
   }
 
   // Show verification component if user needs verification or is pending (but not admin)
-  if (!isAdmin && (needsVerification || isPendingVerification)) {
+  // Blocage strict : seul un particulier 'verified' accède à son dashboard
+  if (!isAdmin && (profile?.type === 'Particulier' || user?.user_metadata?.type === 'Particulier')) {
+    if (profile?.verification_status !== 'verified') {
+      return <VerificationRequired />;
+    }
+  } else if (!isAdmin && (needsVerification || isPendingVerification)) {
     return <VerificationRequired />;
   }
 
   // Show loading state while redirect is happening
+  // Ajout du bouton 'Passer en compte vendeur' si particulier validé
+  if (profile?.type === 'Particulier' && profile?.verification_status === 'verified') {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[500px] space-y-4">
+        <LoadingSpinner size="large" />
+        <div className="text-center">
+          <p className="text-lg font-medium text-muted-foreground">Redirection vers votre tableau de bord...</p>
+          <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded" onClick={() => alert('TODO: ouvrir formulaire passage vendeur')}>Passer en compte vendeur</button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[500px] space-y-4">
       <LoadingSpinner size="large" />
