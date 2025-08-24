@@ -32,6 +32,24 @@ import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
+import DocumentWallet from '@/components/mairie/DocumentWallet';
+import ParcelTimeline from '@/components/mairie/ParcelTimeline';
+  // Mes parcelles attribuées
+  const [myParcels, setMyParcels] = useState([]);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [timelineParcel, setTimelineParcel] = useState(null);
+
+  useEffect(() => {
+    const loadMyParcels = async () => {
+      if (!user) return;
+      try {
+        const allParcels = await SupabaseDataService.getParcels();
+        const mine = allParcels.filter(p => p.beneficiary_id === user.id);
+        setMyParcels(mine);
+      } catch (e) {/* ignore */}
+    };
+    loadMyParcels();
+  }, [user]);
 
 const ParticulierDashboard = () => {
   const { toast } = useToast();
@@ -361,8 +379,67 @@ const ParticulierDashboard = () => {
           </div>
         </div>
 
-        {/* Statistiques principales */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+  {/* Statistiques principales */}
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Mes parcelles attribuées */}
+        <div className="mt-10">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mes parcelles attribuées</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {myParcels.length === 0 ? (
+                <div className="text-muted-foreground text-sm">Aucune parcelle attribuée pour l’instant.</div>
+              ) : (
+                <div className="space-y-6">
+                  {myParcels.map(parcel => (
+                    <div key={parcel.id} className="border rounded p-4">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                        <div>
+                          <div className="font-semibold">{parcel.reference}</div>
+                          <div className="text-xs text-muted-foreground">{parcel.location_name} — {parcel.zone}</div>
+                          <div className="text-xs">Surface : {parcel.area_sqm} m²</div>
+                        </div>
+                        <div className="flex gap-2 mt-2 md:mt-0">
+                          <Button size="sm" variant="outline" onClick={()=>{setTimelineParcel(parcel);setShowTimeline(true);}}>Voir timeline</Button>
+                          {Array.isArray(parcel.documents) && parcel.documents.length > 0 && (
+                            <Button size="sm" variant="outline" onClick={()=>window.open(parcel.documents[0].url, '_blank')}>Voir documents</Button>
+                          )}
+                        </div>
+                      </div>
+                      {Array.isArray(parcel.documents) && parcel.documents.length > 0 && (
+                        <div className="mt-2">
+                          <DocumentWallet documents={parcel.documents} />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Modal Timeline */}
+        {showTimeline && timelineParcel && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-background rounded-lg shadow-xl w-full max-w-lg relative p-6">
+              <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={()=>setShowTimeline(false)}>
+                <span className="text-lg">×</span>
+              </button>
+              <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
+              <ParcelTimeline history={(() => {
+                const p = timelineParcel;
+                const history = [];
+                if (p.created_at) history.push({ status: 'created', date: p.created_at, description: 'Parcelle créée' });
+                if (p.status === 'Attribuée' && p.beneficiary_id) history.push({ status: 'attributed', date: p.updated_at, description: 'Attribuée à vous' });
+                if (p.status === 'Validée' || p.validated_by_notary) history.push({ status: 'validated', date: p.validated_at, description: 'Validée par notaire' });
+                if (p.status === 'Archivée' || p.archived) history.push({ status: 'archived', date: p.archived_at, description: 'Parcelle archivée' });
+                return history;
+              })()} />
+            </div>
+          </div>
+        )}
           <Card className="border-l-4 border-blue-500">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">

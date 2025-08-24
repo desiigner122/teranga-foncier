@@ -1,5 +1,7 @@
 // src/pages/admin/AdminParcelsPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import ParcelForm from '@/components/parcel-admin/ParcelForm';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from '@/lib/supabaseClient';
 
 const AdminParcelsPage = () => {
+  const { user, profile } = useAuth();
+  const userRole = profile?.type?.toLowerCase() || profile?.role?.toLowerCase() || 'user';
   const [parcels, setParcels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -89,32 +93,14 @@ const AdminParcelsPage = () => {
   // --- NOUVEAU : Ouvre le modal et charge les données de la parcelle ---
   const handleEditClick = (parcel) => {
     setCurrentEditParcel(parcel);
-    setFormData({
-      name: parcel.name || '',
-      reference: parcel.reference || '',
-      location_name: parcel.location_name || '',
-      area_sqm: parcel.area_sqm || '',
-      price: parcel.price || '',
-      description: parcel.description || '',
-      status: parcel.status || 'Disponible',
-      owner_id: parcel.owner_id || '',
-    });
+    setFormData(parcel);
     setIsModalOpen(true);
   };
 
   // Handle Add New Parcel
   const handleAddClick = () => {
     setCurrentEditParcel(null);
-    setFormData({
-      name: '',
-      reference: '',
-      location_name: '',
-      area_sqm: '',
-      price: '',
-      description: '',
-      status: 'Disponible',
-      owner_id: '',
-    });
+    setFormData({});
     setIsModalOpen(true);
   };
 
@@ -129,49 +115,33 @@ const AdminParcelsPage = () => {
   };
 
   // --- NOUVEAU : Soumet le formulaire à Supabase ---
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.reference || !formData.owner_id) {
-      toast({
-        variant: "destructive",
-        title: "Champs manquants",
-        description: "Veuillez remplir tous les champs obligatoires.",
-      });
-      return;
-    }
-
+  const handleFormSubmit = async (data) => {
     setIsFormLoading(true);
-
     try {
       if (currentEditParcel) {
         // Update existing parcel
         const { error } = await supabase
           .from('parcels')
-          .update(formData)
+          .update(data)
           .eq('id', currentEditParcel.id);
-
         if (error) throw error;
-
         toast({
           title: "Parcelle mise à jour",
-          description: `La parcelle "${formData.name}" a été mise à jour avec succès.`,
+          description: `La parcelle "${data.name}" a été mise à jour avec succès.`,
         });
       } else {
         // Add new parcel
         const { error } = await supabase
           .from('parcels')
-          .insert([formData]);
-
+          .insert([data]);
         if (error) throw error;
-
         toast({
           title: "Parcelle ajoutée",
-          description: `La parcelle "${formData.name}" a été ajoutée avec succès.`,
+          description: `La parcelle "${data.name}" a été ajoutée avec succès.`,
         });
       }
-
       setIsModalOpen(false);
-      fetchParcels(); // Recharger les données
+      fetchParcels();
     } catch (err) {
       toast({
         variant: "destructive",
@@ -310,7 +280,7 @@ const AdminParcelsPage = () => {
 
       {/* --- NOUVEAU : Modal d'ajout/édition --- */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>
               {currentEditParcel ? 'Modifier la parcelle' : 'Ajouter une nouvelle parcelle'}
@@ -322,91 +292,11 @@ const AdminParcelsPage = () => {
               }
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleFormSubmit} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">Nom *</Label>
-              <Input 
-                id="name" 
-                value={formData.name} 
-                onChange={handleFormChange} 
-                className="col-span-3" 
-                required 
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="reference" className="text-right">Référence *</Label>
-              <Input 
-                id="reference" 
-                value={formData.reference} 
-                onChange={handleFormChange} 
-                className="col-span-3" 
-                required 
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="owner_id" className="text-right">Propriétaire *</Label>
-              <Select 
-                value={formData.owner_id} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, owner_id: value }))}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Sélectionner un propriétaire" />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingOwners ? (
-                    <SelectItem value="" disabled>Chargement...</SelectItem>
-                  ) : owners.length === 0 ? (
-                    <SelectItem value="" disabled>Aucun propriétaire disponible</SelectItem>
-                  ) : (
-                    owners.map(owner => (
-                      <SelectItem key={owner.id} value={owner.id}>
-                        {owner.full_name || owner.email} ({owner.type})
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="location_name" className="text-right">Localisation</Label>
-              <Input id="location_name" value={formData.location_name} onChange={handleFormChange} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="area_sqm" className="text-right">Surface (m²)</Label>
-              <Input id="area_sqm" type="number" value={formData.area_sqm} onChange={handleFormChange} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="price" className="text-right">Prix (FCFA)</Label>
-              <Input id="price" type="number" value={formData.price} onChange={handleFormChange} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">Statut</Label>
-                <Select onValueChange={handleSelectChange} value={formData.status}>
-                    <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Sélectionner un statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Disponible">Disponible</SelectItem>
-                        <SelectItem value="En attente">En attente</SelectItem>
-                        <SelectItem value="Réservé">Réservé</SelectItem>
-                        <SelectItem value="Vendu">Vendu</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">Description</Label>
-              <Textarea id="description" value={formData.description} onChange={handleFormChange} className="col-span-3" />
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline">Annuler</Button>
-              </DialogClose>
-              <Button type="submit" disabled={isFormLoading}>
-                {isFormLoading && <LoadingSpinner size="small" className="mr-2" />}
-                {currentEditParcel ? 'Enregistrer' : 'Ajouter'}
-              </Button>
-            </DialogFooter>
-          </form>
+          <ParcelForm
+            initialData={formData}
+            onSubmit={handleFormSubmit}
+            userRole={userRole}
+          />
         </DialogContent>
       </Dialog>
     </>

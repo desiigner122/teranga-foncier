@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import DocumentWallet from '@/components/mairie/DocumentWallet';
+import ParcelTimeline from '@/components/mairie/ParcelTimeline';
+import AttributionForm from '@/components/mairie/AttributionForm';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,22 +22,15 @@ const LandManagementPage = () => {
   const [zoneFilter, setZoneFilter] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({
-    reference: '',
-    location_name: '',
-    zone: '',
-    area_sqm: '',
-    price: '',
-    status: 'Disponible'
-  });
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     const loadMunicipalParcels = async () => {
       try {
         setLoading(true);
         // Récupérer toutes les parcelles publiques/municipales
-  const allParcels = await SupabaseDataService.getParcels();
-  const municipalParcels = allParcels.filter(p => 
+        const allParcels = await SupabaseDataService.getParcels();
+        const municipalParcels = allParcels.filter(p => 
           p.owner_type === 'Mairie' || 
           p.owner_type === 'Public' ||
           p.legal_status === 'municipal'
@@ -51,8 +47,15 @@ const LandManagementPage = () => {
         setLoading(false);
       }
     };
-
+    const loadUsers = async () => {
+      try {
+        // Charger tous les utilisateurs pouvant être bénéficiaires (particuliers)
+        const { data, error } = await SupabaseDataService.listUsers({ type: 'Particulier' });
+        if (!error && data) setUsers(data);
+      } catch (e) { /* ignore */ }
+    };
     loadMunicipalParcels();
+    loadUsers();
   }, []);
 
   const zones = useMemo(() => Array.from(new Set(parcels.map(p => p.zone).filter(Boolean))).sort(), [parcels]);
@@ -65,9 +68,6 @@ const LandManagementPage = () => {
     });
   }, [parcels, searchTerm, statusFilter, zoneFilter]);
 
-  const resetForm = () => setForm({ reference:'', location_name:'', zone:'', area_sqm:'', price:'', status:'Disponible' });
-
-  const handleCreateParcel = async (e) => {
   const updateParcelInline = async (parcel, newStatus) => {
     try {
       const updated = await SupabaseDataService.updateProperty(parcel.id, { status:newStatus });
@@ -82,31 +82,26 @@ const LandManagementPage = () => {
       toast({ title:'Parcelle archivée' });
     } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Archive impossible'}); }
   };
-    e.preventDefault();
-    if (!form.reference || !form.location_name || !form.area_sqm) {
-      toast({ variant:'destructive', title:'Champs requis', description:'Référence, localisation et surface sont obligatoires.' });
-      return;
-    }
+  const handleAttribution = async (data) => {
     try {
       setCreating(true);
-      const payload = {
-        reference: form.reference.trim(),
-        location_name: form.location_name.trim(),
-        zone: form.zone || null,
-        area_sqm: Number(form.area_sqm) || 0,
-        price: form.price ? Number(form.price) : null,
-        status: form.status,
-        owner_type: 'Mairie',
-        legal_status: 'municipal'
-      };
-      const created = await SupabaseDataService.createProperty(payload);
+      const created = await SupabaseDataService.createProperty(data);
       setParcels(prev => [created, ...prev]);
-      toast({ title:'Parcelle créée', description:`${created.reference || created.id} ajoutée avec succès.` });
-      resetForm();
+      toast({ title:'Parcelle attribuée', description:`${created.reference || created.id} attribuée avec succès.` });
       setShowCreate(false);
+      // Notification automatique au bénéficiaire
+      if (data.beneficiary_id) {
+        await SupabaseDataService.createNotification({
+          userId: data.beneficiary_id,
+          type: 'attribution',
+          title: 'Nouvelle parcelle attribuée',
+          body: `Une parcelle (${created.reference}) vous a été attribuée par la mairie.`,
+          data: { parcelId: created.id, reference: created.reference }
+        });
+      }
     } catch (error) {
       console.error(error);
-      toast({ variant:'destructive', title:'Erreur création', description:"Impossible de créer la parcelle" });
+      toast({ variant:'destructive', title:'Erreur attribution', description:"Impossible d'attribuer la parcelle" });
     } finally {
       setCreating(false);
     }
@@ -119,6 +114,25 @@ const LandManagementPage = () => {
       </div>
     );
   }
+
+  // Rassembler tous les documents des parcelles attribuées
+  const allDocuments = parcels
+    .filter(p => Array.isArray(p.documents) && p.documents.length)
+    .flatMap(p => p.documents.map(doc => ({ ...doc, parcelReference: p.reference })));
+
+  // Timeline modal state
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [timelineParcel, setTimelineParcel] = useState(null);
+
+  // Générer un historique simple pour la timeline (à adapter selon la structure réelle)
+  const getParcelHistory = (parcel) => {
+    const history = [];
+    if (parcel.created_at) history.push({ status: 'created', date: parcel.created_at, description: 'Parcelle créée' });
+    if (parcel.status === 'Attribuée' && parcel.beneficiary_id) history.push({ status: 'attributed', date: parcel.updated_at, description: 'Attribuée au bénéficiaire' });
+    if (parcel.status === 'Validée' || parcel.validated_by_notary) history.push({ status: 'validated', date: parcel.validated_at, description: 'Validée par notaire' });
+    if (parcel.status === 'Archivée' || parcel.archived) history.push({ status: 'archived', date: parcel.archived_at, description: 'Parcelle archivée' });
+    return history;
+  };
 
   return (
     <motion.div
@@ -186,6 +200,7 @@ const LandManagementPage = () => {
                     <td className="p-2 text-right flex gap-2 justify-end">
                       <Button asChild variant="outline" size="sm"><Link to={`/parcelles/${p.id}`}><Eye className="mr-1 h-4 w-4" />Détails</Link></Button>
                       <Button size="sm" variant="ghost" onClick={()=>archiveParcel(p)} disabled={p.archived}><Archive className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="ghost" onClick={()=>{setTimelineParcel(p);setShowTimeline(true);}}>Timeline</Button>
                     </td>
                   </tr>
                 ))}
@@ -206,43 +221,25 @@ const LandManagementPage = () => {
             <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={()=>!creating && setShowCreate(false)}>
               <X className="h-5 w-5" />
             </button>
-            <form onSubmit={handleCreateParcel} className="p-6 space-y-4">
-              <h2 className="text-xl font-semibold">Nouvelle Parcelle Municipale</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium mb-1">Référence *</label>
-                  <Input value={form.reference} onChange={e=>setForm(f=>({...f, reference:e.target.value}))} required />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1">Localisation *</label>
-                  <Input value={form.location_name} onChange={e=>setForm(f=>({...f, location_name:e.target.value}))} required />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1">Zone</label>
-                  <Input value={form.zone} onChange={e=>setForm(f=>({...f, zone:e.target.value}))} placeholder="Ex: ZAC-NORD" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1">Surface (m²) *</label>
-                  <Input type="number" min="0" value={form.area_sqm} onChange={e=>setForm(f=>({...f, area_sqm:e.target.value}))} required />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1">Prix (optionnel)</label>
-                  <Input type="number" min="0" value={form.price} onChange={e=>setForm(f=>({...f, price:e.target.value}))} />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1">Statut</label>
-                  <select className="border rounded w-full h-10 px-2 text-sm" value={form.status} onChange={e=>setForm(f=>({...f, status:e.target.value}))}>
-                    <option value="Disponible">Disponible</option>
-                    <option value="Occupé">Occupé</option>
-                    <option value="EnProjet">EnProjet</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2 pt-2">
-                <Button type="button" variant="ghost" disabled={creating} onClick={()=>{resetForm();setShowCreate(false);}}>Annuler</Button>
-                <Button type="submit" disabled={creating}>{creating ? 'Création...' : 'Créer'}</Button>
-              </div>
-            </form>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Attribuer une parcelle</h2>
+              <AttributionForm onSubmit={handleAttribution} users={users} loading={creating} />
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Portefeuille documentaire communal */}
+      <DocumentWallet documents={allDocuments} />
+
+      {/* Modal Timeline */}
+      {showTimeline && timelineParcel && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg shadow-xl w-full max-w-lg relative p-6">
+            <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={()=>setShowTimeline(false)}>
+              <span className="text-lg">×</span>
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
+            <ParcelTimeline history={getParcelHistory(timelineParcel)} />
           </div>
         </div>
       )}

@@ -1,3 +1,4 @@
+export default BanqueDashboard;
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,9 @@ import {
   Download
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import DocumentWallet from '@/components/mairie/DocumentWallet';
+import DocumentUpload from '@/components/mairie/DocumentUpload';
+import ParcelTimeline from '@/components/parcel-detail/ParcelTimeline';
 import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
@@ -33,6 +37,24 @@ import { antiFraudAI } from '@/lib/antiFraudAI';
 const BanqueDashboard = () => {
   const { toast } = useToast();
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [timelineParcelId, setTimelineParcelId] = useState(null);
+  const [documents, setDocuments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const handleDocumentUpload = async (file) => {
+    if (!user?.id || !file) return;
+    setUploading(true);
+    try {
+      await SupabaseDataService.uploadDocument(user.id, file);
+      await fetchDocuments();
+      toast({ title: 'Document uploadé', description: file.name });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erreur upload', description: e.message });
+    } finally {
+      setUploading(false);
+    }
+  };
   const [stats, setStats] = useState({
     activeGuarantees: 0,
     pendingEvaluations: 0,
@@ -53,6 +75,19 @@ const BanqueDashboard = () => {
     loadUserData();
     loadBankDashboardData();
   }, []);
+
+  useEffect(() => {
+    if (user?.id) fetchDocuments();
+  }, [user]);
+
+  const fetchDocuments = async () => {
+    try {
+      const docs = await SupabaseDataService.getDocumentsByUser(user.id);
+      setDocuments(docs || []);
+    } catch (e) {
+      setDocuments([]);
+    }
+  };
   // Realtime subscriptions
   useEffect(()=>{
     const channels = [];
@@ -403,6 +438,7 @@ const BanqueDashboard = () => {
       console.error(e);
       toast({ variant:'destructive', title:'Erreur', description:'Action impossible'});
     } finally {
+
       setActionBusy(null);
     }
   };
@@ -410,104 +446,54 @@ const BanqueDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* En-tête banque */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Dashboard Banque 🏦
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Gestion des garanties et financements immobiliers avec IA
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button onClick={handleRiskAnalysis} className="bg-red-600 hover:bg-red-700">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Analyser les Risques
-            </Button>
-            <Button onClick={handleComplianceCheck} className="bg-blue-600 hover:bg-blue-700">
-              <FolderCheck className="h-4 w-4 mr-2" />
-              Vérifier Conformité
-            </Button>
+        {/* Onglets banque */}
+        <div className="mb-6">
+          <div className="flex gap-2">
+            <Button variant={activeTab==='dashboard'?'default':'outline'} onClick={()=>setActiveTab('dashboard')}>Dashboard</Button>
+            <Button variant={activeTab==='documents'?'default':'outline'} onClick={()=>setActiveTab('documents')}>Documents</Button>
           </div>
         </div>
 
-        {/* Statistiques bancaires */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-          <Card className="border-l-4 border-blue-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Garanties Actives</p>
-                  <p className="text-3xl font-bold text-blue-600">{stats.activeGuarantees}</p>
-                </div>
-                <ShieldCheck className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
+        {activeTab==='documents' && (
+          <div className="mt-8">
+            <DocumentUpload onUpload={handleDocumentUpload} loading={uploading} />
+            <DocumentWallet documents={documents} />
+          </div>
+        )}
 
-          <Card className="border-l-4 border-green-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Évaluations</p>
-                  <p className="text-3xl font-bold text-green-600">{stats.pendingEvaluations}</p>
-                </div>
-                <Scale className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Timeline Modal */}
+        <Dialog open={isTimelineOpen} onOpenChange={setIsTimelineOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Timeline de la parcelle</DialogTitle>
+              <DialogDescription>Suivi complet des événements de la parcelle</DialogDescription>
+            </DialogHeader>
+            {timelineParcelId && <ParcelTimeline parcelId={timelineParcelId} />}
+          </DialogContent>
+        </Dialog>
 
-          <Card className="border-l-4 border-orange-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Financements</p>
-                  <p className="text-3xl font-bold text-orange-600">{stats.fundingRequests}</p>
-                </div>
-                <Banknote className="h-8 w-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* ...le reste du dashboard (statistiques, listes, IA, etc.)... */}
 
-          <Card className="border-l-4 border-purple-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Conformité</p>
-                  <p className="text-3xl font-bold text-purple-600">{stats.complianceRate}%</p>
-                </div>
-                <FolderCheck className="h-8 w-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="border-l-4 border-red-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Exposition</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {(stats.totalExposure / 1000000000).toFixed(1)}Md
-                  </p>
-                </div>
-                <DollarSign className="h-8 w-8 text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="border-l-4 border-indigo-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Sécurité</p>
-                  <p className="text-3xl font-bold text-indigo-600">{stats.securityScore}%</p>
-                </div>
-                <Shield className="h-8 w-8 text-indigo-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
+        {activeTab==='documents' && (
+          <div className="mt-8">
+            <DocumentUpload onUpload={handleDocumentUpload} loading={uploading} />
+            <DocumentWallet documents={documents} />
+          </div>
+        )}
+
+        {/* Timeline Modal */}
+        <Dialog open={isTimelineOpen} onOpenChange={setIsTimelineOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Timeline de la parcelle</DialogTitle>
+              <DialogDescription>Suivi complet des événements de la parcelle</DialogDescription>
+            </DialogHeader>
+            {timelineParcelId && <ParcelTimeline parcelId={timelineParcelId} />}
+          </DialogContent>
+        </Dialog>
 
         {/* Analyse des risques et tendances */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -633,12 +619,13 @@ const BanqueDashboard = () => {
                         <Badge variant={fr.status==='approved'? 'success': fr.status==='rejected'? 'destructive':'secondary'}>{fr.status}</Badge>
                       </div>
                       <p className="text-xs text-gray-500">{fr.parcels?.reference} • {fr.amount?.toLocaleString()} XOF</p>
-                      {fr.status==='pending' && (
-                        <div className="flex gap-2 mt-2">
+                      <div className="flex gap-2 mt-2">
+                        <Button size="xs" variant="outline" onClick={()=>{setTimelineParcelId(fr.parcels?.id||fr.parcel_id);setIsTimelineOpen(true);}}>Timeline</Button>
+                        {fr.status==='pending' && <>
                           <Button size="xs" disabled={actionBusy===`financing-approve-${fr.id}`} onClick={()=>act('financing-approve', fr.id)}>Approuver</Button>
                           <Button size="xs" variant="destructive" disabled={actionBusy===`financing-reject-${fr.id}`} onClick={()=>act('financing-reject', fr.id)}>Refuser</Button>
-                        </div>
-                      )}
+                        </>}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -655,12 +642,13 @@ const BanqueDashboard = () => {
                     <div key={g.id} className="border rounded p-3 text-sm">
                       <div className="flex justify-between"><span>#{g.id}</span><Badge variant={g.status==='active'? 'success': g.status==='closed'?'secondary':'outline'}>{g.status}</Badge></div>
                       <p className="text-xs text-gray-500">{g.parcels?.reference} • {g.guarantee_amount?.toLocaleString()} XOF</p>
-                      {g.status!=='closed' && (
-                        <div className="flex gap-2 mt-2">
+                      <div className="flex gap-2 mt-2">
+                        <Button size="xs" variant="outline" onClick={()=>{setTimelineParcelId(g.parcels?.id||g.parcel_id);setIsTimelineOpen(true);}}>Timeline</Button>
+                        {g.status!=='closed' && <>
                           {g.status!=='active' && <Button size="xs" disabled={actionBusy===`guarantee-activate-${g.id}`} onClick={()=>act('guarantee-activate', g.id)}>Activer</Button>}
                           <Button size="xs" variant="outline" disabled={actionBusy===`guarantee-close-${g.id}`} onClick={()=>act('guarantee-close', g.id)}>Clore</Button>
-                        </div>
-                      )}
+                        </>}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -685,6 +673,7 @@ const BanqueDashboard = () => {
                       </div>
                     ))}
                   </div>
+
                 )}
               </CardContent>
             </Card>
@@ -707,6 +696,6 @@ const BanqueDashboard = () => {
       </div>
     </div>
   );
-};
+}
 
-export default BanqueDashboard;
+

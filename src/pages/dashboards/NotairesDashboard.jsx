@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
+import DocumentWallet from '@/components/mairie/DocumentWallet';
+import ParcelTimeline from '@/components/parcel-detail/ParcelTimeline';
 import { 
   FileClock, 
   Gavel, 
@@ -43,6 +45,9 @@ const NotairesDashboard = () => {
   const { toast } = useToast();
   const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState('dossiers');
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [timelineParcelId, setTimelineParcelId] = useState(null);
+  const [documents, setDocuments] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDossier, setCurrentDossier] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -83,7 +88,20 @@ const NotairesDashboard = () => {
   useEffect(() => {
     loadNotaireData();
     generateAIInsights();
+    if (profile?.id) {
+      fetchDocuments();
+    }
   }, [profile]);
+
+  const fetchDocuments = async () => {
+    // Fetch all documents for this notaire (by user or by dossiers handled)
+    try {
+      const docs = await SupabaseDataService.getDocumentsByUser(profile.id);
+      setDocuments(docs || []);
+    } catch (e) {
+      setDocuments([]);
+    }
+  };
 
   const loadNotaireData = async () => {
     if (!profile?.id) return;
@@ -619,6 +637,17 @@ Fournis une réponse structurée avec score et recommandations.`;
                             </Button>
                             <Button
                               size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setTimelineParcelId(dossier.parcels?.id || dossier.parcel_id);
+                                setIsTimelineOpen(true);
+                              }}
+                            >
+                              <History className="h-4 w-4 mr-1" />
+                              Timeline
+                            </Button>
+                            <Button
+                              size="sm"
                               onClick={() => handleAction('verify', dossier.id)}
                             >
                               <FileText className="h-4 w-4 mr-1" />
@@ -685,6 +714,12 @@ Fournis une réponse structurée avec score et recommandations.`;
           </div>
         );
 
+      case 'documents':
+        return (
+          <div className="space-y-4">
+            <DocumentWallet documents={documents} />
+          </div>
+        );
       case 'activites':
         return (
           <div className="space-y-4">
@@ -820,8 +855,9 @@ Fournis une réponse structurée avec score et recommandations.`;
 
       {/* Contenu principal avec onglets */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="dossiers">Dossiers</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="activites">Activités Récentes</TabsTrigger>
           <TabsTrigger value="planning">Planning</TabsTrigger>
         </TabsList>
@@ -830,6 +866,17 @@ Fournis une réponse structurée avec score et recommandations.`;
           {renderTabContent()}
         </TabsContent>
       </Tabs>
+
+      {/* Timeline Modal */}
+      <Dialog open={isTimelineOpen} onOpenChange={setIsTimelineOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Timeline de la parcelle</DialogTitle>
+            <DialogDescription>Suivi complet des événements de la parcelle</DialogDescription>
+          </DialogHeader>
+          {timelineParcelId && <ParcelTimeline parcelId={timelineParcelId} />}
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de détails */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
