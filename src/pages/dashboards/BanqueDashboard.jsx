@@ -1,4 +1,3 @@
-export default BanqueDashboard;
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -698,5 +697,7 @@ const BanqueDashboard = () => {
     </div>
   );
 }
+
+export default BanqueDashboard;
 
 
