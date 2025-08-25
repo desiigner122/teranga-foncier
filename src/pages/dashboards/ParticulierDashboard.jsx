@@ -32,27 +32,18 @@ import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { supabase } from '@/lib/supabaseClient';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import { antiFraudAI } from '@/lib/antiFraudAI';
+
 import DocumentWallet from '@/components/mairie/DocumentWallet';
 import ParcelTimeline from '@/components/mairie/ParcelTimeline';
-  // Mes parcelles attribuées
+
+
+const ParticulierDashboard = () => {
+  const { toast } = useToast();
+  // Mes parcelles attribuées (moved inside component)
   const [myParcels, setMyParcels] = useState([]);
   const [showTimeline, setShowTimeline] = useState(false);
   const [timelineParcel, setTimelineParcel] = useState(null);
 
-  useEffect(() => {
-    const loadMyParcels = async () => {
-      if (!user) return;
-      try {
-        const allParcels = await SupabaseDataService.getParcels();
-        const mine = allParcels.filter(p => p.beneficiary_id === user.id);
-        setMyParcels(mine);
-      } catch (e) {/* ignore */}
-    };
-    loadMyParcels();
-  }, [user]);
-
-const ParticulierDashboard = () => {
-  const { toast } = useToast();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     favoritesCounted: 0,
@@ -77,6 +68,19 @@ const ParticulierDashboard = () => {
     loadUserData();
     loadDashboardData();
   }, []);
+
+  // Mes parcelles attribuées: load when user changes
+  useEffect(() => {
+    const loadMyParcels = async () => {
+      if (!user) return;
+      try {
+        const allParcels = await SupabaseDataService.getParcels();
+        const mine = allParcels.filter(p => p.beneficiary_id === user.id);
+        setMyParcels(mine);
+      } catch (e) {/* ignore */}
+    };
+    loadMyParcels();
+  }, [user]);
 
   // Affichage du blocage si non vérifié
   if (user && (user.type === 'Particulier' || user.type === 'particulier')) {
