@@ -51,12 +51,9 @@ const ProfilePage = () => {
     }
     setIsUpdatingProfile(true);
     try {
-      // Simulate updating user metadata which often includes name and phone.
-      // Email update typically requires a separate flow with verification.
-      const updatedUserData = { name, phone }; 
-      await updateUserProfile({ data: updatedUserData }); // Supabase data update method for metadata
-
-      toast({ title: "Profil mis à jour", description: "Vos informations ont été sauvegardées avec succès." });
+  // Mise à jour réelle du profil utilisateur (nom, téléphone)
+  await updateUserProfile({ name, phone });
+  toast({ title: "Profil mis à jour", description: "Vos informations ont été sauvegardées avec succès." });
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({ variant: "destructive", title: "Erreur de mise à jour", description: error.message });

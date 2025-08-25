@@ -125,6 +125,27 @@ export const AuthProvider = ({ children }) => {
     };
   }, [fetchUserProfile, loading]);
 
+
+  // Ajout de la méthode updateUserProfile
+  const updateUserProfile = async (fields) => {
+    if (!user) throw new Error("Utilisateur non authentifié");
+    // On met à jour la table users (profil)
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        full_name: fields.name,
+        phone: fields.phone,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+      .select()
+      .single();
+    if (error) throw error;
+    // Rafraîchir le profil local
+    await value.refreshUser();
+    return data;
+  };
+
   const value = {
     session,
     user,
@@ -133,39 +154,33 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user, // Simplifié : on ne requiert que l'utilisateur authentifié
     isAdmin: profile?.role === 'admin' || profile?.type === 'Administrateur',
     // Administrateurs exempts de vérification
-  isVerified: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? true : profile?.verification_status === 'verified',
-  needsVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : !!profile && !['verified', 'pending'].includes(profile.verification_status),
-  isPendingVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile?.verification_status === 'pending',
+    isVerified: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? true : profile?.verification_status === 'verified',
+    needsVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : !!profile && !['verified', 'pending'].includes(profile.verification_status),
+    isPendingVerification: (profile?.role === 'admin' || profile?.type === 'Administrateur') ? false : profile?.verification_status === 'pending',
+    updateUserProfile,
     signOut: async () => {
       try {
         setLoading(true);
-        
         // Nettoyage local d'abord
         setUser(null);
         setProfile(null);
         setSession(null);
-        
         // Suppression du stockage local
         localStorage.clear();
         sessionStorage.clear();
-        
         // Déconnexion Supabase
         const { error } = await supabase.auth.signOut({ scope: 'global' });
-        
         if (error) {
           console.error('Erreur lors de la déconnexion:', error);
           // Même avec une erreur, on force la déconnexion côté client
         }
-        
         toast({ 
           title: "Déconnexion réussie", 
           description: "À bientôt !",
           duration: 2000
         });
-        
         // Redirection forcée vers la page d'accueil
         window.location.href = '/';
-        
       } catch (err) {
         console.error('Erreur signOut:', err);
         toast({ 
@@ -174,25 +189,23 @@ export const AuthProvider = ({ children }) => {
           description: "Déconnexion forcée effectuée",
           duration: 3000
         });
-        
         // Forcer la déconnexion même en cas d'erreur
         setUser(null);
         setProfile(null);
         setSession(null);
         localStorage.clear();
         window.location.href = '/';
-        
       } finally {
         setLoading(false);
       }
     },
     refreshUser: async () => {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-            const userProfile = await fetchUserProfile(authUser);
-            setUser(authUser);
-            setProfile(userProfile);
-        }
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        const userProfile = await fetchUserProfile(authUser);
+        setUser(authUser);
+        setProfile(userProfile);
+      }
     }
   };
 
