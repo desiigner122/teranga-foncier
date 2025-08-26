@@ -1,3 +1,4 @@
+import AdminProfilePage from '@/pages/admin/AdminProfilePage';
 import AuditLogsPage from '@/pages/dashboards/banque/AuditLogsPage';
 // src/App.jsx
 import React from 'react';
