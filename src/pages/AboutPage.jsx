@@ -41,7 +41,7 @@ const AboutPage = () => {
 
   const values = [
     { icon: ShieldCheck, title: "Intégrité", description: "Nous agissons avec honnêteté et transparence à chaque étape." },
-    { icon: Users, title: "Orientation Client", description: "Votre sécurité et votre satisfaction sont notre priorité absolue." },
+    { icon: Users, title: "Orientation-Client", description: "Votre sécurité et votre satisfaction sont notre priorité absolue." },
     { icon: Eye, title: "Rigueur", description: "Chaque dossier est traité avec la plus grande attention aux détails." },
   ];
 
