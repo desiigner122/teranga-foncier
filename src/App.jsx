@@ -1,3 +1,4 @@
+import RolesPage from '@/pages/dashboards/banque/RolesPage';
 import PermissionsPage from '@/pages/dashboards/banque/PermissionsPage';
 import AdminNotificationsPage from '@/pages/admin/AdminNotificationsPage';
 import AdminSettingsPage from '@/pages/admin/AdminSettingsPage';
