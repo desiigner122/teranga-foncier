@@ -1,3 +1,4 @@
+import AdminSettingsPage from '@/pages/admin/AdminSettingsPage';
 import AdminProfilePage from '@/pages/admin/AdminProfilePage';
 import AuditLogsPage from '@/pages/dashboards/banque/AuditLogsPage';
 // src/App.jsx
