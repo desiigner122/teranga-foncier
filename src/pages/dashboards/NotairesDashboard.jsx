@@ -1,42 +1,5 @@
-      {/* Table avancée : dossiers notariaux */}
-      {activeTab === 'dossiers' && (
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Dossiers notariaux</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-2 flex gap-2 items-center">
-              <input type="text" placeholder="Recherche..." value={dossierSearch||''} onChange={e=>setDossierSearch(e.target.value)} className="max-w-xs border rounded px-2 py-1 text-sm" />
-              <Button size="sm" onClick={()=>exportDossiersCSV()} disabled={filteredDossiers.length===0}>Exporter CSV</Button>
-              <Button size="sm" variant="outline" onClick={()=>setSelectedDossiers(filteredDossiers.map(d=>d.id))} disabled={filteredDossiers.length===0}>Tout sélectionner</Button>
-              <Button size="sm" variant="outline" onClick={()=>setSelectedDossiers([])} disabled={selectedDossiers.length===0}>Désélectionner</Button>
-              <Button size="sm" className="bg-red-600 text-white" disabled={selectedDossiers.length===0} onClick={()=>bulkRejeterDossiers()}>Rejeter sélection</Button>
-              <Button size="sm" className="bg-green-600 text-white" disabled={selectedDossiers.length===0} onClick={()=>bulkApprouverDossiers()}>Approuver sélection</Button>
-            </div>
-            {filteredDossiers.length===0? <p className="text-sm text-gray-500">Aucun dossier</p> : (
-              <div className="space-y-3">
-                {filteredDossiers.map(dossier => (
-                  <div key={dossier.id} className={`border rounded p-3 text-sm ${selectedDossiers.includes(dossier.id)?'bg-green-50':''}`}> 
-                    <div className="flex justify-between items-center">
-                      <input type="checkbox" checked={selectedDossiers.includes(dossier.id)} onChange={e=>{
-                        setSelectedDossiers(sel=>e.target.checked?[...sel,dossier.id]:sel.filter(id=>id!==dossier.id));
-                      }} />
-                      <span className="font-medium">{dossier.reference || dossier.id}</span>
-                      <Badge variant={dossier.status==='notarized'? 'success': dossier.status==='pending_notary'? 'secondary':'outline'}>{dossier.status}</Badge>
-                    </div>
-                    <p className="text-xs text-gray-500">{dossier.users?.full_name || dossier.client_name} • {dossier.parcels?.reference || dossier.parcel_reference} • {dossier.valuation?.toLocaleString()} XOF</p>
-                    <div className="flex gap-2 mt-2">
-                      <Button size="xs" variant="outline" onClick={()=>openModal(dossier)}>Voir</Button>
-                      {dossier.status==='pending_notary' && <Button size="xs" variant="destructive" onClick={()=>rejeterDossier(dossier.id)}>Rejeter</Button>}
-                      {dossier.status!=='notarized' && <Button size="xs" variant="outline" onClick={()=>approuverDossier(dossier.id)}>Approuver</Button>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+
+// Suppression du rendu legacy en haut de fichier : tout le rendu doit être dans la fonction NotairesDashboard via Tabs et renderTabContent.
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
