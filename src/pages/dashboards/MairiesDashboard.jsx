@@ -1,3 +1,40 @@
+        {/* Table avancée : demandes municipales */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Demandes municipales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-2 flex gap-2 items-center">
+              <input type="text" placeholder="Recherche..." value={requestSearch||''} onChange={e=>setRequestSearch(e.target.value)} className="max-w-xs border rounded px-2 py-1 text-sm" />
+              <Button size="sm" onClick={()=>exportRequestsCSV()} disabled={filteredRequests.length===0}>Exporter CSV</Button>
+              <Button size="sm" variant="outline" onClick={()=>setSelectedRequests(filteredRequests.map(r=>r.id))} disabled={filteredRequests.length===0}>Tout sélectionner</Button>
+              <Button size="sm" variant="outline" onClick={()=>setSelectedRequests([])} disabled={selectedRequests.length===0}>Désélectionner</Button>
+              <Button size="sm" className="bg-red-600 text-white" disabled={selectedRequests.length===0} onClick={()=>bulkRefuserRequests()}>Refuser sélection</Button>
+              <Button size="sm" className="bg-green-600 text-white" disabled={selectedRequests.length===0} onClick={()=>bulkApprouverRequests()}>Approuver sélection</Button>
+            </div>
+            {filteredRequests.length===0? <p className="text-sm text-gray-500">Aucune demande</p> : (
+              <div className="space-y-3">
+                {filteredRequests.map(request => (
+                  <div key={request.id} className={`border rounded p-3 text-sm ${selectedRequests.includes(request.id)?'bg-green-50':''}`}> 
+                    <div className="flex justify-between items-center">
+                      <input type="checkbox" checked={selectedRequests.includes(request.id)} onChange={e=>{
+                        setSelectedRequests(sel=>e.target.checked?[...sel,request.id]:sel.filter(id=>id!==request.id));
+                      }} />
+                      <span className="font-medium">{request.type}</span>
+                      <Badge variant={request.status==='approved'? 'success': request.status==='pending'? 'secondary':'outline'}>{request.status}</Badge>
+                    </div>
+                    <p className="text-xs text-gray-500">{request.applicant} • {request.location} • {request.surface} m²</p>
+                    <div className="flex gap-2 mt-2">
+                      <Button size="xs" variant="outline" onClick={()=>openRequest(request)}>Voir</Button>
+                      {request.status==='pending' && <Button size="xs" variant="destructive" onClick={()=>refuserRequest(request.id)}>Refuser</Button>}
+                      {request.status!=='approved' && <Button size="xs" variant="outline" onClick={()=>approuverRequest(request.id)}>Approuver</Button>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -93,6 +130,80 @@ const MairiesDashboard = () => {
   const [user, setUser] = useState(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Advanced table state for municipal requests
+  const [requestSearch, setRequestSearch] = useState('');
+  const [selectedRequests, setSelectedRequests] = useState([]);
+
+  // Préparer la liste réelle des demandes (municipalRequests)
+  const requests = dashboardData.recentRequests || [];
+  const filteredRequests = requests.filter(r => {
+    if (!requestSearch) return true;
+    const s = requestSearch.toLowerCase();
+    return (
+      (r.type && r.type.toLowerCase().includes(s)) ||
+      (r.applicant && r.applicant.toLowerCase().includes(s)) ||
+      (r.status && r.status.toLowerCase().includes(s)) ||
+      (r.location && r.location.toLowerCase().includes(s))
+    );
+  });
+
+  // CSV export
+  function exportRequestsCSV() {
+    if (!filteredRequests.length) return;
+    const header = ['Type','Demandeur','Statut','Surface','Localisation','Date'];
+    const rows = filteredRequests.map(r => [r.type, r.applicant, r.status, r.surface, r.location, r.date]);
+    const csv = [header, ...rows].map(r=>r.join(';')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'demandes_municipales.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Bulk actions
+  async function bulkRefuserRequests() {
+    if (!selectedRequests.length) return;
+    for (const id of selectedRequests) {
+      await refuserRequest(id);
+    }
+    setSelectedRequests([]);
+    toast({ title: 'Demandes refusées', description: `${selectedRequests.length} demandes refusées.` });
+  }
+
+  async function bulkApprouverRequests() {
+    if (!selectedRequests.length) return;
+    for (const id of selectedRequests) {
+      await approuverRequest(id);
+    }
+    setSelectedRequests([]);
+    toast({ title: 'Demandes approuvées', description: `${selectedRequests.length} demandes approuvées.` });
+  }
+
+  // Single actions (should already exist, but fallback)
+  async function refuserRequest(id) {
+    // ...API call pour refuser la demande...
+    // TODO: connecter au backend
+    // Simule le changement local
+    setDashboardData(d => ({
+      ...d,
+      recentRequests: d.recentRequests.map(r => r.id === id ? { ...r, status: 'refused' } : r)
+    }));
+  }
+  async function approuverRequest(id) {
+    // ...API call pour approuver la demande...
+    // TODO: connecter au backend
+    setDashboardData(d => ({
+      ...d,
+      recentRequests: d.recentRequests.map(r => r.id === id ? { ...r, status: 'approved' } : r)
+    }));
+  }
+  function openRequest(request) {
+    setModalContent({ type: 'request', title: request.type, description: '', data: request });
+    setIsModalOpen(true);
+  }
 
   useEffect(() => {
     loadUserData();

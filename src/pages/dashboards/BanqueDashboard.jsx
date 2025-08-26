@@ -1,84 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
+import BanqueSidebar from './BanqueSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
-import { 
-  Shield, 
-  TrendingUp, 
-  Banknote,
-  ShieldCheck,
-  Scale,
-  FolderCheck,
-  BarChart3,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Users,
-  DollarSign,
-  FileText,
-  Calculator,
-  Target,
-  Zap,
-  Eye,
-  Download
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import DocumentWallet from '@/components/mairie/DocumentWallet';
-import DocumentUpload from '@/components/mairie/DocumentUpload';
-import ParcelTimeline from '@/components/parcel-detail/ParcelTimeline';
-import AntiFraudDashboard from '@/components/ui/AntiFraudDashboard';
-import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
-import { supabase } from '@/lib/supabaseClient';
-import { SupabaseDataService } from '@/services/supabaseDataService';
-import { antiFraudAI } from '@/lib/antiFraudAI';
 
 const BanqueDashboard = () => {
-  const { toast } = useToast();
-  const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
-  const [timelineParcelId, setTimelineParcelId] = useState(null);
-  const [documents, setDocuments] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const handleDocumentUpload = async (file) => {
-    if (!user?.id || !file) return;
-    setUploading(true);
-    try {
-      await SupabaseDataService.uploadDocument(user.id, file);
-      await fetchDocuments();
-      toast({ title: 'Document uploadé', description: file.name });
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Erreur upload', description: e.message });
-    } finally {
-      setUploading(false);
-    }
-  };
-  const [stats, setStats] = useState({
-    activeGuarantees: 0,
-    pendingEvaluations: 0,
-    fundingRequests: 0,
-    complianceRate: 0,
-    totalExposure: 0,
-    securityScore: 0
-  });
-  const [guarantees, setGuarantees] = useState([]);
-  const [evaluations, setEvaluations] = useState([]);
-  const [fundingRequests, setFundingRequests] = useState([]);
-  const [riskAnalysis, setRiskAnalysis] = useState([]);
-  const [marketTrends, setMarketTrends] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [actionBusy, setActionBusy] = useState(null); // composite key like type-id
+  // ...tout le code existant (hooks, fonctions, etc.)...
 
-  useEffect(() => {
-    loadUserData();
-    loadBankDashboardData();
-  }, []);
+  // ...JSX du dashboard (tout le return)...
 
-  useEffect(() => {
-    if (user?.id) fetchDocuments();
-  }, [user]);
+
 
   const fetchDocuments = async () => {
     try {
@@ -443,261 +375,251 @@ const BanqueDashboard = () => {
     }
   };
 
+// ...existing code for all functions and hooks...
+// S'assurer que toutes les fonctions sont fermées ici
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Onglets banque */}
-        <div className="mb-6">
-          <div className="flex gap-2">
-            <Button variant={activeTab==='dashboard'?'default':'outline'} onClick={()=>setActiveTab('dashboard')}>Dashboard</Button>
-            <Button variant={activeTab==='documents'?'default':'outline'} onClick={()=>setActiveTab('documents')}>Documents</Button>
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar Banque */}
+      <BanqueSidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+
+      {/* Main Content */}
+      <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
+        <div className="p-6 max-w-7xl mx-auto space-y-6">
+          {/* Timeline Modal */}
+          <Dialog open={isTimelineOpen} onOpenChange={setIsTimelineOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Timeline de la parcelle</DialogTitle>
+                <DialogDescription>Suivi complet des événements de la parcelle</DialogDescription>
+              </DialogHeader>
+              {timelineParcelId && <ParcelTimeline parcelId={timelineParcelId} />}
+            </DialogContent>
+          </Dialog>
+
+          {/* Onglets banque (legacy, à remplacer par navigation sidebar) */}
+          {/*
+          <div className="mb-6">
+            <div className="flex gap-2">
+              <Button variant={activeTab==='dashboard'?'default':'outline'} onClick={()=>setActiveTab('dashboard')}>Dashboard</Button>
+              <Button variant={activeTab==='documents'?'default':'outline'} onClick={()=>setActiveTab('documents')}>Documents</Button>
+            </div>
           </div>
-        </div>
+          */}
 
-        {activeTab==='documents' && (
-          <div className="mt-8">
-            <DocumentUpload onUpload={handleDocumentUpload} loading={uploading} />
-            <DocumentWallet documents={documents} />
-          </div>
-        )}
+          {/* Section Documents (affichée si route /dashboard/banque/documents) */}
+          {activeTab==='documents' && (
+            <div className="mt-8">
+              <DocumentUpload onUpload={handleDocumentUpload} loading={uploading} />
+              <DocumentWallet documents={documents} />
+            </div>
+          )}
 
-        {/* Timeline Modal */}
-        <Dialog open={isTimelineOpen} onOpenChange={setIsTimelineOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Timeline de la parcelle</DialogTitle>
-              <DialogDescription>Suivi complet des événements de la parcelle</DialogDescription>
-            </DialogHeader>
-            {timelineParcelId && <ParcelTimeline parcelId={timelineParcelId} />}
-          </DialogContent>
-        </Dialog>
-
-        {/* ...le reste du dashboard (statistiques, listes, IA, etc.)... */}
-
-
-
-
-        {activeTab==='documents' && (
-          <div className="mt-8">
-            <DocumentUpload onUpload={handleDocumentUpload} loading={uploading} />
-            <DocumentWallet documents={documents} />
-          </div>
-        )}
-
-        {/* Timeline Modal */}
-        <Dialog open={isTimelineOpen} onOpenChange={setIsTimelineOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Timeline de la parcelle</DialogTitle>
-              <DialogDescription>Suivi complet des événements de la parcelle</DialogDescription>
-            </DialogHeader>
-            {timelineParcelId && <ParcelTimeline parcelId={timelineParcelId} />}
-          </DialogContent>
-        </Dialog>
-
-        {/* Analyse des risques et tendances */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Analyse des risques */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-                Analyse des Risques IA
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {riskAnalysis.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-400" />
-                  <p className="text-gray-500">Aucun risque majeur détecté</p>
-                  <p className="text-sm text-gray-400">Portefeuille bien diversifié</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {riskAnalysis.map((risk, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className={`p-3 rounded-lg border ${getRiskLevelColor(risk.level)}`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{risk.title}</h4>
-                          <p className="text-sm opacity-80 mt-1">{risk.description}</p>
-                          <p className="text-xs mt-2 font-medium">
-                            Recommandation: {risk.recommendation}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {risk.level}
-                        </Badge>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Tendances du marché */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-blue-500" />
-                Tendances du Marché
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {marketTrends.length === 0 ? (
-                <div className="text-center py-8">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-500">Analyse en cours...</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {marketTrends.map((trend, index) => {
-                    const TrendIcon = getTrendIcon(trend.trend);
-                    return (
+          {/* Analyse des risques et tendances */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Analyse des risques */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                  Analyse des Risques IA
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {riskAnalysis.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-400" />
+                    <p className="text-gray-500">Aucun risque majeur détecté</p>
+                    <p className="text-sm text-gray-400">Portefeuille bien diversifié</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {riskAnalysis.map((risk, index) => (
                       <motion.div
                         key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className={`p-3 rounded-lg border ${getRiskLevelColor(risk.level)}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <TrendIcon className={`h-5 w-5 ${
-                            trend.trend === 'up' ? 'text-green-500' : 
-                            trend.trend === 'down' ? 'text-red-500' : 'text-blue-500'
-                          }`} />
-                          <div>
-                            <h4 className="font-medium text-sm">{trend.title}</h4>
-                            <p className="text-sm text-gray-600">{trend.description}</p>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm">{risk.title}</h4>
+                            <p className="text-sm opacity-80 mt-1">{risk.description}</p>
+                            <p className="text-xs mt-2 font-medium">
+                              Recommandation: {risk.recommendation}
+                            </p>
                           </div>
+                          <Badge variant="outline" className="text-xs">
+                            {risk.level}
+                          </Badge>
                         </div>
-                        <Badge className={
-                          trend.trend === 'up' ? 'bg-green-100 text-green-800' :
-                          trend.trend === 'down' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-                        }>
-                          {trend.trend}
-                        </Badge>
                       </motion.div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Dashboard Anti-Fraude pour banques */}
-        <AntiFraudDashboard 
-          userRole="banque" 
-          dashboardContext={{ 
-            userId: user?.id,
-            userType: 'banque',
-            securityLevel: 'maximum',
-            guaranteesCount: stats.activeGuarantees,
-            totalExposure: stats.totalExposure
-          }} 
-        />
-
-        {/* Listes opérationnelles */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Demandes de financement */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Demandes de Financement</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {fundingRequests.length===0? <p className="text-sm text-gray-500">Aucune demande</p> : (
-                <div className="space-y-3">
-                  {fundingRequests.slice(0,6).map(fr => (
-                    <div key={fr.id} className="border rounded p-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium">#{fr.id}</span>
-                        <Badge variant={fr.status==='approved'? 'success': fr.status==='rejected'? 'destructive':'secondary'}>{fr.status}</Badge>
-                      </div>
-                      <p className="text-xs text-gray-500">{fr.parcels?.reference} • {fr.amount?.toLocaleString()} XOF</p>
-                      <div className="flex gap-2 mt-2">
-                        <Button size="xs" variant="outline" onClick={()=>{setTimelineParcelId(fr.parcels?.id||fr.parcel_id);setIsTimelineOpen(true);}}>Timeline</Button>
-                        {fr.status==='pending' && <>
-                          <Button size="xs" disabled={actionBusy===`financing-approve-${fr.id}`} onClick={()=>act('financing-approve', fr.id)}>Approuver</Button>
-                          <Button size="xs" variant="destructive" disabled={actionBusy===`financing-reject-${fr.id}`} onClick={()=>act('financing-reject', fr.id)}>Refuser</Button>
-                        </>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          {/* Garanties bancaires */}
-          <Card>
-            <CardHeader><CardTitle>Garanties</CardTitle></CardHeader>
-            <CardContent>
-              {guarantees.length===0? <p className="text-sm text-gray-500">Aucune garantie</p> : (
-                <div className="space-y-3">
-                  {guarantees.slice(0,6).map(g => (
-                    <div key={g.id} className="border rounded p-3 text-sm">
-                      <div className="flex justify-between"><span>#{g.id}</span><Badge variant={g.status==='active'? 'success': g.status==='closed'?'secondary':'outline'}>{g.status}</Badge></div>
-                      <p className="text-xs text-gray-500">{g.parcels?.reference} • {g.guarantee_amount?.toLocaleString()} XOF</p>
-                      <div className="flex gap-2 mt-2">
-                        <Button size="xs" variant="outline" onClick={()=>{setTimelineParcelId(g.parcels?.id||g.parcel_id);setIsTimelineOpen(true);}}>Timeline</Button>
-                        {g.status!=='closed' && <>
-                          {g.status!=='active' && <Button size="xs" disabled={actionBusy===`guarantee-activate-${g.id}`} onClick={()=>act('guarantee-activate', g.id)}>Activer</Button>}
-                          <Button size="xs" variant="outline" disabled={actionBusy===`guarantee-close-${g.id}`} onClick={()=>act('guarantee-close', g.id)}>Clore</Button>
-                        </>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          {/* Evaluations foncières */}
-            <Card>
-              <CardHeader><CardTitle>Évaluations Foncières</CardTitle></CardHeader>
-              <CardContent>
-                {evaluations.length===0? <p className="text-sm text-gray-500">Aucune évaluation</p> : (
-                  <div className="space-y-3">
-                    {evaluations.slice(0,6).map(ev => (
-                      <div key={ev.id} className="border rounded p-3 text-sm">
-                        <div className="flex justify-between"><span>#{ev.id}</span><Badge variant={ev.status==='completed'? 'success':'secondary'}>{ev.status}</Badge></div>
-                        <p className="text-xs text-gray-500">{ev.parcels?.reference} • {ev.estimated_value? ev.estimated_value.toLocaleString()+' XOF':'—'}</p>
-                        {ev.status==='pending' && (
-                          <div className="mt-2">
-                            <Button size="xs" disabled={actionBusy===`evaluation-complete-${ev.id}`} onClick={()=>act('evaluation-complete', ev.id)}>Clôturer</Button>
-                          </div>
-                        )}
-                      </div>
                     ))}
                   </div>
-
                 )}
               </CardContent>
             </Card>
-        </div>
 
-        {/* Assistant IA spécialisé banque */}
-        <AIAssistantWidget 
-          userRole="banque"
-          context={{
-            userId: user?.id,
-            bankingData: {
-              guarantees: stats.activeGuarantees,
-              evaluations: stats.pendingEvaluations,
-              requests: stats.fundingRequests,
-              compliance: stats.complianceRate
-            },
-            riskProfile: riskAnalysis
-          }}
-        />
+            {/* Tendances du marché */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-blue-500" />
+                  Tendances du Marché
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {marketTrends.length === 0 ? (
+                  <div className="text-center py-8">
+                    <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-gray-500">Analyse en cours...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {marketTrends.map((trend, index) => {
+                      const TrendIcon = getTrendIcon(trend.trend);
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                        >
+                          <div className="flex items-center gap-3">
+                            <TrendIcon className={`h-5 w-5 ${
+                              trend.trend === 'up' ? 'text-green-500' : 
+                              trend.trend === 'down' ? 'text-red-500' : 'text-blue-500'
+                            }`} />
+                            <div>
+                              <h4 className="font-medium text-sm">{trend.title}</h4>
+                              <p className="text-sm text-gray-600">{trend.description}</p>
+                            </div>
+                          </div>
+                          <Badge className={
+                            trend.trend === 'up' ? 'bg-green-100 text-green-800' :
+                            trend.trend === 'down' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                          }>
+                            {trend.trend}
+                          </Badge>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Dashboard Anti-Fraude pour banques */}
+          <AntiFraudDashboard 
+            userRole="banque" 
+            dashboardContext={{ 
+              userId: user?.id,
+              userType: 'banque',
+              securityLevel: 'maximum',
+              guaranteesCount: stats.activeGuarantees,
+              totalExposure: stats.totalExposure
+            }} 
+          />
+
+          {/* Listes opérationnelles */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Demandes de financement */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Demandes de Financement</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {fundingRequests.length===0? <p className="text-sm text-gray-500">Aucune demande</p> : (
+                  <div className="space-y-3">
+                    {fundingRequests.slice(0,6).map(fr => (
+                      <div key={fr.id} className="border rounded p-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="font-medium">#{fr.id}</span>
+                          <Badge variant={fr.status==='approved'? 'success': fr.status==='rejected'? 'destructive':'secondary'}>{fr.status}</Badge>
+                        </div>
+                        <p className="text-xs text-gray-500">{fr.parcels?.reference} • {fr.amount?.toLocaleString()} XOF</p>
+                        <div className="flex gap-2 mt-2">
+                          <Button size="xs" variant="outline" onClick={()=>{setTimelineParcelId(fr.parcels?.id||fr.parcel_id);setIsTimelineOpen(true);}}>Timeline</Button>
+                          {fr.status==='pending' && <>
+                            <Button size="xs" disabled={actionBusy===`financing-approve-${fr.id}`} onClick={()=>act('financing-approve', fr.id)}>Approuver</Button>
+                            <Button size="xs" variant="destructive" disabled={actionBusy===`financing-reject-${fr.id}`} onClick={()=>act('financing-reject', fr.id)}>Refuser</Button>
+                          </>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            {/* Garanties bancaires */}
+            <Card>
+              <CardHeader><CardTitle>Garanties</CardTitle></CardHeader>
+              <CardContent>
+                {guarantees.length===0? <p className="text-sm text-gray-500">Aucune garantie</p> : (
+                  <div className="space-y-3">
+                    {guarantees.slice(0,6).map(g => (
+                      <div key={g.id} className="border rounded p-3 text-sm">
+                        <div className="flex justify-between"><span>#{g.id}</span><Badge variant={g.status==='active'? 'success': g.status==='closed'?'secondary':'outline'}>{g.status}</Badge></div>
+                        <p className="text-xs text-gray-500">{g.parcels?.reference} • {g.guarantee_amount?.toLocaleString()} XOF</p>
+                        <div className="flex gap-2 mt-2">
+                          <Button size="xs" variant="outline" onClick={()=>{setTimelineParcelId(g.parcels?.id||g.parcel_id);setIsTimelineOpen(true);}}>Timeline</Button>
+                          {g.status!=='closed' && <>
+                            {g.status!=='active' && <Button size="xs" disabled={actionBusy===`guarantee-activate-${g.id}`} onClick={()=>act('guarantee-activate', g.id)}>Activer</Button>}
+                            <Button size="xs" variant="outline" disabled={actionBusy===`guarantee-close-${g.id}`} onClick={()=>act('guarantee-close', g.id)}>Clore</Button>
+                          </>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            {/* Evaluations foncières */}
+              <Card>
+                <CardHeader><CardTitle>Évaluations Foncières</CardTitle></CardHeader>
+                <CardContent>
+                  {evaluations.length===0? <p className="text-sm text-gray-500">Aucune évaluation</p> : (
+                    <div className="space-y-3">
+                      {evaluations.slice(0,6).map(ev => (
+                        <div key={ev.id} className="border rounded p-3 text-sm">
+                          <div className="flex justify-between"><span>#{ev.id}</span><Badge variant={ev.status==='completed'? 'success':'secondary'}>{ev.status}</Badge></div>
+                          <p className="text-xs text-gray-500">{ev.parcels?.reference} • {ev.estimated_value? ev.estimated_value.toLocaleString()+' XOF':'—'}</p>
+                          {ev.status==='pending' && (
+                            <div className="mt-2">
+                              <Button size="xs" disabled={actionBusy===`evaluation-complete-${ev.id}`} onClick={()=>act('evaluation-complete', ev.id)}>Clôturer</Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                  )}
+                </CardContent>
+              </Card>
+          </div>
+
+          {/* Assistant IA spécialisé banque */}
+          <AIAssistantWidget 
+            userRole="banque"
+            context={{
+              userId: user?.id,
+              bankingData: {
+                guarantees: stats.activeGuarantees,
+                evaluations: stats.pendingEvaluations,
+                requests: stats.fundingRequests,
+                compliance: stats.complianceRate
+              },
+              riskProfile: riskAnalysis
+            }}
+          />
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default BanqueDashboard;
+
 
 

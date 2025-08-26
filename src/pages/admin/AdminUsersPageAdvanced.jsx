@@ -66,6 +66,8 @@ const AdminUsersPageAdvanced = () => {
   const navigate = useNavigate();
   const [filterType, setFilterType] = useState('all');
   const [activeTab, setActiveTab] = useState('all');
+  const [selected, setSelected] = useState([]);
+  const [exporting, setExporting] = useState(false);
   
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -526,6 +528,10 @@ const AdminUsersPageAdvanced = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead><input type="checkbox" checked={selected.length === filteredUsers.length && filteredUsers.length > 0} onChange={() => {
+  if (selected.length === filteredUsers.length) setSelected([]);
+  else setSelected(filteredUsers.map(u => u.id));
+}} /></TableHead>
                 <TableHead>Utilisateur</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Rôle</TableHead>
@@ -538,6 +544,9 @@ const AdminUsersPageAdvanced = () => {
             <TableBody>
               {filteredUsers.map(user => (
                 <TableRow key={user.id}>
+                  <TableCell><input type="checkbox" checked={selected.includes(user.id)} onChange={() => {
+  setSelected(sel => sel.includes(user.id) ? sel.filter(s => s !== user.id) : [...sel, user.id]);
+}} /></TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{user.full_name || 'Nom non défini'}</div>
@@ -626,6 +635,104 @@ const AdminUsersPageAdvanced = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Actions en masse et export CSV */}
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => {
+              // Changer le statut de vérification en masse
+              const newStatus = window.prompt('Nouveau statut de vérification (verified, pending, rejected)');
+              if (!newStatus || !['verified', 'pending', 'rejected'].includes(newStatus)) {
+                toast({ variant: 'destructive', title: 'Erreur', description: 'Statut invalide' });
+                return;
+              }
+              
+              Promise.all(selected.map(userId => {
+                const user = users.find(u => u.id === userId);
+                return SupabaseDataService.updateUser(userId, { verification_status: newStatus })
+                  .then(() => {
+                    // Créer une notification pour chaque utilisateur
+                    return SupabaseDataService.createNotification({
+                      userId: userId,
+                      type: 'status_change',
+                      title: `Statut de vérification mis à jour`,
+                      body: `Votre statut de vérification est maintenant: ${newStatus === 'verified' ? 'Vérifié' : newStatus === 'pending' ? 'En attente' : 'Rejeté'}`,
+                      data: { status: newStatus }
+                    });
+                  });
+              }))
+              .then(() => {
+                toast({ title: 'Statuts mis à jour', description: `${selected.length} utilisateurs` });
+                setSelected([]);
+                loadUsers();
+              })
+              .catch(error => {
+                console.error('Erreur mise à jour en masse:', error);
+                toast({ variant: 'destructive', title: 'Erreur', description: 'Mise à jour échouée' });
+              });
+            }} 
+            disabled={selected.length === 0}
+          >
+            Changer statut vérification
+          </Button>
+          <Button 
+            onClick={() => {
+              // Suppression en masse
+              if (!window.confirm('Êtes-vous sûr de vouloir supprimer ces utilisateurs ?')) return;
+              
+              Promise.all(selected.map(userId => {
+                return fetch('/api/delete-user', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ userId })
+                })
+                .then(response => response.json())
+                .then(result => {
+                  if (!result.success) {
+                    throw new Error(result.error || 'Suppression échouée');
+                  }
+                  
+                  // Affiche un warning si Auth déjà supprimé
+                  if (result.warning) {
+                    toast({
+                      variant: "warning",
+                      title: "Attention",
+                      description: result.warning
+                    });
+                  }
+                });
+              }))
+              .then(() => {
+                toast({ title: 'Utilisateurs supprimés', description: `${selected.length} utilisateurs` });
+                setSelected([]);
+                loadUsers();
+              })
+              .catch(error => {
+                console.error('Erreur suppression en masse:', error);
+                toast({ variant: 'destructive', title: 'Erreur', description: 'Suppression échouée' });
+              });
+            }} 
+            className="bg-red-600 hover:bg-red-700 text-white"
+            disabled={selected.length === 0}
+          >
+            Supprimer utilisateurs
+          </Button>
+        </div>
+        <Button onClick={() => {
+  const rows = [
+    ['Nom', 'Email', 'Type', 'Rôle', 'Statut', 'Date inscription'],
+    ...filteredUsers.filter(u => selected.length === 0 || selected.includes(u.id)).map(u => [u.full_name, u.email, u.type, u.role, u.verification_status, u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR') : ''])
+  ];
+  const csv = rows.map(r => r.map(x => '"'+(x||'')+'"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'utilisateurs.csv';
+  a.click();
+}} disabled={filteredUsers.length === 0}>Exporter CSV</Button>
+      </div>
 
       {/* Modal de modification */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>

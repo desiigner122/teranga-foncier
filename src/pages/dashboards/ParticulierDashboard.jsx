@@ -358,6 +358,58 @@ const ParticulierDashboard = () => {
     }
   };
 
+  // --- Ajout pour la table avancée des transactions ---
+const [transactionSearch, setTransactionSearch] = useState('');
+const [selectedTransactions, setSelectedTransactions] = useState([]);
+
+// Transactions filtrées selon la recherche
+const filteredTransactions = (Array.isArray(stats.transactionsInProgress) ? stats.transactionsInProgress : (Array.isArray(transactions) ? transactions : []))
+  .filter(tr => {
+    if (!transactionSearch) return true;
+    return (
+      (tr.parcels?.reference || '').toLowerCase().includes(transactionSearch.toLowerCase()) ||
+      (tr.status || '').toLowerCase().includes(transactionSearch.toLowerCase())
+    );
+  });
+
+function exportTransactionsCSV() {
+  if (!filteredTransactions.length) return;
+  const rows = [
+    ['ID', 'Référence', 'Montant', 'Statut', 'Date'],
+    ...filteredTransactions.filter(t => selectedTransactions.length === 0 || selectedTransactions.includes(t.id)).map(t => [
+      t.id,
+      t.parcels?.reference || '',
+      t.amount || '',
+      t.status || '',
+      t.created_at ? new Date(t.created_at).toLocaleDateString('fr-FR') : ''
+    ])
+  ];
+  const csv = rows.map(r => r.map(x => '"'+(x||'')+'"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'transactions.csv';
+  a.click();
+}
+
+function bulkCancelTransactions() {
+  // TODO: Appel API pour annuler en masse
+  alert('Annulation en masse non implémentée (démo)');
+}
+function bulkRelanceTransactions() {
+  // TODO: Appel API pour relancer en masse
+  alert('Relance en masse non implémentée (démo)');
+}
+function cancelTransaction(id) {
+  // TODO: Appel API pour annuler une transaction
+  alert('Annulation transaction '+id+' non implémentée (démo)');
+}
+function relanceTransaction(id) {
+  // TODO: Appel API pour relancer une transaction
+  alert('Relance transaction '+id+' non implémentée (démo)');
+}
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -382,6 +434,46 @@ const ParticulierDashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Table avancée : transactions en cours */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Mes transactions en cours</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-2 flex gap-2 items-center">
+              <input type="text" placeholder="Recherche..." value={transactionSearch||''} onChange={e=>setTransactionSearch(e.target.value)} className="max-w-xs border rounded px-2 py-1 text-sm" />
+              <Button size="sm" onClick={()=>exportTransactionsCSV()} disabled={filteredTransactions.length===0}>Exporter CSV</Button>
+              <Button size="sm" variant="outline" onClick={()=>setSelectedTransactions(filteredTransactions.map(t=>t.id))} disabled={filteredTransactions.length===0}>Tout sélectionner</Button>
+              <Button size="sm" variant="outline" onClick={()=>setSelectedTransactions([])} disabled={selectedTransactions.length===0}>Désélectionner</Button>
+              <Button size="sm" className="bg-red-600 text-white" disabled={selectedTransactions.length===0} onClick={()=>bulkCancelTransactions()}>Annuler sélection</Button>
+              <Button size="sm" className="bg-blue-600 text-white" disabled={selectedTransactions.length===0} onClick={()=>bulkRelanceTransactions()}>Relancer sélection</Button>
+            </div>
+            {filteredTransactions.length===0? <p className="text-sm text-gray-500">Aucune transaction en cours</p> : (
+              <div className="space-y-3">
+                {filteredTransactions.map(tr => (
+                  <div key={tr.id} className={`border rounded p-3 text-sm ${selectedTransactions.includes(tr.id)?'bg-blue-50':''}`}> 
+                    <div className="flex justify-between items-center">
+                      <input type="checkbox" checked={selectedTransactions.includes(tr.id)} onChange={e=>{
+                        setSelectedTransactions(sel=>e.target.checked?[...sel,tr.id]:sel.filter(id=>id!==tr.id));
+                      }} />
+                      <span className="font-medium">#{tr.id}</span>
+                      <Badge variant={tr.status==='in_progress'? 'secondary': tr.status==='completed'? 'success':'outline'}>{tr.status}</Badge>
+                    </div>
+                    <p className="text-xs text-gray-500">{tr.parcels?.reference} • {tr.amount?.toLocaleString()} XOF</p>
+                    <div className="flex gap-2 mt-2">
+                      <Button size="xs" variant="outline" onClick={()=>{setTimelineParcel(tr.parcels);setShowTimeline(true);}}>Timeline</Button>
+                      {tr.status==='in_progress' && <>
+                        <Button size="xs" variant="destructive" onClick={()=>cancelTransaction(tr.id)}>Annuler</Button>
+                        <Button size="xs" variant="outline" onClick={()=>relanceTransaction(tr.id)}>Relancer</Button>
+                      </>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
   {/* Statistiques principales */}
   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -1,3 +1,42 @@
+      {/* Table avancée : dossiers notariaux */}
+      {activeTab === 'dossiers' && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Dossiers notariaux</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-2 flex gap-2 items-center">
+              <input type="text" placeholder="Recherche..." value={dossierSearch||''} onChange={e=>setDossierSearch(e.target.value)} className="max-w-xs border rounded px-2 py-1 text-sm" />
+              <Button size="sm" onClick={()=>exportDossiersCSV()} disabled={filteredDossiers.length===0}>Exporter CSV</Button>
+              <Button size="sm" variant="outline" onClick={()=>setSelectedDossiers(filteredDossiers.map(d=>d.id))} disabled={filteredDossiers.length===0}>Tout sélectionner</Button>
+              <Button size="sm" variant="outline" onClick={()=>setSelectedDossiers([])} disabled={selectedDossiers.length===0}>Désélectionner</Button>
+              <Button size="sm" className="bg-red-600 text-white" disabled={selectedDossiers.length===0} onClick={()=>bulkRejeterDossiers()}>Rejeter sélection</Button>
+              <Button size="sm" className="bg-green-600 text-white" disabled={selectedDossiers.length===0} onClick={()=>bulkApprouverDossiers()}>Approuver sélection</Button>
+            </div>
+            {filteredDossiers.length===0? <p className="text-sm text-gray-500">Aucun dossier</p> : (
+              <div className="space-y-3">
+                {filteredDossiers.map(dossier => (
+                  <div key={dossier.id} className={`border rounded p-3 text-sm ${selectedDossiers.includes(dossier.id)?'bg-green-50':''}`}> 
+                    <div className="flex justify-between items-center">
+                      <input type="checkbox" checked={selectedDossiers.includes(dossier.id)} onChange={e=>{
+                        setSelectedDossiers(sel=>e.target.checked?[...sel,dossier.id]:sel.filter(id=>id!==dossier.id));
+                      }} />
+                      <span className="font-medium">{dossier.reference || dossier.id}</span>
+                      <Badge variant={dossier.status==='notarized'? 'success': dossier.status==='pending_notary'? 'secondary':'outline'}>{dossier.status}</Badge>
+                    </div>
+                    <p className="text-xs text-gray-500">{dossier.users?.full_name || dossier.client_name} • {dossier.parcels?.reference || dossier.parcel_reference} • {dossier.valuation?.toLocaleString()} XOF</p>
+                    <div className="flex gap-2 mt-2">
+                      <Button size="xs" variant="outline" onClick={()=>openModal(dossier)}>Voir</Button>
+                      {dossier.status==='pending_notary' && <Button size="xs" variant="destructive" onClick={()=>rejeterDossier(dossier.id)}>Rejeter</Button>}
+                      {dossier.status!=='notarized' && <Button size="xs" variant="outline" onClick={()=>approuverDossier(dossier.id)}>Approuver</Button>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,6 +97,70 @@ const NotairesDashboard = () => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [aiInsights, setAiInsights] = useState(null);
   const [documentAnalysis, setDocumentAnalysis] = useState(null);
+
+  // Advanced table state for dossiers
+  const [dossierSearch, setDossierSearch] = useState('');
+  const [selectedDossiers, setSelectedDossiers] = useState([]);
+
+  // Préparer la liste réelle des dossiers
+  const dossiersList = dossiers || [];
+  const filteredDossiers = dossiersList.filter(d => {
+    if (!dossierSearch) return true;
+    const s = dossierSearch.toLowerCase();
+    return (
+      (d.reference && d.reference.toLowerCase().includes(s)) ||
+      (d.status && d.status.toLowerCase().includes(s)) ||
+      (d.users?.full_name && d.users.full_name.toLowerCase().includes(s)) ||
+      (d.client_name && d.client_name.toLowerCase().includes(s)) ||
+      (d.parcels?.reference && d.parcels.reference.toLowerCase().includes(s))
+    );
+  });
+
+  // CSV export
+  function exportDossiersCSV() {
+    if (!filteredDossiers.length) return;
+    const header = ['Référence','Statut','Client','Parcelle','Valeur','Créé le'];
+    const rows = filteredDossiers.map(d => [d.reference||d.id, d.status, d.users?.full_name||d.client_name, d.parcels?.reference||d.parcel_reference, d.valuation, d.created_at]);
+    const csv = [header, ...rows].map(r=>r.join(';')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dossiers_notariaux.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Bulk actions
+  async function bulkRejeterDossiers() {
+    if (!selectedDossiers.length) return;
+    for (const id of selectedDossiers) {
+      await rejeterDossier(id);
+    }
+    setSelectedDossiers([]);
+    toast({ title: 'Dossiers rejetés', description: `${selectedDossiers.length} dossiers rejetés.` });
+  }
+
+  async function bulkApprouverDossiers() {
+    if (!selectedDossiers.length) return;
+    for (const id of selectedDossiers) {
+      await approuverDossier(id);
+    }
+    setSelectedDossiers([]);
+    toast({ title: 'Dossiers approuvés', description: `${selectedDossiers.length} dossiers approuvés.` });
+  }
+
+  // Single actions (should already exist, but fallback)
+  async function rejeterDossier(id) {
+    // ...API call pour rejeter le dossier...
+    // TODO: connecter au backend
+    setDossiers(ds => ds.map(d => d.id === id ? { ...d, status: 'rejected' } : d));
+  }
+  async function approuverDossier(id) {
+    // ...API call pour approuver le dossier...
+    // TODO: connecter au backend
+    setDossiers(ds => ds.map(d => d.id === id ? { ...d, status: 'notarized' } : d));
+  }
   const [authenticating, setAuthenticating] = useState(null); // dossier id
   const realStatusOptions = [
     'pending','pending_notary','awaiting_verification','in_progress','under_review','authenticated','notarized','completed','verified','rejected'

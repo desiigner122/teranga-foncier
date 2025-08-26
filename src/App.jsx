@@ -1,3 +1,4 @@
+import AuditLogsPage from '@/pages/dashboards/banque/AuditLogsPage';
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Outlet, Link, Navigate } from 'react-router-dom';
@@ -16,7 +17,6 @@ import ContactPage from '@/pages/ContactPage';
 import AboutPage from '@/pages/AboutPage';
 import MapPage from '@/pages/MapPage';
 import MyRequestsPage from '@/pages/MyRequestsPage';
-import SettingsPage from '@/pages/SettingsPage';
 import BlogPage from '@/pages/BlogPage';
 import BlogPostPage from '@/pages/BlogPostPage';
 import LegalPage from '@/pages/LegalPage';
@@ -83,6 +83,9 @@ import AdminAuditLogsPage from '@/pages/admin/AdminAuditLogsPage';
 import AdminGlobalTimelinePage from '@/pages/admin/AdminGlobalTimelinePage';
 import AdminTypeChangeRequestsPage from '@/pages/admin/AdminTypeChangeRequestsPage';
 import AdminParcelSubmissionsPage from '@/pages/admin/AdminParcelSubmissionsPage';
+import AdminRolesPage from '@/pages/admin/AdminRolesPage';
+import AdminPermissionsPage from '@/pages/admin/AdminPermissionsPage';
+import AdminUserRolesPage from '@/pages/admin/AdminUserRolesPage';
 
 // Agent Dashboard Pages
 import AgentDashboardPage from '@/pages/agent/AgentDashboardPage';
@@ -101,9 +104,13 @@ import DisputesPage from '@/pages/dashboards/mairie/DisputesPage';
 import MairieRequestsPage from '@/pages/dashboards/mairie/MairieRequestsPage';
 import FundingRequestsPage from '@/pages/dashboards/banque/FundingRequestsPage';
 import GuaranteesPage from '@/pages/dashboards/banque/GuaranteesPage';
-// Use explicit relative import to avoid resolution issues during build
 import LandValuationPage from './pages/dashboards/banque/LandValuationPage.jsx';
 import CompliancePage from '@/pages/dashboards/banque/CompliancePage';
+import EvaluationsPage from '@/pages/dashboards/banque/EvaluationsPage';
+import DocumentsPage from '@/pages/dashboards/banque/DocumentsPage';
+import ClientsPage from '@/pages/dashboards/banque/ClientsPage';
+import DossiersPage from '@/pages/dashboards/banque/DossiersPage';
+import SettingsPage from '@/pages/dashboards/banque/SettingsPage';
 // Notaire-specific pages
 import ArchivesPage from '@/pages/dashboards/notaire/ArchivesPage';
 import AuthenticationPage from '@/pages/dashboards/notaire/AuthenticationPage';
@@ -229,6 +236,12 @@ function App() {
                     <Route path="/dashboard/admin/institutions" element={<AdminInstitutionsPage />} />
                     <Route path="/dashboard/admin/audit-logs" element={<AdminAuditLogsPage />} />
                     <Route path="/dashboard/admin/global-timeline" element={<AdminGlobalTimelinePage />} />
+                    <Route path="/dashboard/admin/profile" element={<AdminProfilePage />} />
+                    <Route path="/dashboard/admin/settings" element={<AdminSettingsPage />} />
+                    <Route path="/dashboard/admin/notifications" element={<AdminNotificationsPage />} />
+                    <Route path="/dashboard/admin/roles" element={<AdminRolesPage />} />
+                    <Route path="/dashboard/admin/permissions" element={<AdminPermissionsPage />} />
+                    <Route path="/dashboard/admin/user-roles" element={<AdminUserRolesPage />} />
 
                     {/* Agent Routes */}
                     <Route path="/dashboard/agent" element={<AgentDashboardPage />} />
@@ -256,8 +269,17 @@ function App() {
                     {/* Banque-specific Routes */}
                     <Route path="/dashboard/banque/funding-requests" element={<FundingRequestsPage />} />
                     <Route path="/dashboard/banque/guarantees" element={<GuaranteesPage />} />
+                    <Route path="/dashboard/banque/evaluations" element={<EvaluationsPage />} />
                     <Route path="/dashboard/banque/land-valuation" element={<LandValuationPage />} />
                     <Route path="/dashboard/banque/compliance" element={<CompliancePage />} />
+                    <Route path="/dashboard/banque/documents" element={<DocumentsPage />} />
+                    <Route path="/dashboard/banque/clients" element={<ClientsPage />} />
+                    <Route path="/dashboard/banque/dossiers" element={<DossiersPage />} />
+                    <Route path="/dashboard/banque/settings" element={<SettingsPage />} />
+                    <Route path="/dashboard/banque/audit-logs" element={<AuditLogsPage />} />
+                    <Route path="/dashboard/banque/permissions" element={<PermissionsPage />} />
+                    <Route path="/dashboard/banque/roles" element={<RolesPage />} />
+                    <Route path="/dashboard/banque/user-roles" element={<UserRolesPage />} />
 
                     {/* Notaire-specific Routes */}
                     <Route path="/dashboard/notaire/cases" element={<CasesPage />} />

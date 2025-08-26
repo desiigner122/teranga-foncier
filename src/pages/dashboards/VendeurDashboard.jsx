@@ -58,6 +58,71 @@ const VendeurDashboard = () => {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' });
 
+  // Advanced table state for listings
+  const [listingSearch, setListingSearch] = useState('');
+  const [selectedListings, setSelectedListings] = useState([]);
+
+  // Filtered listings for search
+  const filteredListings = listings.filter(l => {
+    if (!listingSearch) return true;
+    const s = listingSearch.toLowerCase();
+    return (
+      (l.reference && l.reference.toLowerCase().includes(s)) ||
+      (l.location && l.location.toLowerCase().includes(s)) ||
+      (l.status && l.status.toLowerCase().includes(s))
+    );
+  });
+
+  // CSV export
+  function exportListingsCSV() {
+    if (!filteredListings.length) return;
+    const header = ['Référence','Localisation','Prix','Surface','Statut'];
+    const rows = filteredListings.map(l => [l.reference, l.location, l.price, l.surface || l.area_sqm, l.status]);
+    const csv = [header, ...rows].map(r=>r.join(';')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mes_annonces.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Bulk actions
+  async function bulkRetirerListings() {
+    if (!selectedListings.length) return;
+    for (const id of selectedListings) {
+      await retirerListing(id);
+    }
+    setSelectedListings([]);
+    toast({ title: 'Annonces retirées', description: `${selectedListings.length} annonces retirées.` });
+  }
+
+  async function bulkRepublierListings() {
+    if (!selectedListings.length) return;
+    for (const id of selectedListings) {
+      await republierListing(id);
+    }
+    setSelectedListings([]);
+    toast({ title: 'Annonces republiées', description: `${selectedListings.length} annonces republiées.` });
+  }
+
+  // Single actions (should already exist, but fallback)
+  async function retirerListing(id) {
+    // ...existing code or API call to retirer l'annonce...
+    // TODO: connect to backend
+    setListings(listings => listings.map(l => l.id === id ? { ...l, status: 'withdrawn' } : l));
+  }
+  async function republierListing(id) {
+    // ...existing code or API call to republier l'annonce...
+    // TODO: connect to backend
+    setListings(listings => listings.map(l => l.id === id ? { ...l, status: 'available' } : l));
+  }
+  function openEdit(listing) {
+    setEditingListing(listing);
+    setShowModal(true);
+  }
+
   useEffect(() => {
     loadUserData();
     loadSellerDashboardData();
@@ -346,7 +411,6 @@ const VendeurDashboard = () => {
   };
 
   const openCreate = () => { setEditingListing(null); setForm({ reference:'', location:'', type:'terrain', price:'', surface:'', status:'available' }); setShowSubmissionModal(true); };
-  const openEdit = (listing) => { setEditingListing(listing); setForm({ reference:listing.reference||'', location:listing.location||'', type:listing.type||'terrain', price:listing.price||'', surface: listing.surface || listing.area_sqm ||'', status: listing.status||'available' }); setShowModal(true); };
   const saveListing = async (e) => {
     e.preventDefault();
     if (!user) return;
@@ -478,6 +542,44 @@ const VendeurDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Table avancée : annonces */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Mes annonces</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-2 flex gap-2 items-center">
+              <input type="text" placeholder="Recherche..." value={listingSearch||''} onChange={e=>setListingSearch(e.target.value)} className="max-w-xs border rounded px-2 py-1 text-sm" />
+              <Button size="sm" onClick={()=>exportListingsCSV()} disabled={filteredListings.length===0}>Exporter CSV</Button>
+              <Button size="sm" variant="outline" onClick={()=>setSelectedListings(filteredListings.map(l=>l.id))} disabled={filteredListings.length===0}>Tout sélectionner</Button>
+              <Button size="sm" variant="outline" onClick={()=>setSelectedListings([])} disabled={selectedListings.length===0}>Désélectionner</Button>
+              <Button size="sm" className="bg-red-600 text-white" disabled={selectedListings.length===0} onClick={()=>bulkRetirerListings()}>Retirer sélection</Button>
+              <Button size="sm" className="bg-blue-600 text-white" disabled={selectedListings.length===0} onClick={()=>bulkRepublierListings()}>Republier sélection</Button>
+            </div>
+            {filteredListings.length===0? <p className="text-sm text-gray-500">Aucune annonce</p> : (
+              <div className="space-y-3">
+                {filteredListings.map(listing => (
+                  <div key={listing.id} className={`border rounded p-3 text-sm ${selectedListings.includes(listing.id)?'bg-blue-50':''}`}> 
+                    <div className="flex justify-between items-center">
+                      <input type="checkbox" checked={selectedListings.includes(listing.id)} onChange={e=>{
+                        setSelectedListings(sel=>e.target.checked?[...sel,listing.id]:sel.filter(id=>id!==listing.id));
+                      }} />
+                      <span className="font-medium">{listing.reference}</span>
+                      <Badge variant={listing.status==='available'? 'secondary': listing.status==='sold'? 'success':'outline'}>{listing.status}</Badge>
+                    </div>
+                    <p className="text-xs text-gray-500">{listing.location} • {listing.price?.toLocaleString()} XOF • {listing.surface || listing.area_sqm} m²</p>
+                    <div className="flex gap-2 mt-2">
+                      <Button size="xs" variant="outline" onClick={()=>openEdit(listing)}>Modifier</Button>
+                      {listing.status==='available' && <Button size="xs" variant="destructive" onClick={()=>retirerListing(listing.id)}>Retirer</Button>}
+                      {listing.status==='withdrawn' && <Button size="xs" variant="outline" onClick={()=>republierListing(listing.id)}>Republier</Button>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Analytics et insights */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
