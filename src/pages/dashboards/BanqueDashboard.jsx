@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/components/ui/use-toast";
 
 const BanqueDashboard = () => {
-  // ...tout le code existant (hooks, fonctions, etc.)...
+
+  // Onglet actif (legacy, fallback)
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // ...JSX du dashboard (tout le return)...
 
