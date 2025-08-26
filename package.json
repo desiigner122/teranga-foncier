@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-  "build:vercel": "node node_modules/.bin/vite build",
+  "build:vercel": "npx vite build",
   "test:pay": "node tests/pay_transaction_smoke.mjs",
   "test:parcel-submission": "node tests/parcel_submission_smoke.mjs",
   "preview": "vite preview",
