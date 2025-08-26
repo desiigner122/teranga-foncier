@@ -1,3 +1,4 @@
+import PermissionsPage from '@/pages/dashboards/banque/PermissionsPage';
 import AdminNotificationsPage from '@/pages/admin/AdminNotificationsPage';
 import AdminSettingsPage from '@/pages/admin/AdminSettingsPage';
 import AdminProfilePage from '@/pages/admin/AdminProfilePage';

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/ui/spinner';
+import LoadingSpinner from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/use-toast';
 
 const PermissionsPage = () => {
