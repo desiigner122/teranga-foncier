@@ -7,8 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 const BanqueDashboard = () => {
 
-  // Onglet actif (legacy, fallback)
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Onglet actif (legacy, fallback) — supprimé car non utilisé
 
   // ...JSX du dashboard (tout le return)...
 
@@ -399,23 +398,11 @@ const BanqueDashboard = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Onglets banque (legacy, à remplacer par navigation sidebar) */}
-          {/*
-          <div className="mb-6">
-            <div className="flex gap-2">
-              <Button variant={activeTab==='dashboard'?'default':'outline'} onClick={()=>setActiveTab('dashboard')}>Dashboard</Button>
-              <Button variant={activeTab==='documents'?'default':'outline'} onClick={()=>setActiveTab('documents')}>Documents</Button>
-            </div>
-          </div>
-          */}
 
-          {/* Section Documents (affichée si route /dashboard/banque/documents) */}
-          {activeTab==='documents' && (
-            <div className="mt-8">
-              <DocumentUpload onUpload={handleDocumentUpload} loading={uploading} />
-              <DocumentWallet documents={documents} />
-            </div>
-          )}
+          {/* Onglets banque (legacy, à remplacer par navigation sidebar) — supprimé */}
+
+
+          {/* Section Documents (legacy tab) — supprimée car non utilisée */}
 
           {/* Analyse des risques et tendances */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
