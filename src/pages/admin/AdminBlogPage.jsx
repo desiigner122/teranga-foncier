@@ -320,6 +320,9 @@ const AdminBlogPage = () => {
                       <TableCell>{post.published_at ? new Date(post.published_at).toLocaleDateString('fr-FR') : 'N/A'}</TableCell>
                       <TableCell><Badge variant={post.status === 'published' ? 'success' : 'secondary'}>{post.status}</Badge></TableCell>
                       <TableCell className="text-right flex justify-end space-x-2">
+                        <Button variant="ghost" size="sm" title="Lire l'article" asChild>
+                          <Link to={`/blog/${post.slug}`}>Lire</Link>
+                        </Button>
                         <Button variant="ghost" size="sm" title="Modifier" onClick={() => handleEditPostClick(post)}>
                           <Edit className="h-4 w-4"/>
                         </Button>

@@ -152,12 +152,15 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
         })}
       </nav>
 
-      <div className="p-2 border-t">
-        <Button variant="ghost" className="w-full justify-start p-3" onClick={signOut}>
-          <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span>Déconnexion</span>}
-        </Button>
-      </div>
+      {/* Affiche le bouton de déconnexion en bas UNIQUEMENT si aucun lien logout n'est présent dans la config */}
+      {sidebarConfig.every(item => !(item.href && item.href.includes('logout'))) && (
+        <div className="p-2 border-t">
+          <Button variant="ghost" className="w-full justify-start p-3" onClick={signOut}>
+            <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && <span>Déconnexion</span>}
+          </Button>
+        </div>
+      )}
     </aside>
   );
 };

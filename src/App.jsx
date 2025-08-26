@@ -24,7 +24,7 @@ import AboutPage from '@/pages/AboutPage';
 import MapPage from '@/pages/MapPage';
 import MyRequestsPage from '@/pages/MyRequestsPage';
 import BlogPage from '@/pages/BlogPage';
-import BlogPostPage from '@/pages/BlogPostPage';
+import BlogArticlePage from '@/pages/blog/BlogArticlePage.jsx';
 import LegalPage from '@/pages/LegalPage';
 import PrivacyPage from '@/pages/PrivacyPage';
 import CookiePolicyPage from '@/pages/CookiePolicyPage';
@@ -195,7 +195,7 @@ function App() {
                     <Route path="partners" element={<PartnersPage />} />
                     <Route path="map" element={<MapPage />} />
                     <Route path="blog" element={<BlogPage />} />
-                    <Route path="blog/:slug" element={<BlogPostPage />} />
+                    <Route path="blog/:slug" element={<BlogArticlePage />} />
                     <Route path="legal" element={<LegalPage />} />
                     <Route path="privacy" element={<PrivacyPage />} />
                     <Route path="cookie-policy" element={<CookiePolicyPage />} />

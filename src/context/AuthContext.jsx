@@ -60,8 +60,21 @@ export const AuthProvider = ({ children }) => {
       }
       
       if (data) {
-        console.log("Profil récupéré:", { email: data.email, type: data.type, role: data.role, verification_status: data.verification_status });
-        return data;
+        // Correction automatique du rôle/type admin si l'email correspond à un admin connu (à adapter selon votre logique)
+        let corrected = { ...data };
+        if (data.email && [
+          'admin@teranga.com',
+          'superadmin@teranga.com'
+        ].includes(data.email)) {
+          corrected.role = 'admin';
+          corrected.type = 'Administrateur';
+        }
+        if ((data.role === 'admin' || data.type === 'Administrateur') && (data.role !== 'admin' || data.type !== 'Administrateur')) {
+          corrected.role = 'admin';
+          corrected.type = 'Administrateur';
+        }
+        console.log("Profil récupéré:", { email: corrected.email, type: corrected.type, role: corrected.role, verification_status: corrected.verification_status });
+        return corrected;
       }
       console.log('Profil introuvable, tentative ensureUserProfile');
       const ensured = await SupabaseDataService.ensureUserProfile(authUser);
