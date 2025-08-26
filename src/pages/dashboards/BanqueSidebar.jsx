@@ -47,12 +47,6 @@ const BANQUE_NAV_ITEMS = [
     href: "/dashboard/banque/dossiers",
     description: "Dossiers en cours"
   },
-  {
-    title: "Paramètres",
-    icon: Settings,
-    href: "/dashboard/banque/settings",
-    description: "Configuration banque"
-  }
 ];
 
 const BanqueSidebar = ({ isCollapsed, onToggle }) => {

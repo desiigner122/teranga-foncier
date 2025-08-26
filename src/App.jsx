@@ -116,7 +116,6 @@ import EvaluationsPage from '@/pages/dashboards/banque/EvaluationsPage';
 import DocumentsPage from '@/pages/dashboards/banque/DocumentsPage';
 import ClientsPage from '@/pages/dashboards/banque/ClientsPage';
 import DossiersPage from '@/pages/dashboards/banque/DossiersPage';
-import SettingsPage from '@/pages/dashboards/banque/SettingsPage';
 // Notaire-specific pages
 import ArchivesPage from '@/pages/dashboards/notaire/ArchivesPage';
 import AuthenticationPage from '@/pages/dashboards/notaire/AuthenticationPage';
@@ -281,7 +280,6 @@ function App() {
                     <Route path="/dashboard/banque/documents" element={<DocumentsPage />} />
                     <Route path="/dashboard/banque/clients" element={<ClientsPage />} />
                     <Route path="/dashboard/banque/dossiers" element={<DossiersPage />} />
-                    <Route path="/dashboard/banque/settings" element={<SettingsPage />} />
                     <Route path="/dashboard/banque/audit-logs" element={<AuditLogsPage />} />
                     <Route path="/dashboard/banque/permissions" element={<PermissionsPage />} />
                     <Route path="/dashboard/banque/roles" element={<RolesPage />} />
@@ -316,7 +314,6 @@ function App() {
                     <Route path="/dashboard/profile" element={<ProfilePage />} />
                     <Route path="/dashboard/my-requests" element={<MyRequestsPage />} />
                     <Route path="/dashboard/create-request" element={<CreateRequestPage />} />
-                    <Route path="/dashboard/settings" element={<SettingsPage />} />
                     <Route path="/dashboard/sell-property" element={<SellPropertyPage />} />
                     <Route path="/dashboard/my-listings" element={<MyListingsPage />} />
                     <Route path="/dashboard/transactions" element={<TransactionsPage />} />
