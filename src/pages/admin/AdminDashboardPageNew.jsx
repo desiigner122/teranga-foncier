@@ -474,8 +474,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/transactions"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.transactions.completed} <span className="text-sm text-muted-foreground">complétées</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.transactions.pending} en attente</p>
+                <div className="text-2xl font-bold">{actorStats.transactions?.completed ?? 0} <span className="text-sm text-muted-foreground">complétées</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats.transactions?.pending ?? 0} en attente</p>
               </CardContent>
             </Card>
           </div>
