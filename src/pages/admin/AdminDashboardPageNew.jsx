@@ -430,8 +430,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/users?role=agent"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.agents.assigned} <span className="text-sm text-muted-foreground">agents actifs</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.agents.visits} visites planifiées</p>
+                <div className="text-2xl font-bold">{actorStats.agents?.assigned ?? 0} <span className="text-sm text-muted-foreground">agents actifs</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats.agents?.visits ?? 0} visites planifiées</p>
               </CardContent>
             </Card>
 
