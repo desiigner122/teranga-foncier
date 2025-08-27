@@ -71,7 +71,7 @@ import NotairesDashboard from '@/pages/dashboards/NotairesDashboard';
 import MairiesDashboard from '@/pages/dashboards/MairiesDashboard';
 
 // Admin Pages
-import AdminDashboardPage from '@/pages/admin/AdminDashboardPageNew.jsx';
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage.jsx';
 import AdminUsersPageAdvanced from '@/pages/admin/AdminUsersPageAdvanced';
 import AdminParcelsPage from '@/pages/admin/AdminParcelsPage';
 import AdminBlogPage from '@/pages/admin/AdminBlogPage';
