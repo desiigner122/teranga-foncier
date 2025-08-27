@@ -463,8 +463,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/parcels"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.parcels.listed} <span className="text-sm text-muted-foreground">disponibles</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.parcels.sold} vendues</p>
+                <div className="text-2xl font-bold">{actorStats.parcels?.listed ?? 0} <span className="text-sm text-muted-foreground">disponibles</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats.parcels?.sold ?? 0} vendues</p>
               </CardContent>
             </Card>
 
