@@ -452,8 +452,8 @@ const AdminDashboardPage = () => {
                 <Link to="/dashboard/admin/institutions"><Button variant="link" size="sm" className="h-auto p-0 text-xs">Gérer</Button></Link>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{actorStats.institutions.registered} <span className="text-sm text-muted-foreground">institutions</span></div>
-                <p className="text-sm text-muted-foreground">{actorStats.institutions.active} actives</p>
+                <div className="text-2xl font-bold">{actorStats.institutions?.registered ?? 0} <span className="text-sm text-muted-foreground">institutions</span></div>
+                <p className="text-sm text-muted-foreground">{actorStats.institutions?.active ?? 0} actives</p>
               </CardContent>
             </Card>
 
