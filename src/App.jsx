@@ -71,8 +71,7 @@ import NotairesDashboard from '@/pages/dashboards/NotairesDashboard';
 import MairiesDashboard from '@/pages/dashboards/MairiesDashboard';
 
 // Admin Pages
-import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
-import AdminNewDashboardPage from '@/pages/admin/AdminNewDashboardPage';
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPageNew.jsx';
 import AdminUsersPageAdvanced from '@/pages/admin/AdminUsersPageAdvanced';
 import AdminParcelsPage from '@/pages/admin/AdminParcelsPage';
 import AdminBlogPage from '@/pages/admin/AdminBlogPage';
@@ -224,7 +223,6 @@ function App() {
                     
                     {/* Admin Routes */}
                     <Route path="/dashboard/admin" element={<AdminDashboardPage />} />
-                    <Route path="/dashboard/admin/new" element={<AdminNewDashboardPage />} />
                     <Route path="/dashboard/admin/users" element={<AdminUsersPageAdvanced />} />
                     <Route path="/dashboard/admin/parcels" element={<AdminParcelsPage />} />
                     <Route path="/dashboard/admin/parcel-submissions" element={<AdminParcelSubmissionsPage />} />
