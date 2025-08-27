@@ -1,6 +1,17 @@
-import UserRolesPage from '@/pages/dashboards/banque/UserRolesPage';
-import RolesPage from '@/pages/dashboards/banque/RolesPage';
-import PermissionsPage from '@/pages/dashboards/banque/PermissionsPage';
+import { useAuth } from '@/context/AuthContext';
+
+function DashboardProfileRoute() {
+  const { user } = useAuth();
+  return user?.role === 'admin' ? <AdminProfilePage /> : <ProfilePage />;
+}
+function DashboardSettingsRoute() {
+  const { user } = useAuth();
+  return user?.role === 'admin' ? <AdminSettingsPage /> : <SettingsPage />;
+}
+function DashboardNotificationsRoute() {
+  const { user } = useAuth();
+  return user?.role === 'admin' ? <AdminNotificationsPage /> : <NotificationsPage />;
+}
 import AdminNotificationsPage from '@/pages/admin/AdminNotificationsPage';
 import AdminSettingsPage from '@/pages/admin/AdminSettingsPage';
 import AdminProfilePage from '@/pages/admin/AdminProfilePage';
@@ -309,7 +320,7 @@ function App() {
                     <Route path="/dashboard/agriculteur/equipment" element={<EquipmentPage />} />
 
                     {/* Common Protected Routes */}
-                    <Route path="/dashboard/profile" element={<ProfilePage />} />
+                    {/* Route harmonisée /dashboard/profile gérée plus bas */}
                     <Route path="/dashboard/my-requests" element={<MyRequestsPage />} />
                     <Route path="/dashboard/create-request" element={<CreateRequestPage />} />
                     <Route path="/dashboard/sell-property" element={<SellPropertyPage />} />
@@ -317,8 +328,12 @@ function App() {
                     <Route path="/dashboard/transactions" element={<TransactionsPage />} />
                     <Route path="/dashboard/payment/:transactionId" element={<PaymentPage />} />
                     <Route path="/dashboard/favorites" element={<MyFavoritesPage />} />
-                    <Route path="/dashboard/notifications" element={<NotificationsPage />} />
+                    {/* Route harmonisée /dashboard/notifications gérée plus bas */}
                     <Route path="/dashboard/messaging" element={<SecureMessagingPage />} />
+                    {/* Harmonisation des routes profil, notifications, settings pour l'admin */}
+                    <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardProfileRoute /></ProtectedRoute>} />
+                    <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardSettingsRoute /></ProtectedRoute>} />
+                    <Route path="/dashboard/notifications" element={<ProtectedRoute><DashboardNotificationsRoute /></ProtectedRoute>} />
                     <Route path="/dashboard/case-tracking/:id" element={<CaseTrackingPage />} />
                     <Route path="/dashboard/digital-vault" element={<DigitalVaultPage />} />
                     <Route path="/dashboard/municipal-land-request" element={<MunicipalLandRequestPage />} />

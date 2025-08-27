@@ -81,6 +81,9 @@ const AuthSection = ({ isScrolled }) => {
               <DropdownMenuItem asChild><Link to="/dashboard"><LayoutGrid className="mr-2 h-4 w-4" /> Tableau de Bord</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/profile"><User className="mr-2 h-4 w-4" /> Mon Profil</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/settings"><Settings className="mr-2 h-4 w-4" /> Paramètres</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/dashboard/admin"><LayoutGrid className="mr-2 h-4 w-4" /> Tableau de Bord</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/dashboard/profile"><User className="mr-2 h-4 w-4" /> Mon Profil</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/dashboard/settings"><Settings className="mr-2 h-4 w-4" /> Paramètres</Link></DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
                 <LogOut className="mr-2 h-4 w-4" /> Déconnexion

@@ -13,7 +13,7 @@ const commonLinks = {
     settings: { label: 'Paramètres', href: '/dashboard/settings', icon: Settings, end: true },
     notifications: { label: 'Notifications', href: '/dashboard/notifications', icon: Bell, end: true },
     messaging: { label: 'Messagerie', href: '/dashboard/messaging', icon: MessageSquare, end: true },
-    logout: { label: 'Déconnexion', href: '/logout', icon: LogOut, end: true }
+    // logout supprimé, géré par bouton dans la sidebar
 };
 
 const adminConfig = [
