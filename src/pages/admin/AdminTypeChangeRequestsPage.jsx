@@ -55,67 +55,25 @@ const AdminTypeChangeRequestsPage = () => {
   const loadTypeChangeRequests = useCallback(async () => {
     try {
       setLoading(true);
-      // Dans une implémentation réelle, remplacer par un appel API
-      const mockRequests = [
-        {
-          id: 'req-1',
-          user_id: 'user-1',
-          user_name: 'Amadou Diallo',
-          current_type: 'Particulier',
-          requested_type: 'Vendeur',
-          status: 'pending',
-          submitted_at: '2025-08-15T10:30:00Z',
-          documents: [
-            { id: 'doc-1', name: 'Carte d\'identité', url: '#', verified: false },
-            { id: 'doc-2', name: 'Justificatif de domicile', url: '#', verified: false }
-          ]
-        },
-        {
-          id: 'req-2',
-          user_id: 'user-2',
-          user_name: 'Fatou Sow',
-          current_type: 'Particulier',
-          requested_type: 'Investisseur',
-          status: 'pending',
-          submitted_at: '2025-08-17T14:15:00Z',
-          documents: [
-            { id: 'doc-3', name: 'Carte d\'identité', url: '#', verified: false },
-            { id: 'doc-4', name: 'Justificatif de domicile', url: '#', verified: false },
-            { id: 'doc-5', name: 'Attestation bancaire', url: '#', verified: false }
-          ]
-        },
-        {
-          id: 'req-3',
-          user_id: 'user-3',
-          user_name: 'Ibrahim Ndiaye',
-          current_type: 'Particulier',
-          requested_type: 'Promoteur',
-          status: 'approved',
-          submitted_at: '2025-08-12T09:45:00Z',
-          approved_at: '2025-08-14T11:30:00Z',
-          documents: [
-            { id: 'doc-6', name: 'Carte d\'identité', url: '#', verified: true },
-            { id: 'doc-7', name: 'Justificatif de domicile', url: '#', verified: true },
-            { id: 'doc-8', name: 'Licence commerciale', url: '#', verified: true }
-          ]
-        },
-        {
-          id: 'req-4',
-          user_id: 'user-4',
-          user_name: 'Mariama Diop',
-          current_type: 'Particulier',
-          requested_type: 'Vendeur',
-          status: 'rejected',
-          submitted_at: '2025-08-10T16:20:00Z',
-          rejected_at: '2025-08-11T15:10:00Z',
-          rejection_reason: 'Documents incomplets. Veuillez fournir une copie de votre titre foncier.',
-          documents: [
-            { id: 'doc-9', name: 'Carte d\'identité', url: '#', verified: true },
-            { id: 'doc-10', name: 'Justificatif de domicile', url: '#', verified: false }
-          ]
-        }
-      ];
-      setTypeChangeRequests(mockRequests);
+      // Récupère toutes les demandes de type "changement de type" depuis Supabase
+      const allRequests = await SupabaseDataService.getRequests();
+      // Filtre les demandes de changement de type (ex: request_type ou type === 'type_change')
+      const typeChangeRequests = (allRequests || []).filter(r =>
+        (r.request_type === 'type_change' || r.type === 'type_change' || r.type === 'changement_type')
+      ).map(r => ({
+        id: r.id,
+        user_id: r.user_id,
+        user_name: r.users?.full_name || r.user_name || '',
+        current_type: r.current_type || r.previous_type || '',
+        requested_type: r.requested_type || r.new_type || '',
+        status: r.status,
+        submitted_at: r.created_at,
+        approved_at: r.approved_at,
+        rejected_at: r.rejected_at,
+        rejection_reason: r.rejection_reason,
+        documents: r.documents || []
+      }));
+      setTypeChangeRequests(typeChangeRequests);
     } catch (error) {
       console.error('Erreur chargement demandes changement type:', error);
       toast({
