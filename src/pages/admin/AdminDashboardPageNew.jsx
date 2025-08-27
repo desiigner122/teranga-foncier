@@ -18,64 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import AIAssistantWidget from '@/components/ui/AIAssistantWidget';
 import { Separator } from '@/components/ui/separator';
 
-// Navigation Items pour le sidebar admin
-const ADMIN_NAV_ITEMS = [
-  {
-    title: "Vue d'ensemble",
-    icon: LayoutDashboard,
-    href: "/dashboard/admin",
-    description: "Tableau de bord principal"
-  },
-  {
-    title: "Gestion des Utilisateurs",
-    icon: Users,
-    href: "/dashboard/admin/users",
-    description: "Gérer tous les utilisateurs"
-  },
-  {
-    title: "Gestion des Parcelles",
-    icon: LandPlot,
-    href: "/dashboard/admin/parcels",
-    description: "Gérer toutes les parcelles"
-  },
-  {
-    title: "Institutions",
-    icon: Building,
-    href: "/dashboard/admin/institutions",
-    description: "Gérer les institutions"
-  },
-  {
-    title: "Rapports",
-    icon: FileText,
-    href: "/dashboard/admin/reports",
-    description: "Rapports et analytics"
-  },
-  {
-    title: "Demandes",
-    icon: FileCheck,
-    href: "/dashboard/admin/requests",
-    description: "Gérer les demandes"
-  },
-  {
-    title: "Transactions",
-    icon: DollarSign,
-    href: "/dashboard/admin/transactions",
-    description: "Suivi des transactions"
-  },
-  {
-    title: "Rôles & Permissions",
-    icon: ShieldCheck,
-    href: "/dashboard/admin/roles",
-    description: "Gestion des rôles"
-  },
-  {
-    title: "Paramètres",
-    icon: Settings,
-    href: "/dashboard/admin/settings",
-    description: "Configuration système"
-  }
-];
-
 // Quick Actions pour l'admin
 const QUICK_ACTIONS = [
   {
@@ -108,47 +50,7 @@ const QUICK_ACTIONS = [
   }
 ];
 
-// AdminSidebar Component
-const AdminSidebar = ({ isCollapsed, onToggle }) => {
-  return (
-    <div className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-50 ${
-      isCollapsed ? 'w-16' : 'w-64'
-    }`}>
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <h2 className={`font-bold text-lg ${isCollapsed ? 'hidden' : 'block'}`}>
-            Administration
-          </h2>
-          <Button variant="ghost" size="sm" onClick={onToggle}>
-            <Menu className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      <Separator />
-      
-      <div className="p-2">
-        <nav className="space-y-1">
-          {ADMIN_NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <item.icon className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && (
-                <div className="flex flex-col">
-                  <span className="font-medium">{item.title}</span>
-                  <span className="text-xs text-gray-500">{item.description}</span>
-                </div>
-              )}
-            </Link>
-          ))}
-        </nav>
-      </div>
-    </div>
-  );
-};
+
 
 // Composant de graphique à barres simple (réutilisable)
 const SimpleBarChart = ({ data, dataKey, labelKey, barColorClass, title }) => {
@@ -215,7 +117,7 @@ const AdminDashboardPage = () => {
   });
   const [actorStats, setActorStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // plus de sidebar locale, gérée par le layout global
   const { toast } = useToast();
   const location = useLocation();
 
@@ -241,12 +143,10 @@ const AdminDashboardPage = () => {
         description: "Impossible de charger les données du dashboard",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [toast]);
 
-  // Rafraîchit à chaque navigation sur la page
   useEffect(() => {
     loadDashboardData();
     // eslint-disable-next-line
@@ -269,21 +169,11 @@ const AdminDashboardPage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <AdminSidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
-      />
-
-      {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${
-        sidebarCollapsed ? 'ml-16' : 'ml-64'
-      }`}>
+      <div className="flex-1 p-6 space-y-6">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="p-6 space-y-6"
         >
           {/* Header */}
           <div className="flex justify-between items-center">
