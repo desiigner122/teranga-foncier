@@ -24,21 +24,21 @@ const QUICK_ACTIONS = [
     title: "Ajouter Utilisateur",
     description: "Créer un nouveau compte utilisateur",
     icon: User,
-    href: "/dashboard/admin/users/create",
+    href: "/dashboard/admin/users?create=1",
     color: "bg-blue-500"
   },
   {
     title: "Nouvelle Institution",
     description: "Enregistrer une nouvelle institution",
     icon: Building,
-    href: "/dashboard/admin/institutions/create",
+    href: "/dashboard/admin/institutions?create=1",
     color: "bg-green-500"
   },
   {
     title: "Rapport Analytics",
     description: "Générer un rapport détaillé",
     icon: BarChart,
-    href: "/dashboard/admin/reports/generate",
+    href: "/dashboard/admin/reports",
     color: "bg-purple-500"
   },
   {
