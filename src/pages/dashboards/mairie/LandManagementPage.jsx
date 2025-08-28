@@ -132,12 +132,13 @@ const LandManagementPage = () => {
 
   // Générer un historique simple pour la timeline (à adapter selon la structure réelle)
   const getParcelHistory = (parcel) => {
+    if (!parcel || typeof parcel !== 'object') return [];
     const history = [];
     if (parcel.created_at) history.push({ status: 'created', date: parcel.created_at, description: 'Parcelle créée' });
     if (parcel.status === 'Attribuée' && parcel.beneficiary_id) history.push({ status: 'attributed', date: parcel.updated_at, description: 'Attribuée au bénéficiaire' });
     if (parcel.status === 'Validée' || parcel.validated_by_notary) history.push({ status: 'validated', date: parcel.validated_at, description: 'Validée par notaire' });
     if (parcel.status === 'Archivée' || parcel.archived) history.push({ status: 'archived', date: parcel.archived_at, description: 'Parcelle archivée' });
-    return history;
+    return Array.isArray(history) ? history : [];
   };
 
   return (
@@ -238,7 +239,7 @@ const LandManagementPage = () => {
       <DocumentWallet documents={allDocuments} />
 
       {/* Modal Timeline */}
-      {showTimeline && timelineParcel && (
+      {showTimeline && timelineParcel && typeof timelineParcel === 'object' && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-background rounded-lg shadow-xl w-full max-w-lg relative p-6">
             <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={()=>setShowTimeline(false)}>
