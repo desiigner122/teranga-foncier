@@ -1,3 +1,5 @@
+import RolesPage from '@/pages/dashboards/banque/RolesPage';
+import UserRolesPage from '@/pages/dashboards/banque/UserRolesPage';
 import PermissionsPage from '@/pages/dashboards/banque/PermissionsPage';
 import { useAuth } from '@/context/AuthContext';
 
