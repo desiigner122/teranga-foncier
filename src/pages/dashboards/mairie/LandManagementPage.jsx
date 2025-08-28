@@ -76,6 +76,7 @@ const LandManagementPage = () => {
     } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Maj statut impossible'}); }
   };
   const archiveParcel = async (parcel) => {
+    if (!window.confirm('Voulez-vous vraiment archiver cette parcelle ?')) return;
     try {
       const updated = await SupabaseDataService.updateProperty(parcel.id, { archived:true, status:'Archivé' });
       setParcels(ps=> ps.map(p=> p.id===parcel.id? {...p, ...updated}: p));
@@ -133,11 +134,12 @@ const LandManagementPage = () => {
   // Générer un historique simple pour la timeline (à adapter selon la structure réelle)
   const getParcelHistory = (parcel) => {
     if (!parcel || typeof parcel !== 'object') return [];
+    const safe = (v) => (typeof v === 'string' ? v : (v ? String(v) : ''));
     const history = [];
-    if (parcel.created_at) history.push({ status: 'created', date: parcel.created_at, description: 'Parcelle créée' });
-    if ((parcel.status === 'Attribuée' && parcel.beneficiary_id) && parcel.updated_at) history.push({ status: 'attributed', date: parcel.updated_at, description: 'Attribuée au bénéficiaire' });
-    if ((parcel.status === 'Validée' || parcel.validated_by_notary) && parcel.validated_at) history.push({ status: 'validated', date: parcel.validated_at, description: 'Validée par notaire' });
-    if ((parcel.status === 'Archivée' || parcel.archived) && parcel.archived_at) history.push({ status: 'archived', date: parcel.archived_at, description: 'Parcelle archivée' });
+    if (parcel.created_at) history.push({ status: 'created', date: safe(parcel.created_at), description: 'Parcelle créée' });
+    if ((parcel.status === 'Attribuée' && parcel.beneficiary_id) && parcel.updated_at) history.push({ status: 'attributed', date: safe(parcel.updated_at), description: 'Attribuée au bénéficiaire' });
+    if ((parcel.status === 'Validée' || parcel.validated_by_notary) && parcel.validated_at) history.push({ status: 'validated', date: safe(parcel.validated_at), description: 'Validée par notaire' });
+    if ((parcel.status === 'Archivée' || parcel.archived) && parcel.archived_at) history.push({ status: 'archived', date: safe(parcel.archived_at), description: 'Parcelle archivée' });
     return Array.isArray(history) ? history : [];
   };
 

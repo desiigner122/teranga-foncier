@@ -930,7 +930,12 @@ export class SupabaseDataService {
     try {
       const { data, error } = await supabase.rpc('list_user_conversations', { p_user_id: userId });
       if (!error && data) return data;
-    } catch(e) {/* ignore */}
+    } catch(e) {
+      // Fallback silencieux si le RPC n'existe pas
+      if (e?.message?.includes('404') || (e?.code && e.code === '404')) {
+        return [];
+      }
+    }
     try {
       // Fallback manual join if RPC absent
       const { data: convs, error } = await supabase.from('conversation_participants')

@@ -21,7 +21,7 @@ const ParcelTimeline = ({ history = [] }) => {
               <Icon className={`h-4 w-4 ${status.color}`} />
             </span>
             <h3 className="font-semibold leading-tight">{status.label}</h3>
-            <p className="text-xs text-muted-foreground">{step.date ? new Date(step.date).toLocaleString('fr-FR') : ''}</p>
+            <p className="text-xs text-muted-foreground">{step.date ? new Date(step.date).toLocaleString('fr-FR') : 'Date inconnue'}</p>
             {step.description && <p className="text-sm mt-1">{step.description}</p>}
           </li>
         );

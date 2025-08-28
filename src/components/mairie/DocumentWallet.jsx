@@ -19,9 +19,13 @@ const DocumentWallet = ({ documents = [] }) => {
                 <span className="font-medium">{doc.name || doc.filename || `Document ${idx+1}`}</span>
                 {doc.type && <span className="ml-2 text-xs text-muted-foreground">({doc.type})</span>}
               </div>
-              <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
-                <Download className="h-4 w-4" /> Télécharger
-              </a>
+              {doc.url ? (
+                <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                  <Download className="h-4 w-4" /> Télécharger
+                </a>
+              ) : (
+                <span className="text-xs text-red-500">Document manquant ou corrompu</span>
+              )}
             </li>
           ))}
         </ul>
