@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, KeyRound, Save, LogOut, ShieldCheck, Trash2 } from 'lucide-react';
@@ -21,16 +22,62 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ProfilePage = () => {
-  const { user, updateUserProfile, logout } = useAuth();
+  const { user, updateUserProfile, logout, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState(''); // Added phone state
+
+  // Avatar/image upload states
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
+  const [imageFile, setImageFile] = useState(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState('');
+  const [uploadError, setUploadError] = useState('');
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  // Keep avatarUrl in sync with profile
+  useEffect(() => {
+    setAvatarUrl(profile?.avatar_url || '');
+  }, [profile]);
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const handleAvatarUpload = async (e) => {
+    e.preventDefault();
+    if (!imageFile) return;
+    setUploadLoading(true);
+    setUploadSuccess('');
+    setUploadError('');
+    try {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `avatar_${user.id}_${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      const { error: uploadError } = await supabase.storage.from('public_files').upload(filePath, imageFile, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: publicURLData } = supabase.storage.from('public_files').getPublicUrl(filePath);
+      const finalAvatarUrl = publicURLData.publicUrl;
+      setAvatarUrl(finalAvatarUrl);
+      // Update profile in DB
+      const { error: updateError } = await supabase.from('profiles').update({ avatar_url: finalAvatarUrl }).eq('id', user.id);
+      if (updateError) throw updateError;
+      setUploadSuccess('Photo de profil mise à jour !');
+      setImageFile(null);
+      if (refreshProfile) await refreshProfile();
+    } catch (err) {
+      setUploadError(err.message || 'Erreur lors de la mise à jour de la photo.');
+    } finally {
+      setUploadLoading(false);
+    }
+  };
 
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -113,6 +160,7 @@ const ProfilePage = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
   };
 
+
   return (
     <motion.div
       initial="hidden"
@@ -122,6 +170,35 @@ const ProfilePage = () => {
     >
       <motion.h1 variants={cardVariants} className="text-3xl md:text-4xl font-bold text-primary text-center">Mon Espace Personnel</motion.h1>
 
+      {/* Avatar Upload Block */}
+      <motion.div variants={cardVariants}>
+        <Card className="shadow-lg hover:shadow-primary/10 transition-shadow mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center">Photo de Profil</CardTitle>
+            <CardDescription>Ajoutez ou modifiez votre photo de profil.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAvatarUpload} className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="relative group">
+                <img src={avatarUrl || '/avatar.svg'} alt="Avatar" className="h-20 w-20 rounded-full object-cover border shadow" />
+                <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1 cursor-pointer shadow-lg group-hover:scale-110 transition-transform" title="Changer la photo">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z" /></svg>
+                  <input id="avatar-upload" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                </label>
+              </div>
+              <div>
+                <span className="block text-xs text-muted-foreground mt-1">Formats acceptés : JPG, PNG, SVG. Taille max : 2 Mo.</span>
+                {imageFile && <span className="block text-xs text-green-600 mt-1">Image sélectionnée : {imageFile.name}</span>}
+                {uploadSuccess && <div className="text-green-600 font-semibold mt-1">{uploadSuccess}</div>}
+                {uploadError && <div className="text-red-600 font-semibold mt-1">{uploadError}</div>}
+                <Button type="submit" disabled={uploadLoading || !imageFile} className="mt-2 w-full sm:w-auto">{uploadLoading ? 'Mise à jour...' : 'Enregistrer la photo'}</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Profile Info Block */}
       <motion.div variants={cardVariants}>
         <Card className="shadow-lg hover:shadow-primary/10 transition-shadow">
           <CardHeader>

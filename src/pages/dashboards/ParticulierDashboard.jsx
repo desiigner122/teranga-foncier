@@ -149,11 +149,12 @@ const ParticulierDashboard = () => {
         .eq('user_id', user.id);
 
       // Charger les transactions en cours
-      const { data: transactions } = await supabase
+      const { data: loadedTransactions } = await supabase
         .from('transactions')
         .select('*, parcels(*)')
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .eq('status', 'in_progress');
+      setTransactions(loadedTransactions || []);
 
       // Charger l'activité récente
       const { data: activity } = await supabase
@@ -172,7 +173,7 @@ const ParticulierDashboard = () => {
       setStats({
         favoritesCounted: favorites?.length || 0,
         savedSearches: searches?.length || 0,
-        transactionsInProgress: transactions?.length || 0,
+        transactionsInProgress: loadedTransactions?.length || 0,
         securityScore: stats.securityScore
       });
 
@@ -361,6 +362,7 @@ const ParticulierDashboard = () => {
   // --- Ajout pour la table avancée des transactions ---
 const [transactionSearch, setTransactionSearch] = useState('');
 const [selectedTransactions, setSelectedTransactions] = useState([]);
+const [transactions, setTransactions] = useState([]); // Ajout du state pour transactions
 
 // Transactions filtrées selon la recherche
 const filteredTransactions = (Array.isArray(stats.transactionsInProgress) ? stats.transactionsInProgress : (Array.isArray(transactions) ? transactions : []))
