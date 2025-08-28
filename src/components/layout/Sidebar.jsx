@@ -51,8 +51,8 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
 
   // Ouvre le menu parent de la page active au chargement
   useEffect(() => {
-    const activeParent = sidebarConfig.find(item => 
-      item.subItems?.some(sub => location.pathname === sub.href)
+    const activeParent = (sidebarConfig || []).filter(Boolean).find(item => 
+      item && item.subItems && item.subItems.some(sub => location.pathname === sub.href)
     );
     if (activeParent) {
       setOpenMenus(prev => ({ ...prev, [activeParent.label]: true }));
