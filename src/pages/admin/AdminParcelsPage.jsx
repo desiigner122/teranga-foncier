@@ -22,7 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from '@/lib/supabaseClient';
+import { SupabaseDataService } from '@/services/supabaseDataService';
 
 const AdminParcelsPage = () => {
   const { user, profile } = useAuth();
@@ -126,12 +126,8 @@ const AdminParcelsPage = () => {
   const handleFormSubmit = async (data) => {
     setIsFormLoading(true);
     try {
-      // Update existing parcel uniquement
-      const { error } = await supabase
-        .from('parcels')
-        .update(data)
-        .eq('id', currentEditParcel.id);
-      if (error) throw error;
+      // Use SupabaseDataService for update (logs event, robust)
+      await SupabaseDataService.updateParcel(currentEditParcel.id, data);
       toast({
         title: "Parcelle mise à jour",
         description: `La parcelle "${data.name}" a été mise à jour avec succès.`,
@@ -150,10 +146,8 @@ const AdminParcelsPage = () => {
   };
 
   const handleDeleteParcel = async (parcelId, parcelName) => {
-    // ... (cette fonction ne change pas)
     try {
-      const { error } = await supabase.from('parcels').delete().eq('id', parcelId);
-      if (error) throw error;
+      await SupabaseDataService.deleteParcel(parcelId, user?.id);
       toast({ title: "Parcelle supprimée", description: `La parcelle "${parcelName}" a été supprimée.` });
       fetchParcels();
     } catch (err) {

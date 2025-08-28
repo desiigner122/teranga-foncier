@@ -1,7 +1,28 @@
-// src/services/supabaseDataService.js
 import { supabase } from '../lib/supabaseClient.js';
 
 export class SupabaseDataService {
+  static _eventRecentCache = new Map(); // key -> timestamp
+  static _eventWindowMs = 5000; // 5s window for identical events
+  static _eventMaxQueue = 200;
+  static _configLoaded = false;
+
+  /**
+   * deleteParcel: Delete a parcel by ID (admin only, logs event)
+   */
+  static async deleteParcel(parcelId, actorUserId = null) {
+    try {
+      const { error } = await supabase
+        .from('parcels')
+        .delete()
+        .eq('id', parcelId);
+      if (error) throw error;
+      this.logEvent({ entityType: 'parcel', entityId: parcelId, eventType: 'parcel.deleted', actorUserId });
+      return true;
+    } catch (e) {
+      console.error('Erreur suppression parcelle:', e.message || e);
+      throw e;
+    }
+  }
   static _eventRecentCache = new Map(); // key -> timestamp
   static _eventWindowMs = 5000; // 5s window for identical events
   static _eventMaxQueue = 200;
