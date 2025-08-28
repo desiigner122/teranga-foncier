@@ -31,6 +31,14 @@ const AdminParcelsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  // Filtres
+  const [filterMairie, setFilterMairie] = useState('');
+  const [filterVendeur, setFilterVendeur] = useState('');
+  const [filterStatut, setFilterStatut] = useState('');
   const { toast } = useToast();
 
   // --- NOUVEAU : États pour le modal d'ajout/édition ---
@@ -42,24 +50,31 @@ const AdminParcelsPage = () => {
   const [loadingOwners, setLoadingOwners] = useState(false);
 
   const fetchParcels = useCallback(async () => {
-    // ... (cette fonction ne change pas)
     setLoading(true);
     setError(null);
     try {
-      let query = supabase.from('parcels').select('*');
+      let query = supabase.from('parcels').select('*', { count: 'exact' });
+      // Recherche
       if (searchTerm) {
         query = query.or(`reference.ilike.%${searchTerm}%,location_name.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%,status.ilike.%${searchTerm}%`);
       }
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // Filtres
+      if (filterMairie) query = query.eq('owner_type', 'Mairie').eq('owner_id', filterMairie);
+      if (filterVendeur) query = query.eq('owner_type', 'Vendeur').eq('owner_id', filterVendeur);
+      if (filterStatut) query = query.eq('status', filterStatut);
+      // Pagination
+      query = query.order('created_at', { ascending: false }).range((page-1)*pageSize, page*pageSize-1);
+      const { data, error, count } = await query;
       if (error) throw error;
       setParcels(data || []);
+      setTotalCount(count || 0);
     } catch (err) {
       setError("Impossible de charger les parcelles: " + err.message);
       toast({ variant: "destructive", title: "Erreur de chargement", description: err.message });
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, toast]);
+  }, [searchTerm, filterMairie, filterVendeur, filterStatut, page, pageSize, toast]);
 
   // Fetch potential owners (Vendeurs and Mairies)
   const fetchOwners = useCallback(async () => {
@@ -146,12 +161,8 @@ const AdminParcelsPage = () => {
     }
   };
 
-  const filteredParcels = parcels.filter(parcel =>
-    parcel.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    parcel.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    parcel.location_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    parcel.status?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Les filtres sont maintenant côté requête, donc on affiche directement parcels
+  const filteredParcels = parcels;
 
   const getStatusBadgeVariant = (status) => {
     switch (status) {
@@ -185,14 +196,50 @@ const AdminParcelsPage = () => {
         <Card>
           <CardHeader>
             <CardTitle>Rechercher et Filtrer les Parcelles</CardTitle>
-            <div className="relative mt-2">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par référence, nom, localisation ou statut..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 mt-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Recherche rapide..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+                />
+              </div>
+              <Select value={filterMairie} onValueChange={v => { setFilterMairie(v); setPage(1); }}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrer Mairie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Toutes Mairies</SelectItem>
+                  {owners.filter(o => o.type === 'Mairie').map(mairie => (
+                    <SelectItem key={mairie.id} value={mairie.id}>{mairie.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterVendeur} onValueChange={v => { setFilterVendeur(v); setPage(1); }}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrer Vendeur" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tous Vendeurs</SelectItem>
+                  {owners.filter(o => o.type === 'Vendeur').map(vendeur => (
+                    <SelectItem key={vendeur.id} value={vendeur.id}>{vendeur.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterStatut} onValueChange={v => { setFilterStatut(v); setPage(1); }}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Filtrer Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tous Statuts</SelectItem>
+                  <SelectItem value="Disponible">Disponible</SelectItem>
+                  <SelectItem value="En attente">En attente</SelectItem>
+                  <SelectItem value="Vendu">Vendu</SelectItem>
+                  <SelectItem value="Réservé">Réservé</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent>
@@ -254,6 +301,26 @@ const AdminParcelsPage = () => {
                 </Table>
               </div>
             )}
+            {/* Pagination */}
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-muted-foreground">{`Résultats ${Math.min((page-1)*pageSize+1, totalCount)}-${Math.min(page*pageSize, totalCount)} sur ${totalCount}`}</div>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p-1))}>Précédent</Button>
+                <span className="text-sm">Page {page}</span>
+                <Button variant="outline" size="sm" disabled={page*pageSize >= totalCount} onClick={() => setPage(p => p+1)}>Suivant</Button>
+                <Select value={String(pageSize)} onValueChange={v => { setPageSize(Number(v)); setPage(1); }}>
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
