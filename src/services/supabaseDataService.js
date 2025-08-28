@@ -2577,6 +2577,7 @@ export class SupabaseDataService {
       const signature = `${entityType}|${entityId}|${eventType}|${importance}`;
       if (!this._canSendEvent(signature)) return null;
       const payload = { entity_type: entityType, entity_id: String(entityId), event_type: eventType, actor_user_id: actorUserId, importance, source, data };
+      console.log('logEvent payload:', JSON.stringify(payload));
       const { data: inserted, error } = await supabase.from('events').insert([payload]).select().single();
       if (error) throw error; return inserted;
     } catch (e) { console.warn('logEvent failed:', e.message||e); return null; }
