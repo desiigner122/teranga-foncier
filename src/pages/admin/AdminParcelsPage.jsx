@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SupabaseDataService } from '@/services/supabaseDataService';
+import { supabase } from '@/lib/supabaseClient';
 
 const AdminParcelsPage = () => {
   const { user, profile } = useAuth();
