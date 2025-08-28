@@ -206,34 +206,34 @@ const AdminParcelsPage = () => {
                   onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
                 />
               </div>
-              <Select value={filterMairie} onValueChange={v => { setFilterMairie(v); setPage(1); }}>
+              <Select value={filterMairie || "all"} onValueChange={v => { setFilterMairie(v === "all" ? "" : v); setPage(1); }}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrer Mairie" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes Mairies</SelectItem>
+                  <SelectItem value="all">Toutes Mairies</SelectItem>
                   {owners.filter(o => o.type === 'Mairie').map(mairie => (
                     <SelectItem key={mairie.id} value={mairie.id}>{mairie.full_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={filterVendeur} onValueChange={v => { setFilterVendeur(v); setPage(1); }}>
+              <Select value={filterVendeur || "all"} onValueChange={v => { setFilterVendeur(v === "all" ? "" : v); setPage(1); }}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrer Vendeur" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous Vendeurs</SelectItem>
+                  <SelectItem value="all">Tous Vendeurs</SelectItem>
                   {owners.filter(o => o.type === 'Vendeur').map(vendeur => (
                     <SelectItem key={vendeur.id} value={vendeur.id}>{vendeur.full_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={filterStatut} onValueChange={v => { setFilterStatut(v); setPage(1); }}>
+              <Select value={filterStatut || "all"} onValueChange={v => { setFilterStatut(v === "all" ? "" : v); setPage(1); }}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Filtrer Statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous Statuts</SelectItem>
+                  <SelectItem value="all">Tous Statuts</SelectItem>
                   <SelectItem value="Disponible">Disponible</SelectItem>
                   <SelectItem value="En attente">En attente</SelectItem>
                   <SelectItem value="Vendu">Vendu</SelectItem>
