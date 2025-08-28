@@ -210,51 +210,50 @@ const AdminBlogPage = () => {
           Erreur : {formError}
         </div>
       )}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="title" className="text-right">Titre</Label>
-        <Input id="title" value={formData.title} onChange={handleFormChange} className="col-span-3" required />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="slug" className="text-right">Slug</Label>
-        <Input id="slug" value={formData.slug} onChange={handleFormChange} className="col-span-3" placeholder="auto-généré si vide" disabled={modalType === 'edit'} />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="author" className="text-right">Auteur</Label>
-        <Input id="author" value={formData.author} onChange={handleFormChange} className="col-span-3" required />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="category" className="text-right">Catégorie</Label>
-        <Input id="category" value={formData.category} onChange={handleFormChange} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="published_at" className="text-right">Date de publication</Label>
-        <Input id="published_at" type="date" value={formData.published_at} onChange={handleFormChange} className="col-span-3" disabled={formData.status === 'draft'} />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="image_file" className="text-right">Image</Label>
-        <Input id="image_file" type="file" onChange={handleImageChange} className="col-span-3" />
-      </div>
-      {formData.image_url && !imageFile && (
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right">Image actuelle</Label>
-          <img src={formData.image_url} alt="Aperçu" className="col-span-3 w-24 h-24 object-cover rounded" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="title">Titre</Label>
+          <Input id="title" value={formData.title} onChange={handleFormChange} required />
         </div>
-      )}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="content" className="text-right">Contenu</Label>
-        <Textarea id="content" value={formData.content} onChange={handleFormChange} className="col-span-3" rows={8} required />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="status" className="text-right">Statut</Label>
-        <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value)}>
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Sélectionner un statut" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="draft">Brouillon</SelectItem>
-            <SelectItem value="published">Publié</SelectItem>
-          </SelectContent>
-        </Select>
+        <div>
+          <Label htmlFor="slug">Slug</Label>
+          <Input id="slug" value={formData.slug} onChange={handleFormChange} placeholder="auto-généré si vide" disabled={modalType === 'edit'} />
+        </div>
+        <div>
+          <Label htmlFor="author">Auteur</Label>
+          <Input id="author" value={formData.author} onChange={handleFormChange} required />
+        </div>
+        <div>
+          <Label htmlFor="category">Catégorie</Label>
+          <Input id="category" value={formData.category} onChange={handleFormChange} />
+        </div>
+        <div>
+          <Label htmlFor="published_at">Date de publication</Label>
+          <Input id="published_at" type="date" value={formData.published_at} onChange={handleFormChange} disabled={formData.status === 'draft'} />
+        </div>
+        <div>
+          <Label htmlFor="image_file">Image</Label>
+          <Input id="image_file" type="file" onChange={handleImageChange} />
+          {formData.image_url && !imageFile && (
+            <img src={formData.image_url} alt="Aperçu" className="w-24 h-24 object-cover rounded mt-2" />
+          )}
+        </div>
+        <div className="sm:col-span-2">
+          <Label htmlFor="content">Contenu</Label>
+          <Textarea id="content" value={formData.content} onChange={handleFormChange} rows={8} required />
+        </div>
+        <div className="sm:col-span-2">
+          <Label htmlFor="status">Statut</Label>
+          <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner un statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Brouillon</SelectItem>
+              <SelectItem value="published">Publié</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </form>
   );
