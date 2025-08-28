@@ -90,17 +90,10 @@ const AdminParcelsPage = () => {
     fetchOwners();
   }, [fetchParcels, fetchOwners]);
 
-  // --- NOUVEAU : Ouvre le modal et charge les données de la parcelle ---
+  // --- Ouvre le modal et charge les données de la parcelle (modification uniquement) ---
   const handleEditClick = (parcel) => {
     setCurrentEditParcel(parcel);
     setFormData(parcel);
-    setIsModalOpen(true);
-  };
-
-  // Handle Add New Parcel
-  const handleAddClick = () => {
-    setCurrentEditParcel(null);
-    setFormData({});
     setIsModalOpen(true);
   };
 
@@ -114,38 +107,26 @@ const AdminParcelsPage = () => {
       setFormData(prev => ({ ...prev, status: value }));
   };
 
-  // --- NOUVEAU : Soumet le formulaire à Supabase ---
+  // --- Soumet le formulaire à Supabase (modification uniquement) ---
   const handleFormSubmit = async (data) => {
     setIsFormLoading(true);
     try {
-      if (currentEditParcel) {
-        // Update existing parcel
-        const { error } = await supabase
-          .from('parcels')
-          .update(data)
-          .eq('id', currentEditParcel.id);
-        if (error) throw error;
-        toast({
-          title: "Parcelle mise à jour",
-          description: `La parcelle "${data.name}" a été mise à jour avec succès.`,
-        });
-      } else {
-        // Add new parcel
-        const { error } = await supabase
-          .from('parcels')
-          .insert([data]);
-        if (error) throw error;
-        toast({
-          title: "Parcelle ajoutée",
-          description: `La parcelle "${data.name}" a été ajoutée avec succès.`,
-        });
-      }
+      // Update existing parcel uniquement
+      const { error } = await supabase
+        .from('parcels')
+        .update(data)
+        .eq('id', currentEditParcel.id);
+      if (error) throw error;
+      toast({
+        title: "Parcelle mise à jour",
+        description: `La parcelle "${data.name}" a été mise à jour avec succès.`,
+      });
       setIsModalOpen(false);
       fetchParcels();
     } catch (err) {
       toast({
         variant: "destructive",
-        title: currentEditParcel ? "Erreur de mise à jour" : "Erreur d'ajout",
+        title: "Erreur de mise à jour",
         description: err.message,
       });
     } finally {
@@ -199,10 +180,6 @@ const AdminParcelsPage = () => {
       >
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold flex items-center"><LandPlot className="mr-3 h-8 w-8"/>Gestion des Parcelles</h1>
-          <Button onClick={handleAddClick} className="flex items-center gap-2">
-            <LandPlot className="h-4 w-4" />
-            Ajouter une Parcelle
-          </Button>
         </div>
 
         <Card>
@@ -232,6 +209,8 @@ const AdminParcelsPage = () => {
                       <TableHead>Surface (m²)</TableHead>
                       <TableHead>Prix (FCFA)</TableHead>
                       <TableHead>Statut</TableHead>
+                      <TableHead>Propriétaire</TableHead>
+                      <TableHead>Parties prenantes</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -244,11 +223,12 @@ const AdminParcelsPage = () => {
                         <TableCell>{parcel.area_sqm || 'N/A'}</TableCell>
                         <TableCell>{parcel.price ? new Intl.NumberFormat('fr-SN').format(parcel.price) : 'N/A'}</TableCell>
                         <TableCell><Badge variant={getStatusBadgeVariant(parcel.status)}>{parcel.status || 'N/A'}</Badge></TableCell>
+                        <TableCell>{parcel.owner_type || parcel.owner_name || 'N/A'}</TableCell>
+                        <TableCell>{parcel.stakeholders ? parcel.stakeholders.join(', ') : 'N/A'}</TableCell>
                         <TableCell className="text-right flex justify-end space-x-2">
                           <Link to={`/parcelles/${parcel.id}`}>
                             <Button variant="ghost" size="sm" title="Voir Détails"><Eye className="h-4 w-4"/></Button>
                           </Link>
-                          {/* --- MODIFICATION : Le bouton appelle maintenant handleEditClick --- */}
                           <Button variant="ghost" size="sm" title="Modifier" onClick={() => handleEditClick(parcel)}>
                             <Edit className="h-4 w-4"/>
                           </Button>
@@ -278,24 +258,22 @@ const AdminParcelsPage = () => {
         </Card>
       </motion.div>
 
-      {/* --- NOUVEAU : Modal d'ajout/édition --- */}
+      {/* --- Modal de modification uniquement --- */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>
-              {currentEditParcel ? 'Modifier la parcelle' : 'Ajouter une nouvelle parcelle'}
+              Modifier la parcelle
             </DialogTitle>
             <DialogDescription>
-              {currentEditParcel 
-                ? 'Mettez à jour les informations de la parcelle. Cliquez sur "Enregistrer" pour sauvegarder.'
-                : 'Remplissez les informations de la nouvelle parcelle. Tous les champs marqués (*) sont obligatoires.'
-              }
+              Mettez à jour les informations de la parcelle. Cliquez sur "Enregistrer" pour sauvegarder.
             </DialogDescription>
           </DialogHeader>
           <ParcelForm
             initialData={formData}
             onSubmit={handleFormSubmit}
             userRole={userRole}
+            isEditOnly={true}
           />
         </DialogContent>
       </Dialog>
