@@ -207,7 +207,7 @@ const AdminBlogPage = () => {
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="slug" className="text-right">Slug</Label>
-        <Input id="slug" value={formData.slug} onChange={handleFormChange} className="col-span-3" placeholder="auto-généré si vide" />
+        <Input id="slug" value={formData.slug} onChange={handleFormChange} className="col-span-3" placeholder="auto-généré si vide" disabled={modalType === 'edit'} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="author" className="text-right">Auteur</Label>
