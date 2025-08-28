@@ -135,9 +135,9 @@ const LandManagementPage = () => {
     if (!parcel || typeof parcel !== 'object') return [];
     const history = [];
     if (parcel.created_at) history.push({ status: 'created', date: parcel.created_at, description: 'Parcelle créée' });
-    if (parcel.status === 'Attribuée' && parcel.beneficiary_id) history.push({ status: 'attributed', date: parcel.updated_at, description: 'Attribuée au bénéficiaire' });
-    if (parcel.status === 'Validée' || parcel.validated_by_notary) history.push({ status: 'validated', date: parcel.validated_at, description: 'Validée par notaire' });
-    if (parcel.status === 'Archivée' || parcel.archived) history.push({ status: 'archived', date: parcel.archived_at, description: 'Parcelle archivée' });
+    if ((parcel.status === 'Attribuée' && parcel.beneficiary_id) && parcel.updated_at) history.push({ status: 'attributed', date: parcel.updated_at, description: 'Attribuée au bénéficiaire' });
+    if ((parcel.status === 'Validée' || parcel.validated_by_notary) && parcel.validated_at) history.push({ status: 'validated', date: parcel.validated_at, description: 'Validée par notaire' });
+    if ((parcel.status === 'Archivée' || parcel.archived) && parcel.archived_at) history.push({ status: 'archived', date: parcel.archived_at, description: 'Parcelle archivée' });
     return Array.isArray(history) ? history : [];
   };
 
@@ -207,7 +207,7 @@ const LandManagementPage = () => {
                     <td className="p-2 text-right flex gap-2 justify-end">
                       <Button asChild variant="outline" size="sm"><Link to={`/parcelles/${p.id}`}><Eye className="mr-1 h-4 w-4" />Détails</Link></Button>
                       <Button size="sm" variant="ghost" onClick={()=>archiveParcel(p)} disabled={p.archived}><Archive className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" onClick={()=>{setTimelineParcel(p);setShowTimeline(true);}}>Timeline</Button>
+                      <Button size="sm" variant="ghost" onClick={()=>{if(p && typeof p==='object' && p.id){setTimelineParcel(p);setShowTimeline(true);}}}>Timeline</Button>
                     </td>
                   </tr>
                 ))}
