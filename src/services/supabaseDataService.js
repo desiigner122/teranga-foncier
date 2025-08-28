@@ -16,7 +16,7 @@ export class SupabaseDataService {
         .delete()
         .eq('id', parcelId);
       if (error) throw error;
-      this.logEvent({ entityType: 'parcel', entityId: parcelId, eventType: 'parcel.deleted', actorUserId });
+  await this.logEvent({ entityType: 'parcel', entityId: parcelId, eventType: 'parcel.deleted', actorUserId, data: {} });
       return true;
     } catch (e) {
       console.error('Erreur suppression parcelle:', e.message || e);
