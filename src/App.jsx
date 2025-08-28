@@ -1,3 +1,4 @@
+import PermissionsPage from '@/pages/dashboards/banque/PermissionsPage';
 import { useAuth } from '@/context/AuthContext';
 
 function DashboardProfileRoute() {
