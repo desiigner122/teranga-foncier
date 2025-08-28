@@ -219,7 +219,7 @@ const AdminDashboardPage = () => {
           </Card>
 
           {/* Statistiques principales */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="dashboard-stats-grid">
             <Card className="hover:shadow-lg transition-shadow border-l-4 border-blue-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Utilisateurs Total</CardTitle>
@@ -266,7 +266,7 @@ const AdminDashboardPage = () => {
           </div>
 
           {/* Charts and Events */}
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="dashboard-stats-grid" style={{gap: '1.5rem'}}>
             <Card>
               <CardHeader><CardTitle className="flex items-center text-base"><BarChart className="mr-2 h-5 w-5 text-blue-500"/>Inscriptions</CardTitle></CardHeader>
               <CardContent>
@@ -313,7 +313,7 @@ const AdminDashboardPage = () => {
           </div>
 
           {/* Statistiques détaillées */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="dashboard-stats-grid">
             <Card className="hover:shadow-lg transition-shadow border-l-4 border-blue-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center"><UserCheck className="mr-2 h-4 w-4"/>Agents</CardTitle>

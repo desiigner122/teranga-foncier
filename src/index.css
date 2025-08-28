@@ -1,3 +1,38 @@
+/* Responsive dashboard admin */
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 60px !important;
+    min-width: 60px !important;
+  }
+  .sidebar .label {
+    display: none !important;
+  }
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .dashboard-table-responsive {
+    font-size: 0.95em;
+  }
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
