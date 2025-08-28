@@ -131,7 +131,7 @@ const BlogPage = () => {
                 </CardContent>
                 <CardFooter className="flex flex-col items-start pt-3">
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {post.tags.map(tag => (
+                    {(post.tags ?? []).map(tag => (
                       <span key={tag} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full flex items-center">
                         <Tag className="h-3 w-3 mr-1" /> {tag}
                       </span>
