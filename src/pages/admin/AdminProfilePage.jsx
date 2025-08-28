@@ -63,9 +63,18 @@ const AdminProfilePage = () => {
           <form onSubmit={handleProfileUpdate} className="space-y-4 max-w-md">
             {success && <div className="text-green-600 font-semibold">{success}</div>}
             {error && <div className="text-red-600 font-semibold">{error}</div>}
-            <div className="flex items-center gap-4">
-              <img src={avatarUrl || `/avatar.svg`} alt="Avatar" className="h-16 w-16 rounded-full object-cover border" />
-              <input type="file" accept="image/*" onChange={handleImageChange} />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="relative group">
+                <img src={avatarUrl || `/avatar.svg`} alt="Avatar" className="h-20 w-20 rounded-full object-cover border shadow" />
+                <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1 cursor-pointer shadow-lg group-hover:scale-110 transition-transform" title="Changer la photo">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z" /></svg>
+                  <input id="avatar-upload" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                </label>
+              </div>
+              <div>
+                <span className="block text-xs text-muted-foreground mt-1">Formats acceptés : JPG, PNG, SVG. Taille max : 2 Mo.</span>
+                {imageFile && <span className="block text-xs text-green-600 mt-1">Image sélectionnée : {imageFile.name}</span>}
+              </div>
             </div>
             <div>
               <label className="block font-medium mb-1">Nom complet</label>
