@@ -42,6 +42,7 @@ const AdminBlogPage = () => {
     status: 'draft',
   });
   const [imageFile, setImageFile] = useState(null);
+  const [formError, setFormError] = useState(null);
 
   const fetchBlogPosts = useCallback(async () => {
     setLoading(true);
@@ -146,6 +147,7 @@ const AdminBlogPage = () => {
   const handleSavePost = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setFormError(null);
     let finalImageUrl = formData.image_url;
 
     try {
@@ -177,18 +179,20 @@ const AdminBlogPage = () => {
         published_at: formData.status === 'published' ? (formData.published_at || new Date().toISOString()) : null,
       };
 
+      let result;
       if (modalType === 'add') {
-        const { error } = await supabase.from('blog_posts').insert([postData]);
-        if (error) throw error;
+        result = await supabase.from('blog_posts').insert([postData]);
+        if (result.error) throw result.error;
         toast({ title: "Article ajouté", description: `L'article "${formData.title}" a été ajouté.` });
       } else {
-        const { error } = await supabase.from('blog_posts').update(postData).eq('id', currentPost.id);
-        if (error) throw error;
+        result = await supabase.from('blog_posts').update(postData).eq('id', currentPost.id);
+        if (result.error) throw result.error;
         toast({ title: "Article mis à jour", description: `L'article "${formData.title}" a été mis à jour.` });
       }
       setIsModalOpen(false);
       fetchBlogPosts();
     } catch (err) {
+      setFormError(err.message || JSON.stringify(err));
       toast({
         variant: "destructive",
         title: `Erreur lors de l'${modalType === 'add' ? 'ajout' : 'mise à jour'} de l'article`,
@@ -201,6 +205,11 @@ const AdminBlogPage = () => {
 
   const renderForm = () => (
     <form onSubmit={handleSavePost} className="grid gap-4 py-4">
+      {formError && (
+        <div className="col-span-4 text-red-600 text-center font-semibold border border-red-300 bg-red-50 rounded p-2 mb-2">
+          Erreur : {formError}
+        </div>
+      )}
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="title" className="text-right">Titre</Label>
         <Input id="title" value={formData.title} onChange={handleFormChange} className="col-span-3" required />
