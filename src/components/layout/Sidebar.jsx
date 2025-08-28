@@ -90,7 +90,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
       )}
 
       <nav className="flex-1 overflow-y-auto overflow-x-hidden p-2 space-y-1">
-        {sidebarConfig.map((item, index) => {
+        {(sidebarConfig || []).filter(Boolean).map((item, index) => {
           if (item.isSeparator) {
             return <hr key={`sep-${index}`} className="my-2 border-t border-border" />;
           }
@@ -115,8 +115,8 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                       {!isCollapsed && <ChevronDown className={cn('h-4 w-4 ml-auto transition-transform', isOpen && 'rotate-180')} />}
                   </div>
                 </CollapsibleTrigger>
-                <CollapsibleContent className={cn("overflow-hidden transition-all", isCollapsed ? "pl-0" : "pl-4")}>
-                  {item.subItems.map((subItem) => (
+                <CollapsibleContent className={cn("overflow-hidden transition-all", isCollapsed ? "pl-0" : "pl-4")}> 
+                  {item.subItems.filter(Boolean).map((subItem) => (
                     <NavLink
                       key={subItem.href}
                       to={subItem.href}
@@ -145,7 +145,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
             >
               <NavItemContent 
                 item={item} 
-                unreadCount={item.href.includes('notifications') ? unreadCounts.notifications : item.href.includes('messaging') ? unreadCounts.messages : 0} 
+                unreadCount={item.href && item.href.includes('notifications') ? unreadCounts.notifications : item.href && item.href.includes('messaging') ? unreadCounts.messages : 0} 
               />
             </NavLink>
           );
