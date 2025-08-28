@@ -118,7 +118,13 @@ const LandManagementPage = () => {
   // Rassembler tous les documents des parcelles attribuées
   const allDocuments = parcels
     .filter(p => Array.isArray(p.documents) && p.documents.length)
-    .flatMap(p => p.documents.map(doc => ({ ...doc, parcelReference: p.reference })));
+    .flatMap(p => p.documents.map((doc, idx) => ({
+      ...doc,
+      parcelReference: p.reference,
+      id: doc.id || doc.url || doc.name || `${p.reference}-${idx}`,
+      url: doc.url || doc.link || '', // fallback url
+    })))
+    .filter(doc => !!doc.url); // On ne garde que les documents avec une url valide
 
   // Timeline modal state
   const [showTimeline, setShowTimeline] = useState(false);
