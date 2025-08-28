@@ -241,17 +241,22 @@ const LandManagementPage = () => {
       <DocumentWallet documents={allDocuments} />
 
       {/* Modal Timeline */}
-      {showTimeline && timelineParcel && typeof timelineParcel === 'object' && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-background rounded-lg shadow-xl w-full max-w-lg relative p-6">
-            <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={()=>setShowTimeline(false)}>
-              <span className="text-lg">×</span>
-            </button>
-            <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
-            <ParcelTimeline history={getParcelHistory(timelineParcel)} />
+      {showTimeline && timelineParcel && typeof timelineParcel === 'object' && (() => {
+        const history = getParcelHistory(timelineParcel);
+        console.log('DEBUG timelineParcel:', timelineParcel);
+        console.log('DEBUG history:', history);
+        return (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-background rounded-lg shadow-xl w-full max-w-lg relative p-6">
+              <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={()=>setShowTimeline(false)}>
+                <span className="text-lg">×</span>
+              </button>
+              <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
+              <ParcelTimeline history={Array.isArray(history) ? history : []} />
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </motion.div>
   );
 };
