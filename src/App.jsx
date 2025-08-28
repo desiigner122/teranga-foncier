@@ -2,16 +2,11 @@
 import RolesPage from '@/pages/dashboards/banque/RolesPage';
 import UserRolesPage from '@/pages/dashboards/banque/UserRolesPage';
 import PermissionsPage from '@/pages/dashboards/banque/PermissionsPage';
-import SettingsPage from '@/pages/dashboards/banque/SettingsPage.jsx';
 import { useAuth } from '@/context/AuthContext';
 
 function DashboardProfileRoute() {
   const { user } = useAuth();
   return user?.role === 'admin' ? <AdminProfilePage /> : <ProfilePage />;
-}
-function DashboardSettingsRoute() {
-  const { user } = useAuth();
-  return user?.role === 'admin' ? <AdminSettingsPage /> : <SettingsPage />;
 }
 function DashboardNotificationsRoute() {
   const { user } = useAuth();
@@ -337,7 +332,6 @@ function App() {
                     <Route path="/dashboard/messaging" element={<SecureMessagingPage />} />
                     {/* Harmonisation des routes profil, notifications, settings pour l'admin */}
                     <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardProfileRoute /></ProtectedRoute>} />
-                    <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardSettingsRoute /></ProtectedRoute>} />
                     <Route path="/dashboard/notifications" element={<ProtectedRoute><DashboardNotificationsRoute /></ProtectedRoute>} />
                     <Route path="/dashboard/case-tracking/:id" element={<CaseTrackingPage />} />
                     <Route path="/dashboard/digital-vault" element={<DigitalVaultPage />} />

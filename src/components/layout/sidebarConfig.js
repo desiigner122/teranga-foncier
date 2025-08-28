@@ -10,7 +10,7 @@ import {
 
 const commonLinks = {
     profile: { label: 'Mon Profil', href: '/dashboard/profile', icon: User, end: true },
-    settings: { label: 'Paramètres', href: '/dashboard/settings', icon: Settings, end: true },
+    // settings: { label: 'Paramètres', href: '/dashboard/settings', icon: Settings, end: true },
     notifications: { label: 'Notifications', href: '/dashboard/notifications', icon: Bell, end: true },
     messaging: { label: 'Messagerie', href: '/dashboard/messaging', icon: MessageSquare, end: true },
     // logout supprimé, géré par bouton dans la sidebar
@@ -67,7 +67,7 @@ const adminConfig = [
     { isSeparator: true },
     { isHeader: true, label: 'MON COMPTE' },
     commonLinks.profile,
-    commonLinks.settings,
+    // commonLinks.settings,
     commonLinks.notifications,
     commonLinks.messaging,
     commonLinks.logout,
