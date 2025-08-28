@@ -40,7 +40,10 @@ const AdminProfilePage = () => {
       const { error: updateError } = await supabase.from('profiles').update({ full_name: fullName, avatar_url: finalAvatarUrl }).eq('id', user.id);
       if (updateError) throw updateError;
       setSuccess('Profil mis à jour avec succès.');
-      if (refreshProfile) refreshProfile();
+      if (refreshProfile) await refreshProfile();
+      if (typeof window !== 'undefined') {
+        setTimeout(() => window.location.reload(), 500);
+      }
     } catch (err) {
       setError(err.message || 'Erreur lors de la mise à jour du profil.');
     } finally {
