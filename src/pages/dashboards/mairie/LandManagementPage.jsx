@@ -196,7 +196,7 @@ const LandManagementPage = () => {
               <tbody>
                 {filteredParcels.map(p => (
                   <tr key={p.id} className="border-b hover:bg-muted/30">
-                    <td className="p-2 font-mono">{p.reference}</td> {/* <-- CORRECTION APPLIQUÉE ICI */}
+                    <td className="p-2 font-mono">{p.reference}</td>
                     <td className="p-2">{p.location_name}</td>
                     <td className="p-2">{p.area_sqm}</td>
                     <td className="p-2">
