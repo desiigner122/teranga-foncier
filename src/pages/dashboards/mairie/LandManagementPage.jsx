@@ -28,7 +28,6 @@ const LandManagementPage = () => {
     const loadMunicipalParcels = async () => {
       try {
         setLoading(true);
-        // Récupérer toutes les parcelles publiques/municipales
         const allParcels = await SupabaseDataService.getParcels();
         const municipalParcels = allParcels.filter(p => 
           p.owner_type === 'Mairie' || 
@@ -49,19 +48,18 @@ const LandManagementPage = () => {
     };
     const loadUsers = async () => {
       try {
-        // Charger tous les utilisateurs pouvant être bénéficiaires (particuliers)
         const { data, error } = await SupabaseDataService.listUsers({ type: 'Particulier' });
         if (!error && data) setUsers(data);
       } catch (e) { /* ignore */ }
     };
     loadMunicipalParcels();
     loadUsers();
-  }, []);
+  }, [toast]);
 
   const zones = useMemo(() => Array.from(new Set(parcels.map(p => p.zone).filter(Boolean))).sort(), [parcels]);
   const filteredParcels = useMemo(() => {
     return parcels.filter(p => {
-      const matchSearch = !searchTerm || [p.reference, p.location_name, p.zone].some(v => (v||'').toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchSearch = !searchTerm || [p.reference, p.location_name, p.zone].some(v => (v||'').toString().toLowerCase().includes(searchTerm.toLowerCase()));
       const matchStatus = !statusFilter || p.status === statusFilter;
       const matchZone = !zoneFilter || p.zone === zoneFilter;
       return matchSearch && matchStatus && matchZone;
@@ -75,6 +73,7 @@ const LandManagementPage = () => {
       toast({ title:'Statut mis à jour', description:`${parcel.reference||parcel.id} -> ${newStatus}` });
     } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Maj statut impossible'}); }
   };
+
   const archiveParcel = async (parcel) => {
     if (!window.confirm('Voulez-vous vraiment archiver cette parcelle ?')) return;
     try {
@@ -83,6 +82,7 @@ const LandManagementPage = () => {
       toast({ title:'Parcelle archivée' });
     } catch(e){ toast({ variant:'destructive', title:'Erreur', description:'Archive impossible'}); }
   };
+
   const handleAttribution = async (data) => {
     try {
       setCreating(true);
@@ -90,7 +90,6 @@ const LandManagementPage = () => {
       setParcels(prev => [created, ...prev]);
       toast({ title:'Parcelle attribuée', description:`${created.reference || created.id} attribuée avec succès.` });
       setShowCreate(false);
-      // Notification automatique au bénéficiaire
       if (data.beneficiary_id) {
         await SupabaseDataService.createNotification({
           userId: data.beneficiary_id,
@@ -116,22 +115,19 @@ const LandManagementPage = () => {
     );
   }
 
-  // Rassembler tous les documents des parcelles attribuées
   const allDocuments = parcels
     .filter(p => Array.isArray(p.documents) && p.documents.length)
     .flatMap(p => p.documents.map((doc, idx) => ({
       ...doc,
       parcelReference: p.reference,
       id: doc.id || doc.url || doc.name || `${p.reference}-${idx}`,
-      url: doc.url || doc.link || '', // fallback url
+      url: doc.url || doc.link || '',
     })))
-    .filter(doc => !!doc.url); // On ne garde que les documents avec une url valide
+    .filter(doc => !!doc.url);
 
-  // Timeline modal state
   const [showTimeline, setShowTimeline] = useState(false);
   const [timelineParcel, setTimelineParcel] = useState(null);
 
-  // Générer un historique simple pour la timeline (à adapter selon la structure réelle)
   const getParcelHistory = (parcel) => {
     if (!parcel || typeof parcel !== 'object') return [];
     const safe = (v) => (typeof v === 'string' ? v : (v ? String(v) : ''));
@@ -140,7 +136,6 @@ const LandManagementPage = () => {
     if ((parcel.status === 'Attribuée' && parcel.beneficiary_id) && parcel.updated_at) history.push({ status: 'attributed', date: safe(parcel.updated_at), description: 'Attribuée au bénéficiaire' });
     if ((parcel.status === 'Validée' || parcel.validated_by_notary) && parcel.validated_at) history.push({ status: 'validated', date: safe(parcel.validated_at), description: 'Validée par notaire' });
     if ((parcel.status === 'Archivée' || parcel.archived) && parcel.archived_at) history.push({ status: 'archived', date: safe(parcel.archived_at), description: 'Parcelle archivée' });
-    // Nettoyage : on ne garde que les objets valides et complets
     return history.filter(e => e && typeof e === 'object' && e.status && e.date && e.description);
   };
 
@@ -194,31 +189,35 @@ const LandManagementPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredParcels.map(p => {
-                  // Ligne de débogage pour inspecter l'objet parcelle dans la console
-                  console.log('[DEBUG PARCELLE]', p); 
-                  
-                  return (
-                    <tr key={p.id} className="border-b hover:bg-muted/30">
-                      <td className="p-2 font-mono">{p.reference}</td>
-                      <td className="p-2">{p.location_name}</td>
-                      <td className="p-2">{p.area_sqm}</td>
-                      <td className="p-2">
-                        <select className="border rounded px-1 py-1 text-xs" value={p.status} onChange={(e)=>updateParcelInline(p, e.target.value)}>
-                          <option>Disponible</option>
-                          <option>Occupé</option>
-                          <option>EnProjet</option>
-                          <option>Archivé</option>
-                        </select>
-                      </td>
-                      <td className="p-2 text-right flex gap-2 justify-end">
-                        <Button asChild variant="outline" size="sm"><Link to={`/parcelles/${p.id}`}><Eye className="mr-1 h-4 w-4" />Détails</Link></Button>
-                        <Button size="sm" variant="ghost" onClick={()=>archiveParcel(p)} disabled={p.archived}><Archive className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={()=>{if(p && typeof p==='object' && p.id){setTimelineParcel(p);setShowTimeline(true);}}}>Timeline</Button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {filteredParcels.map(p => (
+                  <tr key={p.id} className="border-b hover:bg-muted/30">
+                    <td className="p-2 font-mono">{p.reference}</td>
+                    
+                    {/* CORRECTION : Vérifie si la localisation est un objet avant de l'afficher */}
+                    <td className="p-2">
+                      {typeof p.location_name === 'object' && p.location_name !== null ? p.location_name.name : p.location_name}
+                    </td>
+
+                    {/* CORRECTION : Vérifie si la surface est un objet avant de l'afficher */}
+                    <td className="p-2">
+                      {typeof p.area_sqm === 'object' && p.area_sqm !== null ? p.area_sqm.value : p.area_sqm}
+                    </td>
+
+                    <td className="p-2">
+                      <select className="border rounded px-1 py-1 text-xs" value={p.status} onChange={(e)=>updateParcelInline(p, e.target.value)}>
+                        <option>Disponible</option>
+                        <option>Occupé</option>
+                        <option>EnProjet</option>
+                        <option>Archivé</option>
+                      </select>
+                    </td>
+                    <td className="p-2 text-right flex gap-2 justify-end">
+                      <Button asChild variant="outline" size="sm"><Link to={`/parcelles/${p.id}`}><Eye className="mr-1 h-4 w-4" />Détails</Link></Button>
+                      <Button size="sm" variant="ghost" onClick={()=>archiveParcel(p)} disabled={p.archived}><Archive className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="ghost" onClick={()=>{if(p && typeof p==='object' && p.id){setTimelineParcel(p);setShowTimeline(true);}}}>Timeline</Button>
+                    </td>
+                  </tr>
+                ))}
                 {!filteredParcels.length && (
                   <tr>
                     <td colSpan={5} className="p-4 text-center text-muted-foreground text-sm">Aucune parcelle ne correspond aux filtres.</td>
@@ -243,10 +242,8 @@ const LandManagementPage = () => {
           </div>
         </div>
       )}
-      {/* Portefeuille documentaire communal */}
       <DocumentWallet documents={allDocuments} />
 
-      {/* Modal Timeline */}
       {showTimeline && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-background rounded-lg shadow-xl w-full max-w-lg relative p-6">
@@ -256,18 +253,16 @@ const LandManagementPage = () => {
             {(() => {
               try {
                 const history = getParcelHistory(timelineParcel);
-                console.log('[DEBUG] timelineParcel:', timelineParcel);
-                console.log('[DEBUG] getParcelHistory:', history);
-                if (timelineParcel && typeof timelineParcel === 'object' && Array.isArray(history) && history.length > 0) {
+                if (timelineParcel && Array.isArray(history) && history.length > 0) {
                   return <>
                     <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
                     <ParcelTimeline history={history} />
                   </>;
                 } else {
-                  return <div className="text-red-600 font-bold">Impossible d’afficher la timeline : données de parcelle absentes, invalides ou sans historique.<br/>Contactez le support si le problème persiste.</div>;
+                  return <div className="text-center text-muted-foreground">Aucun historique disponible pour cette parcelle.</div>;
                 }
               } catch (err) {
-                return <div className="text-red-700 font-bold">Erreur inattendue lors du rendu de la timeline : {String(err && err.message ? err.message : err)}<br/>Contactez le support.</div>;
+                return <div className="text-red-600 font-bold">Erreur lors du rendu de la timeline.</div>;
               }
             })()}
           </div>
