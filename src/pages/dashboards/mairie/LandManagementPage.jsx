@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import DocumentWallet from '@/components/mairie/DocumentWallet';
-import ParcelTimeline from '@/components/mairie/ParcelTimeline';
-import AttributionForm from '@/components/mairie/AttributionForm';
-import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LandPlot, PlusCircle, Search, Filter, Eye, X, Archive } from 'lucide-react';
+import { LandPlot, PlusCircle, Eye, X, Archive, Search } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { SupabaseDataService } from '@/services/supabaseDataService';
 import LoadingSpinner from '@/components/ui/spinner';
+import DocumentWallet from '@/components/mairie/DocumentWallet';
+import ParcelTimeline from '@/components/mairie/ParcelTimeline';
+import AttributionForm from '@/components/mairie/AttributionForm';
 
 const LandManagementPage = () => {
   const { toast } = useToast();
@@ -22,74 +21,66 @@ const LandManagementPage = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [users, setUsers] = useState([]);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [timelineParcel, setTimelineParcel] = useState(null);
 
   useEffect(() => {
-    const loadData = async () => {
+    async function loadData() {
+      setLoading(true);
       try {
-        setLoading(true);
-        
-        // CORRECTION 1 : J'ai remplacé "listUsers" par "getUsers". 
-        // VÉRIFIEZ LE VRAI NOM DE LA FONCTION DANS VOTRE FICHIER de service.
-        const [parcelsData, usersResponse] = await Promise.all([
-          SupabaseDataService.getParcels(),
-          SupabaseDataService.getUsers({ type: 'Particulier' }) 
-        ]);
-
-        const municipalParcels = parcelsData.filter(p =>
+        const allParcels = await SupabaseDataService.getParcels();
+        setParcels(allParcels.filter(p =>
           p.owner_type === 'Mairie' ||
           p.owner_type === 'Public' ||
           p.legal_status === 'municipal'
-        );
-        
-        setParcels(municipalParcels);
-        
-        if (usersResponse && !usersResponse.error) {
-          setUsers(usersResponse.data);
-        }
-
+        ));
+        const { data, error } = await SupabaseDataService.listUsers({ type: 'Particulier' });
+        if (!error && data) setUsers(data);
       } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Impossible de charger les données. Vérifiez le nom de la fonction getUsers."
-        });
+        toast({ variant: "destructive", title: "Erreur", description: "Impossible de charger les données" });
       } finally {
         setLoading(false);
       }
-    };
+    }
     loadData();
   }, [toast]);
-  
+
   const zones = useMemo(() => Array.from(new Set(parcels.map(p => p.zone).filter(Boolean))).sort(), [parcels]);
-  
-  const filteredParcels = useMemo(() => {
-    return parcels.filter(p => {
-      const locationString = (p.location_name && typeof p.location_name === 'object') ? p.location_name.name : p.location_name;
-      const matchSearch = !searchTerm || [p.reference, locationString, p.zone].some(v => (v||'').toString().toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchStatus = !statusFilter || p.status === statusFilter;
-      const matchZone = !zoneFilter || p.zone === zoneFilter;
-      return matchSearch && matchStatus && matchZone;
-    });
-  }, [parcels, searchTerm, statusFilter, zoneFilter]);
+  const filteredParcels = useMemo(() => parcels.filter(p => {
+    const matchSearch = !searchTerm || [p.reference, p.location_name, p.zone].some(v => (v || '').toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchStatus = !statusFilter || p.status === statusFilter;
+    const matchZone = !zoneFilter || p.zone === zoneFilter;
+    return matchSearch && matchStatus && matchZone;
+  }), [parcels, searchTerm, statusFilter, zoneFilter]);
+  const allDocuments = useMemo(() => parcels
+    .filter(p => Array.isArray(p.documents) && p.documents.length)
+    .flatMap(p => p.documents.map((doc, idx) => ({
+      ...doc,
+      parcelReference: p.reference,
+      id: doc.id || doc.url || doc.name || `${p.reference}-${idx}`,
+      url: doc.url || doc.link || '',
+    })))
+    .filter(doc => !!doc.url), [parcels]);
 
   const updateParcelInline = async (parcel, newStatus) => {
     try {
       const updated = await SupabaseDataService.updateProperty(parcel.id, { status: newStatus });
       setParcels(ps => ps.map(p => p.id === parcel.id ? { ...p, ...updated } : p));
       toast({ title: 'Statut mis à jour', description: `${parcel.reference || parcel.id} -> ${newStatus}` });
-    } catch(e) { toast({ variant: 'destructive', title: 'Erreur', description: 'Mise à jour du statut impossible' }); }
+    } catch {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Maj statut impossible' });
+    }
   };
-
   const archiveParcel = async (parcel) => {
     if (!window.confirm('Voulez-vous vraiment archiver cette parcelle ?')) return;
     try {
       const updated = await SupabaseDataService.updateProperty(parcel.id, { archived: true, status: 'Archivé' });
       setParcels(ps => ps.map(p => p.id === parcel.id ? { ...p, ...updated } : p));
       toast({ title: 'Parcelle archivée' });
-    } catch(e) { toast({ variant: 'destructive', title: 'Erreur', description: 'Archivage impossible' }); }
+    } catch {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Archive impossible' });
+    }
   };
-
   const handleAttribution = async (data) => {
     try {
       setCreating(true);
@@ -107,26 +98,35 @@ const LandManagementPage = () => {
         });
       }
     } catch (error) {
-      console.error(error);
       toast({ variant: 'destructive', title: 'Erreur attribution', description: "Impossible d'attribuer la parcelle" });
     } finally {
       setCreating(false);
     }
   };
 
+  const getParcelHistory = (parcel) => {
+    if (!parcel || typeof parcel !== 'object') return [];
+    const safe = (v) => (typeof v === 'string' ? v : (v ? String(v) : ''));
+    const history = [];
+    if (parcel.created_at) history.push({ status: 'created', date: safe(parcel.created_at), description: 'Parcelle créée' });
+    if ((parcel.status === 'Attribuée' && parcel.beneficiary_id) && parcel.updated_at) history.push({ status: 'attributed', date: safe(parcel.updated_at), description: 'Attribuée au bénéficiaire' });
+    if ((parcel.status === 'Validée' || parcel.validated_by_notary) && parcel.validated_at) history.push({ status: 'validated', date: safe(parcel.validated_at), description: 'Validée par notaire' });
+    if ((parcel.status === 'Archivée' || parcel.archived) && parcel.archived_at) history.push({ status: 'archived', date: safe(parcel.archived_at), description: 'Parcelle archivée' });
+    return history.filter(e => e && typeof e === 'object' && e.status && e.date && e.description);
+  };
+
   if (loading) {
-    return <div className="flex items-center justify-center h-full"><LoadingSpinner size="large" /></div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <LoadingSpinner size="large" />
+      </div>
+    );
   }
 
-  // ... (Le reste du code reste identique jusqu'au tableau)
-
-  const [showTimeline, setShowTimeline] = useState(false);
-  const [timelineParcel, setTimelineParcel] = useState(null);
-  
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-6">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold flex items-center"><LandPlot className="mr-3 h-8 w-8"/>Gestion Foncière Communale</h1>
+        <h1 className="text-3xl font-bold flex items-center"><LandPlot className="mr-3 h-8 w-8" />Gestion Foncière Communale</h1>
         <Button onClick={() => setShowCreate(true)}><PlusCircle className="mr-2 h-4 w-4" /> Ajouter un Terrain</Button>
       </div>
 
@@ -149,7 +149,9 @@ const LandManagementPage = () => {
               {zones.map(z => <option key={z} value={z}>{z}</option>)}
             </select>
             {(searchTerm || statusFilter || zoneFilter) && (
-              <Button variant="ghost" onClick={() => { setSearchTerm(''); setStatusFilter(''); setZoneFilter(''); }}><X className="mr-1 h-4 w-4"/>Réinit.</Button>
+              <Button variant="ghost" onClick={() => { setSearchTerm(''); setStatusFilter(''); setZoneFilter(''); }}>
+                <X className="mr-1 h-4 w-4" />Réinit.
+              </Button>
             )}
           </div>
         </CardHeader>
@@ -169,17 +171,10 @@ const LandManagementPage = () => {
                 {filteredParcels.map(p => (
                   <tr key={p.id} className="border-b hover:bg-muted/30">
                     <td className="p-2 font-mono">{p.reference}</td>
-                    
-                    {/* CORRECTION 2 : Protection contre l'erreur #310 */}
+                    <td className="p-2">{p.location_name}</td>
+                    <td className="p-2">{p.area_sqm}</td>
                     <td className="p-2">
-                      {p.location_name && typeof p.location_name === 'object' ? p.location_name.name : p.location_name}
-                    </td>
-                    <td className="p-2">
-                      {p.area_sqm && typeof p.area_sqm === 'object' ? p.area_sqm.value : p.area_sqm}
-                    </td>
-
-                    <td className="p-2">
-                      <select className="border rounded px-1 py-1 text-xs" value={p.status} onChange={(e) => updateParcelInline(p, e.target.value)}>
+                      <select className="border rounded px-1 py-1 text-xs" value={p.status} onChange={e => updateParcelInline(p, e.target.value)}>
                         <option>Disponible</option>
                         <option>Occupé</option>
                         <option>EnProjet</option>
@@ -189,7 +184,7 @@ const LandManagementPage = () => {
                     <td className="p-2 text-right flex gap-2 justify-end">
                       <Button asChild variant="outline" size="sm"><Link to={`/parcelles/${p.id}`}><Eye className="mr-1 h-4 w-4" />Détails</Link></Button>
                       <Button size="sm" variant="ghost" onClick={() => archiveParcel(p)} disabled={p.archived}><Archive className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" onClick={() => { setTimelineParcel(p); setShowTimeline(true); }}>Timeline</Button>
+                      <Button size="sm" variant="ghost" onClick={() => { if (p && typeof p === 'object' && p.id) { setTimelineParcel(p); setShowTimeline(true); } }}>Timeline</Button>
                     </td>
                   </tr>
                 ))}
@@ -204,10 +199,50 @@ const LandManagementPage = () => {
         </CardContent>
       </Card>
 
-      {/* Les modales (AttributionForm, DocumentWallet, ParcelTimeline) restent identiques */}
+      {showCreate && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg shadow-xl w-full max-w-lg relative">
+            <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={() => !creating && setShowCreate(false)}>
+              <X className="h-5 w-5" />
+            </button>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Attribuer une parcelle</h2>
+              <AttributionForm onSubmit={handleAttribution} users={users} loading={creating} />
+            </div>
+          </div>
+        </div>
+      )}
 
-    </motion.div>
+      <DocumentWallet documents={allDocuments} />
+
+      {showTimeline && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg shadow-xl w-full max-w-lg relative p-6">
+            <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={() => setShowTimeline(false)}>
+              <span className="text-lg">×</span>
+            </button>
+            {(() => {
+              try {
+                const history = getParcelHistory(timelineParcel);
+                if (timelineParcel && typeof timelineParcel === 'object' && Array.isArray(history) && history.length > 0) {
+                  return (
+                    <React.Fragment>
+                      <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
+                      <ParcelTimeline history={history} />
+                    </React.Fragment>
+                  );
+                } else {
+                  return <div className="text-red-600 font-bold">Impossible d’afficher la timeline : données de parcelle absentes, invalides ou sans historique.<br />Contactez le support si le problème persiste.</div>;
+                }
+              } catch (err) {
+                return <div className="text-red-700 font-bold">Erreur inattendue lors du rendu de la timeline : {String(err && err.message ? err.message : err)}<br />Contactez le support.</div>;
+              }
+            })()}
+          </div>
+        </div>
+      )}
+    </div>
   );
-};
+}
 
 export default LandManagementPage;
