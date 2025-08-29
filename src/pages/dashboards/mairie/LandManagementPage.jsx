@@ -194,26 +194,31 @@ const LandManagementPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredParcels.map(p => (
-                  <tr key={p.id} className="border-b hover:bg-muted/30">
-                    <td className="p-2 font-mono">{p.reference}</td>
-                    <td className="p-2">{p.location_name}</td>
-                    <td className="p-2">{p.area_sqm}</td>
-                    <td className="p-2">
-                      <select className="border rounded px-1 py-1 text-xs" value={p.status} onChange={(e)=>updateParcelInline(p, e.target.value)}>
-                        <option>Disponible</option>
-                        <option>Occupé</option>
-                        <option>EnProjet</option>
-                        <option>Archivé</option>
-                      </select>
-                    </td>
-                    <td className="p-2 text-right flex gap-2 justify-end">
-                      <Button asChild variant="outline" size="sm"><Link to={`/parcelles/${p.id}`}><Eye className="mr-1 h-4 w-4" />Détails</Link></Button>
-                      <Button size="sm" variant="ghost" onClick={()=>archiveParcel(p)} disabled={p.archived}><Archive className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" onClick={()=>{if(p && typeof p==='object' && p.id){setTimelineParcel(p);setShowTimeline(true);}}}>Timeline</Button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredParcels.map(p => {
+                  // Ligne de débogage pour inspecter l'objet parcelle dans la console
+                  console.log('[DEBUG PARCELLE]', p); 
+                  
+                  return (
+                    <tr key={p.id} className="border-b hover:bg-muted/30">
+                      <td className="p-2 font-mono">{p.reference}</td>
+                      <td className="p-2">{p.location_name}</td>
+                      <td className="p-2">{p.area_sqm}</td>
+                      <td className="p-2">
+                        <select className="border rounded px-1 py-1 text-xs" value={p.status} onChange={(e)=>updateParcelInline(p, e.target.value)}>
+                          <option>Disponible</option>
+                          <option>Occupé</option>
+                          <option>EnProjet</option>
+                          <option>Archivé</option>
+                        </select>
+                      </td>
+                      <td className="p-2 text-right flex gap-2 justify-end">
+                        <Button asChild variant="outline" size="sm"><Link to={`/parcelles/${p.id}`}><Eye className="mr-1 h-4 w-4" />Détails</Link></Button>
+                        <Button size="sm" variant="ghost" onClick={()=>archiveParcel(p)} disabled={p.archived}><Archive className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="ghost" onClick={()=>{if(p && typeof p==='object' && p.id){setTimelineParcel(p);setShowTimeline(true);}}}>Timeline</Button>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {!filteredParcels.length && (
                   <tr>
                     <td colSpan={5} className="p-4 text-center text-muted-foreground text-sm">Aucune parcelle ne correspond aux filtres.</td>
