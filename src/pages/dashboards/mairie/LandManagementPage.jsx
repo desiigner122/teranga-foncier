@@ -247,14 +247,20 @@ const LandManagementPage = () => {
             <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={()=>setShowTimeline(false)}>
               <span className="text-lg">×</span>
             </button>
-            {timelineParcel && typeof timelineParcel === 'object' && Array.isArray(getParcelHistory(timelineParcel)) && getParcelHistory(timelineParcel).length > 0 ? (
-              <>
-                <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
-                <ParcelTimeline history={getParcelHistory(timelineParcel)} />
-              </>
-            ) : (
-              <div className="text-red-600 font-bold">Impossible d’afficher la timeline : données de parcelle absentes, invalides ou sans historique.<br/>Contactez le support si le problème persiste.</div>
-            )}
+            {(() => {
+              try {
+                if (timelineParcel && typeof timelineParcel === 'object' && Array.isArray(getParcelHistory(timelineParcel)) && getParcelHistory(timelineParcel).length > 0) {
+                  return <>
+                    <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
+                    <ParcelTimeline history={getParcelHistory(timelineParcel)} />
+                  </>;
+                } else {
+                  return <div className="text-red-600 font-bold">Impossible d’afficher la timeline : données de parcelle absentes, invalides ou sans historique.<br/>Contactez le support si le problème persiste.</div>;
+                }
+              } catch (err) {
+                return <div className="text-red-700 font-bold">Erreur inattendue lors du rendu de la timeline : {String(err && err.message ? err.message : err)}<br/>Contactez le support.</div>;
+              }
+            })()}
           </div>
         </div>
       )}
