@@ -249,10 +249,13 @@ const LandManagementPage = () => {
             </button>
             {(() => {
               try {
-                if (timelineParcel && typeof timelineParcel === 'object' && Array.isArray(getParcelHistory(timelineParcel)) && getParcelHistory(timelineParcel).length > 0) {
+                const history = getParcelHistory(timelineParcel);
+                console.log('[DEBUG] timelineParcel:', timelineParcel);
+                console.log('[DEBUG] getParcelHistory:', history);
+                if (timelineParcel && typeof timelineParcel === 'object' && Array.isArray(history) && history.length > 0) {
                   return <>
                     <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
-                    <ParcelTimeline history={getParcelHistory(timelineParcel)} />
+                    <ParcelTimeline history={history} />
                   </>;
                 } else {
                   return <div className="text-red-600 font-bold">Impossible d’afficher la timeline : données de parcelle absentes, invalides ou sans historique.<br/>Contactez le support si le problème persiste.</div>;

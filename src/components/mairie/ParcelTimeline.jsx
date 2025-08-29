@@ -9,6 +9,7 @@ const statusMap = {
 };
 
 const ParcelTimeline = ({ history = [] }) => {
+  console.log('[DEBUG] ParcelTimeline history:', history);
   if (!history.length) return <div className="text-muted-foreground text-sm">Aucune étape enregistrée.</div>;
   return (
     <ol className="relative border-l border-gray-200 dark:border-gray-700 ml-4">
