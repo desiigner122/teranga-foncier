@@ -247,13 +247,13 @@ const LandManagementPage = () => {
             <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" onClick={()=>setShowTimeline(false)}>
               <span className="text-lg">×</span>
             </button>
-            {timelineParcel && typeof timelineParcel === 'object' ? (
+            {timelineParcel && typeof timelineParcel === 'object' && Array.isArray(getParcelHistory(timelineParcel)) && getParcelHistory(timelineParcel).length > 0 ? (
               <>
                 <h2 className="text-xl font-semibold mb-4">Historique de la parcelle {timelineParcel.reference}</h2>
-                <ParcelTimeline history={Array.isArray(getParcelHistory(timelineParcel)) ? getParcelHistory(timelineParcel) : []} />
+                <ParcelTimeline history={getParcelHistory(timelineParcel)} />
               </>
             ) : (
-              <div className="text-red-600 font-bold">Aucune donnée de parcelle sélectionnée ou donnée invalide.<br/>Vérifiez la structure de la parcelle ou contactez le support.</div>
+              <div className="text-red-600 font-bold">Impossible d’afficher la timeline : données de parcelle absentes, invalides ou sans historique.<br/>Contactez le support si le problème persiste.</div>
             )}
           </div>
         </div>
