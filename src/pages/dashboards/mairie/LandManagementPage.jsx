@@ -140,7 +140,8 @@ const LandManagementPage = () => {
     if ((parcel.status === 'Attribuée' && parcel.beneficiary_id) && parcel.updated_at) history.push({ status: 'attributed', date: safe(parcel.updated_at), description: 'Attribuée au bénéficiaire' });
     if ((parcel.status === 'Validée' || parcel.validated_by_notary) && parcel.validated_at) history.push({ status: 'validated', date: safe(parcel.validated_at), description: 'Validée par notaire' });
     if ((parcel.status === 'Archivée' || parcel.archived) && parcel.archived_at) history.push({ status: 'archived', date: safe(parcel.archived_at), description: 'Parcelle archivée' });
-    return Array.isArray(history) ? history : [];
+    // Nettoyage : on ne garde que les objets valides et complets
+    return history.filter(e => e && typeof e === 'object' && e.status && e.date && e.description);
   };
 
   return (
